@@ -1,0 +1,17 @@
+Package: PAS.150
+Title: Dashboard para elaborar PAS 150
+Version: 0.0.0.9000
+Authors@R: 
+    person("David", "Martínez", , "david.tinez1@gmail.com", role = c("aut", "cre"))
+Description: Paquete realizado para ayudar en la elaboracion del informe de experto del PAS 150.
+License: GPL (>= 3)
+Imports: 
+    config,
+    golem,
+    shiny
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
