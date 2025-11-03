@@ -1,0 +1,93 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# `{PAS.150}`
+
+<!-- badges: start -->
+
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![Codecov test
+coverage](https://codecov.io/gh/DavidJMartinezS/PAS.150/graph/badge.svg)](https://app.codecov.io/gh/DavidJMartinezS/PAS.150)
+<!-- badges: end -->
+
+Este paquete está elaborado con el propósito de ayudar en la elaboración
+del informe de experto del Permisos Ambientales Sectoriales (PAS) 150,
+por medio de una aplicación que facilita la elaboración de la
+cartografía digital, apéndices, entre otros. El paquete consta
+principalmente de la aplicación, además de algunas funciones que son
+utilizadas en esta misma que podrian ejecutarse en un entorno de R. Para
+un uso correcto de la aplicación, por favor tener en consideración las
+instrucciones que están en la primera página de la aplicación.
+
+## Installation
+
+Para la instalación del paquete `{PAS.150}` debe de ejecutar:
+
+``` r
+options(timeout = 600)
+remotes::install_github("DavidJMartinezS/dataPAS", dependencies = T, force = T)
+remotes::install_github("DavidJMartinezS/PAS148y151", dependencies = T, force = T)LE INSTALL YOUR DEV PACKAGE?
+```
+
+## Run
+
+You can launch the application by running:
+
+``` r
+PAS.150::run_app()
+```
+
+## Uso del paquete
+
+El paquete esta hecho para que pueda ser usado tanto como en el entorno
+de R mediante funciones o bien en el entorno de la aplicación. Para
+iniciar la aplicación correr la función:
+
+``` r
+PAS.150::run_app()
+```
+
+Antes de todo, leer atentamente el detalle acerca del uso adecuado de la
+aplicación. Estas se encuentran en el acordeón que está en la pestaña
+‘Importante’ al iniciar la aplicación.
+
+### Cartografía digital
+
+Para generar la cartografía digital debe ingresar al menos 4 inputs
+basicos, que son: \* Cartografía de uso y vegetación de la cuenca \*
+Especie objeto del informe \* Layout de obras \* Compilado de censos
+
+Adicionalmente a estos se pueden ingresar los BNP a intervenir y
+alterar. Si estas contienen el campo “Censado”, donde por medio de “si”
+o “no” se indique si el poligono fue o no censado. Se podrán crear las
+capas de estimación de censo a intervenir y alterar. Para la alteración
+se puede añadir la capa con solo la superficie de alteración y las obras
+que alteran, o bien subir el BNP a alterar con todos sus campos ya
+listos, pero se debe declarar si la capa que ingresa esta o no lista.
+
+También se permite ingresar las bases de datos de flora e inventarios
+forestales. Si se ingresan se crearán las capas de parcelas
+correspondientes a estas junto con la prospección pedestre la cual
+influye igual los censos.
+
+Por otra parte, esta la opción de incluir las capas de bases
+cartográficas, que son las capas de caminos, hidrografía y curvas de
+nivel.
+
+### Apéndice
+
+Los apéndices del PAS 150 los siguientes 3:
+
+- Apéndice BD inventarios forestales: requiere cargar previamente la
+  base de datos de inventarios forestales y la cartografía de uso y
+  vegetación.
+- Apéndice BD biodiversidad: Este se genera junto con los otros inputs y
+  requiere cargar previamente la base de datos de flora y la cartografía
+  de uso y vegetación.
+- Apéndice BD fragmentación: Este se genera en la ventana de
+  “Fragmentación” y requiere cargar previamente la capa de uso y
+  vegetación y la de obras.
+
+**Se solicita reportar cualquier error o bug de la aplicación y/o sus
+funciones**
