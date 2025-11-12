@@ -86,8 +86,8 @@ mod_biodiversidad_server <- function(id, rv){
     output$plt_habito <- plotly::renderPlotly({
       req(rv$BD_biodiversidad)
       habito <- rv$BD_biodiversidad$composicion %>%
-        dplyr::count(Habito) %>% 
-      paleta_habito <- ggthemes::ggthemes_data[["tableau"]][["color-palettes"]][["regular"]]$`Miller Stone` %>% slice(1:nrow(habito)) %>% .$value
+        dplyr::count(Habito)
+      paleta_habito <- ggthemes::ggthemes_data[["tableau"]][["color-palettes"]][["regular"]]$`Miller Stone` %>% dplyr::slice(1:nrow(habito)) %>% .$value
       plotly::plot_ly(
         type = 'pie',
         labels = habito$Habito,
@@ -127,10 +127,10 @@ mod_biodiversidad_server <- function(id, rv){
       req(rv$BD_biodiversidad)
 
       leaflet::leaflet() %>%
-        leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron, group ="CartoDB.Positron") %>%
-        leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group ="OpenStreetMap") %>%
-        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group ="Esri.WorldImagery") %>%
-        leaflet::addProviderTiles(leaflet::providers$Esri.DeLorme, group ="Esri.DeLorme") %>%
+        leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron, group = "CartoDB.Positron") %>%
+        leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OpenStreetMap") %>%
+        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "Esri.WorldImagery") %>%
+        leaflet::addProviderTiles(leaflet::providers$Esri.DeLorme, group = "Esri.DeLorme") %>%
         leaflet::addPolygons(
           data = rv$cuenca %>% sf::st_transform(4326),
           fillColor = "transparent",
@@ -139,7 +139,7 @@ mod_biodiversidad_server <- function(id, rv){
           dashArray = "10,5"
         ) %>%
         leaflet::addPolygons(
-          data = rv$BNP_cuenca %>% sf::st_filter(obras, .predicate = sf::st_relate, pattern = "T********") %>% sf::st_transform(4326),
+          data = rv$BNP_cuenca %>% sf::st_filter(rv$obras, .predicate = sf::st_relate, pattern = "T********") %>% sf::st_transform(4326),
           fillColor = "#f1c40f",
           fillOpacity = 0.9,
           group = "BNP c/obras",
@@ -184,7 +184,7 @@ mod_biodiversidad_server <- function(id, rv){
                 "UTM N: ", janitor::round_half_up(UTM_N), "<br/>"
               )
             ) %>% 
-            sf::st_as_sf(coords = c("UTM_E", "UTM_N"), crs = 32719, remove = F) %>% 
+            sf::st_as_sf(coords = c("UTM_E", "UTM_N"), crs = get_utm_epsg(rv$BNP_cuenca), remove = F) %>% 
             sf::st_transform(4326),
           group = "PTS",
           color = "#920000",

@@ -90,10 +90,13 @@ mod_bases_carto_server <- function(id, rv){
     ns <- session$ns
 
     bind_events(
-      ids = c("add_cam", "add_hidro", "add_CN", "fuente_hidro", "dem"), 
+      ids = c("add_cam", "add_hidro", "add_CN", "fuente_hidro"), 
       rv = rv, 
       parent_input = input
     )
+    observeEvent(input$dem,{
+      rv[["dem"]] <- input$dem$datapath
+    })
 
   })
 }

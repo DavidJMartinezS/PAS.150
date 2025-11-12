@@ -28,6 +28,7 @@ app_server <- function(input, output, session) {
     in_bnp_obra = NULL,
     BD_fore = NULL,
     densidad = NULL,
+    densidad_bd = NULL,
     listo_bd_fore = NULL,
     add_cam = NULL,
     add_hidro = NULL,
@@ -47,9 +48,10 @@ app_server <- function(input, output, session) {
     BNP_antes = NULL,
     BNP_despues = NULL
   )
-
+  
   mod_input_server("input_carto", rv = rv)
   mod_check_server("check_carto", rv = rv)
+  mod_explore_bd_server("check_bd", rv = rv)
   mod_info_cuenca_server("info_cuenca", rv = rv)
   mod_uso_suelo_server("uso_suelo", rv = rv)
   mod_vegetacion_server("vegetacion", rv = rv)

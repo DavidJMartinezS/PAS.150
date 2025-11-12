@@ -11,15 +11,6 @@
 #' @returns lista con resultados asociados al apendice de biodiversidad
 #'
 #' @export
-
-# BNP_cuenca <- sf::read_sf("~/KIM735_ADENDA/BDD con R/C1/OUTPUTS/Compilado_Carto_digital_1727895600.67695/BNP_Porlieria_Cuenca.shp")
-# nom_ssubc <- BNP_cuenca$NOM_SSUBC %>% unique()
-# obras <- sf::read_sf("~/KIM735_ADENDA/BDD con R/KIM753_A1_Area_Intervencion_por_Obra_20240823.shp")
-# BD_flora <- prepare_bd_flora_150("~/KIM735_ADENDA/BDD con R/BDD_Inventarios_Flora_CXX.xlsx", BNP_cuenca, bd_lista = F, in_bnp_obra = T, obras = obras)
-# sp <- "Porlieria chilensis"
-# portada = "default"
-# portada_opts = NULL
-
 BD_biodiversidad <- function(
   BD_flora,
   sp,
@@ -68,7 +59,7 @@ BD_biodiversidad <- function(
     "otra" = if (is.null(portada_opts)) {
       portada_opts()
     } else {
-      do.call(portada_opts, portada_opts)
+      do.call(PAS.150::portada_opts, portada_opts)
     }
   )
 
@@ -114,13 +105,13 @@ BD_biodiversidad <- function(
   }
   desc_h1 <- paste0(
     "BD_Flora: Corresponde a la base de datos flora para la subsubcuenca de estudio, donde se detalla la categoría taxonómica de cada una de las especies junto con su RCE y piso vegetacional:
-Parcela: Parcela de muestreo.
-UTM_E: Coordenada central Este de la parcela de muestreo en el sistema geodésico WGS84.
-UTM_N: Coordenada central Norte de la parcela de muestreo en el sistema geodésico WGS84.
-N_ind: Número de ejemplares encontrados en la parcela de 1000 m2.
-Cob_bb: Cobertura vegetacional según Braun-Blanquet.
-RCE: Reglamento para Clasificar Especies según estado de conservación.
-DS_68: Indica si se encuentra en el listado de especies dentro del DS 68."
+    Parcela: Parcela de muestreo.
+    UTM_E: Coordenada central Este de la parcela de muestreo en el sistema geodésico WGS84.
+    UTM_N: Coordenada central Norte de la parcela de muestreo en el sistema geodésico WGS84.
+    N_ind: Número de ejemplares encontrados en la parcela de 1000 m2.
+    Cob_BB: Cobertura vegetacional según Braun-Blanquet.
+    RCE: Reglamento para Clasificar Especies según estado de conservación.
+    DS_68: Indica si se encuentra en el listado de especies dentro del DS 68."
   ) %>%
     table.fun()
   wb <- wb %>%
@@ -159,10 +150,10 @@ DS_68: Indica si se encuentra en el listado de especies dentro del DS 68."
     )
   desc_h4 <- c(
     "Índices de Biodiversidad: Esta pestaña muestra el calculo de los índices de Simpson y Shannon-Weaver, calculados a partir de la proporción de cada especie en los BNP dentro del área de proyecto.
-  n: Total de indivduos muestreados de la especie (Suma Count_500m2 x especie).
-  p: Proporción de la presencia de la especie (n/suma total(n)).
-  Ln(p): Logaritmo natural de p.
-  p x Ln(p): Producto entre p y su logaritmo natural."
+    n: Total de indivduos muestreados de la especie (Suma Count_500m2 x especie).
+    p: Proporción de la presencia de la especie (n/suma total(n)).
+    Ln(p): Logaritmo natural de p.
+    p x Ln(p): Producto entre p y su logaritmo natural."
   ) %>%
     table.fun()
   wb <- wb %>%

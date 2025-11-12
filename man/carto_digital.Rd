@@ -83,7 +83,8 @@ get_carto_digital(
   add_cam = F,
   add_hidro = F,
   fuente_hidro = c("MOP", "BCN"),
-  add_CN = F
+  add_CN = F,
+  dem = NULL
 )
 }
 \arguments{

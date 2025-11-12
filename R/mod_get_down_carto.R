@@ -73,7 +73,8 @@ mod_get_down_carto_server <- function(id, rv){
           add_cam = rv$add_cam,
           add_hidro = rv$add_hidro,
           fuente_hidro = if (rv$add_hidro) rv$fuente_hidro,
-          add_CN = rv$add_CN
+          add_CN = rv$add_CN,
+          dem = rv$dem
         )
       }, error = function(e) {
         shinyalert::shinyalert(

@@ -69,27 +69,21 @@ mod_inv_for_server <- function(id, rv){
 
     output$gt_ivi <- gt::render_gt({
       validate(need(rv$BD_inv_forestales, "Requiere haber generardo la BD de inventarios forestales"))
-      # req(rv$BD_inv_forestales)
       gt_IVI(df_ivi = rv$BD_inv_forestales$IVI)
     })
 
     output$gt_estadisticos <- gt::render_gt({
       validate(need(rv$BD_inv_forestales, "Requiere haber generardo la BD de inventarios forestales"))
-      # req(estadisticos())
       gt_estadisticos(df_est = estadisticos())
     })
 
     output$gt_IC_prop <- gt::render_gt({
       validate(need(rv$BD_inv_forestales, "Requiere haber generardo la BD de inventarios forestales"))
-      # req(estadisticos())
-      # req(rv$BD_inv_forestales)
-      # req(c(rv$BNP_cuenca, rv$sp))
       gt_prop(df_est = estadisticos(), df_prop = rv$BD_inv_forestales$prop, BNP_cuenca = rv$BNP_cuenca, sp = rv$sp)
     })
 
     output$leaf_inv_fore <- leaflet::renderLeaflet({
       validate(need(rv$BD_inv_forestales, "Requiere haber generardo la BD de inventarios forestales"))
-      # req(rv$BD_inv_forestales)
       req(c(rv$BNP_cuenca, rv$cuenca, rv$sp))
 
       leaflet::leaflet() %>%
@@ -118,13 +112,12 @@ mod_inv_for_server <- function(id, rv){
             dplyr::rename(ECC = 4) %>% 
             dplyr::mutate(popup = paste0(
               "<h2 style='font-weight: bold;text-align: center;'>", Parcela, "</h2>",
-              "UTM E: ", janitor::round_half_up(UTM_E), "<br/>",
-              "UTM N: ", janitor::round_half_up(UTM_N), "<br/>",
+              "UTM E: ", UTM_E, "<br/>",
+              "UTM N: ", UTM_N, "<br/>",
               "NHA ECC: ", ECC, "<br/>",
               "NHA Total: ", Nha_Total
             )) %>% 
-            sf::st_as_sf(coords = c("UTM_E", "UTM_N"), crs = 32719, remove = F) %>% 
-            sf::st_intersection(sf::st_union(rv$BNP_cuenca)) %>% 
+            sf::st_as_sf(coords = c("UTM_E", "UTM_N"), crs = get_utm_epsg(rv$BNP_cuenca), remove = F) %>% 
             sf::st_transform(4326),
           group = "PTS",
           color = "#920000",

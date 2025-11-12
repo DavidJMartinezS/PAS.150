@@ -65,6 +65,7 @@ golem::add_module(name = "read_sf") # Name of the module
 golem::add_module(name = "downfiles") # Name of the module
 golem::add_module(name = "input") # Name of the module
 golem::add_module(name = "check") # Name of the module
+golem::add_module(name = "check_bd") # Name of the module
 golem::add_module(name = "info_cuenca") # Name of the module
 golem::add_module(name = "basic_input") # Name of the module
 golem::add_module(name = "parcelas") # Name of the module

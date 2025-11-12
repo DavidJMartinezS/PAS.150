@@ -1,4 +1,4 @@
-#' Title
+#' BD_fragmentacion
 #'
 #' @param sf_uso objeto sf con uso de suelo
 #' @param sf_obras objeto sf con las obras
@@ -15,21 +15,7 @@
 #' @returns lista con resultados asociados al apéndice de fragmentacion
 #'
 #' @export
-
-# sf_uso <- sf::read_sf("N:/SGA890 - PAS150 DIN Lo Aguirre/009_Desarrollo/02.PAS150/01. EIA - INFORME DE EXPERTO/APÉNDICE 3. Cartografía digital/02.Uso Actual de la Tierra/SHP/SGA890_Uso_actual_de_la_tierra.shp") %>% sf::st_transform(32719)
-# sf_obras = sf::read_sf("N:/SGA890 - PAS150 DIN Lo Aguirre/009_Desarrollo/02.PAS150/Insumos/03. Obras/SGA890_Obras_areales_sin_traslapes_20251014.shp") %>% 
-#     dplyr::filter(!Obra == "Caminos existente")
-# nom_ssubc <- "Estero Lampa Entre Estero Colina y Rio Mapocho"
-# path_frag = file.path("~/SGA890/Fragstats/TABLA/JOIN_PATCH25_PROX1000.xlsx")
-# ECC = "Porlieria chilensis"
-# subusos_noveg = sort(unique(sf_uso$Subuso)) %>% 
-#   subset(stringi::stri_detect_regex(stringi::stri_trans_general(., "Latin-ASCII"), "rocoso|camino|zona|rio|lago|mineria|agricola|otros|ambiental", case_insensitive = T))
-# alteracion = T
-# spp_acomp = NULL
-# prop = NULL
-# estadisticos = NULL
-
-get_lsm_analisis <- function(
+BD_fragmentacion <- function(
   sf_uso, 
   sf_obras, 
   path_frag,
@@ -44,7 +30,6 @@ get_lsm_analisis <- function(
 ){
   valid_input(sf_uso, inherit = "sf", names = "Subuso", geometry = "POLYGON")
   valid_input(sf_obras, inherit = "sf", geometry = "POLYGON")
-  valid_input(cuenca, inherit = "sf", geometry = "POLYGON") 
   stopifnot("Extensión de archivos no válida. 'xls' o 'xlsx'." = tools::file_ext(path_frag) %in% c("xls", "xlsx"))
   valid_input(ECC, inherit = "character")
   valid_input(subusos_noveg, inherit = c("character", "NULL"))
@@ -129,8 +114,8 @@ get_lsm_analisis <- function(
     ) %>% 
     dplyr::rename(`Valoración` = VALOR, Sigla = SIGLA) %>% 
     dplyr::inner_join(tabla_guia_fragmentacion[3:6]) %>% 
-    dplyr::relocate(Parámetro, .after = Sigla) %>% 
-    dplyr::rename_all(stringr::str_to_upper)
+    dplyr::relocate(`Parámetro`, .after = Sigla) %>% 
+    dplyr::rename_all(stringi::stri_trans_toupper)
   
   # Matriz de paisaje ----
   Usos <- sf_uso %>% 
@@ -140,7 +125,7 @@ get_lsm_analisis <- function(
       Subuso
     ))   
   
-  sf_obras <- sf_obras[Usos, ]
+  sf_obras <- sf::st_union(sf_obras[Usos, ])
   
   matriz_paisaje <- Usos %>% 
     sf::st_drop_geometry() %>% 
@@ -154,12 +139,12 @@ get_lsm_analisis <- function(
         dplyr::filter(Subuso != 'Otros usos sin vegetación') %>% 
         dplyr::count(Subuso) %>% 
         dplyr::select(-n) %>%
-        dplyr::mutate(Intervención = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)) %>%
+        dplyr::mutate(`Intervención` = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)) %>%
         sf::st_drop_geometry()
     ) %>% # añadir sup a intervenir por subuso
     dplyr::mutate_at('Intervención', ~ ifelse(is.na(.), 0, .)) %>% 
     janitor::adorn_totals(name = 'Total vegetación') %>% # añadir fila total vegetacion
-    dplyr::mutate(Después = Antes - Intervención) %>% # añadir sup después
+    dplyr::mutate(`Después` = Antes - `Intervención`) %>% # añadir sup después
     dplyr::bind_rows(
       Usos %>% 
         sf::st_drop_geometry() %>% 
@@ -173,21 +158,21 @@ get_lsm_analisis <- function(
             dplyr::filter(Subuso == 'Otros usos sin vegetación') %>% 
             dplyr::count(Subuso) %>% 
             dplyr::select(-n) %>%
-            dplyr::mutate(Intervención = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)) %>%
+            dplyr::mutate(`Intervención` = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)) %>%
             sf::st_drop_geometry()
         ) %>% 
         dplyr::mutate_at('Intervención', ~ ifelse(is.na(.), 0, .)) %>% 
-        dplyr::mutate(Después = Antes - Intervención)
+        dplyr::mutate(`Después` = Antes - `Intervención`)
     ) %>% # añadir sup de otros usos
     dplyr::bind_rows(
       data.frame(
         Subuso = 'Total',
         Antes = .[] %>% dplyr::slice_tail(n = 2) %>% .$Antes %>% sum(),
-        Intervención = .[] %>% dplyr::slice_tail(n = 2) %>% .$Intervención %>% sum(),
-        Después = .[] %>% dplyr::slice_tail(n = 2) %>% .$Después %>% sum()
+        `Intervención` = .[] %>% dplyr::slice_tail(n = 2) %>% .$`Intervención` %>% sum(),
+        `Después` = .[] %>% dplyr::slice_tail(n = 2) %>% .$`Después` %>% sum()
       )
     ) %>% 
-    dplyr::mutate(Tasa = (log(Después/Antes)*100) %>% janitor::round_half_up(2)) # añadir tasa
+    dplyr::mutate(Tasa = (log(`Después`/Antes)*100) %>% janitor::round_half_up(2)) # añadir tasa
   
   densidades_prop <- if (is.null(prop)) {NULL} else {
     prop %>% 
@@ -222,8 +207,8 @@ get_lsm_analisis <- function(
       if (is.null(densidades_prop)) {
         val <- 1
       } else if (densidades_prop$Estado %>% stringi::stri_detect_regex("regenera", case_insensitive = T) %>% any()) {
-        val <- ifelse(densidades_prop[densidades_prop$Estado %>% stringr::str_detect("regenera", case_insensitive = T), "Int_inf"] > 300, 10,
-                      ifelse(densidades_prop[densidades_prop$Estado %>% stringr::str_detect("regenera", case_insensitive = T), "Int_inf"] > 100, 5, 1))
+        val <- ifelse(densidades_prop[densidades_prop$Estado %>% stringi::stri_detect_regex("regenera", case_insensitive = T), "Int_inf"] > 300, 10,
+                      ifelse(densidades_prop[densidades_prop$Estado %>% stringi::stri_detect_regex("regenera", case_insensitive = T), "Int_inf"] > 100, 5, 1))
       } else {
         val <- 1
       }
@@ -251,20 +236,20 @@ get_lsm_analisis <- function(
   }
   
   tabla_eval <- tabla_guia_fragmentacion %>% 
-    dplyr::count(N, Escala_espacial, Parámetro) %>% 
+    dplyr::count(N, Escala_espacial, `Parámetro`) %>% 
     dplyr::select(-n) %>% 
     dplyr::rename_all(stringi::stri_trans_toupper) %>% 
-    merge(df[, c(2,7:8)], by = 'PARÁMETRO', all=T) %>% 
-    dplyr::mutate(PONDERACIÓN = ifelse(ESCALA_ESPACIAL == 'PAISAJE', 0.2, ifelse(ESCALA_ESPACIAL == 'HÁBITAT', 0.5, 0.3))) %>% 
-    dplyr::select(N, ESCALA_ESPACIAL, PARÁMETRO, `VALORACIÓN`, PONDERACIÓN) %>% 
+    merge(df[, c(2,7:8)], by = 'PARÁMETRO', all = T) %>% 
+    dplyr::mutate(`PONDERACIÓN` = ifelse(ESCALA_ESPACIAL == 'PAISAJE', 0.2, ifelse(ESCALA_ESPACIAL == 'HÁBITAT', 0.5, 0.3))) %>% 
+    dplyr::select(N, ESCALA_ESPACIAL, `PARÁMETRO`, `VALORACIÓN`, `PONDERACIÓN`) %>% 
     dplyr::arrange(N) %>% 
     tibble::as_tibble() %>% 
-    dplyr::mutate(`VALORACIÓN` = purrr::map2_dbl(PARÁMETRO, `VALORACIÓN`, eval_param)) %>% 
+    dplyr::mutate(`VALORACIÓN` = purrr::map2_dbl(`PARÁMETRO`, `VALORACIÓN`, eval_param)) %>% 
     dplyr::inner_join(tabla_guia_fragmentacion[, c(3,5,6)] %>% dplyr::rename_all(stringi::stri_trans_toupper), by = c('PARÁMETRO','VALORACIÓN')) %>% 
     dplyr::rename_all(stringi::stri_trans_totitle, type = "sentence") %>% 
-    dplyr::rename(`Categoría observada` = Categorías, Valores = Valoración) %>% 
-    dplyr::mutate(`Valor ponderado` = Valores * Ponderación) %>% 
-    dplyr::select(Parámetro, `Categoría observada`, Valores, Ponderación, `Valor ponderado`) 
+    dplyr::rename(`Categoría observada` = `Categorías`, Valores = `Valoración`) %>% 
+    dplyr::mutate(`Valor ponderado` = Valores * `Ponderación`) %>% 
+    dplyr::select(`Parámetro`, `Categoría observada`, Valores, `Ponderación`, `Valor ponderado`) 
   
   ### EXCEL ----
   title_color <- openxlsx2::wb_color(hex = "#62A39F")
@@ -278,7 +263,7 @@ get_lsm_analisis <- function(
     "otra" = if (is.null(portada_opts)) {
       portada_opts()
     } else {
-      do.call(portada_opts, portada_opts)
+      do.call(PAS.150::portada_opts, portada_opts)
     }
   )
   
@@ -338,11 +323,11 @@ Tasa: Porcentaje de pérdida de superficie. Calculado como log(Después/Antes)*1
   
   dim_1 <- c(
     1,
-    nrow(desc_general)+2,
-    nrow(desc_general)+2+nrow(desc_h1)+2,
-    nrow(desc_general)+2+nrow(desc_h1)+2+nrow(desc_h2)+1
-  ) %>% stringr::str_c("A",., collapse = ";")
-  dim_2 <- dim_1 %>% stringr::str_replace_all("A", "B")
+    nrow(desc_general) + 2,
+    nrow(desc_general) + 2 + nrow(desc_h1) + 2,
+    nrow(desc_general) + 2 + nrow(desc_h1) + 2 + nrow(desc_h2) + 1
+  ) %>% paste0("A",., collapse = ";")
+  dim_2 <- dim_1 %>% stringi::stri_replace_all_fixed("A", "B")
   dim_3 <- list(desc_general, desc_h1, nota %>% tibble::as_tibble(), desc_h2, desc_h3) %>%
     purrr::map(function(x){
       x %>% tibble::add_row() %>% dplyr::mutate(n = dplyr::row_number())
@@ -352,12 +337,12 @@ Tasa: Porcentaje de pérdida de superficie. Calculado como log(Después/Antes)*1
     tibble::rownames_to_column("row") %>%
     dplyr::filter(n != 1 & !is.na(Campo)) %>% dplyr::pull(row) %>% 
     as.numeric() %>% 
-    stringr::str_c("A",.,collapse = ";")
+    paste0("A",.,collapse = ";")
   
   wb <- wb %>% 
-    openxlsx2::wb_add_cell_style(dims = dim_1 %>% stringr::str_c(dim_2,sep = ";"), horizontal = "center", vertical = "center") %>% 
+    openxlsx2::wb_add_cell_style(dims = dim_1 %>% paste(dim_2, sep = ";"), horizontal = "center", vertical = "center") %>% 
     openxlsx2::wb_add_font(dims = dim_1, bold = T, size = 12, underline = "single") %>% 
-    openxlsx2::wb_add_fill(dims = dim_1 %>% stringr::str_c(dim_2,sep = ";"), color = openxlsx2::wb_color(hex = "#D9D9D9")) %>% 
+    openxlsx2::wb_add_fill(dims = dim_1 %>% paste(dim_2, sep = ";"), color = openxlsx2::wb_color(hex = "#D9D9D9")) %>% 
     openxlsx2::wb_add_cell_style(dims = dim_3, vertical = "center") %>% 
     openxlsx2::wb_add_font(dims = dim_3, bold = T) %>% 
     openxlsx2::wb_add_cell_style(dims = openxlsx2::wb_dims(rows = 1:40, cols = 1:2), wrap_text = "1")

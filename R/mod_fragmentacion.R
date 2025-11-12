@@ -198,7 +198,7 @@ mod_fragmentacion_server <- function(id, rv){
           portada_opts = portada_opts(
             tipo_proj = rv$tipo_proj,
             nom_proj = rv$nom_proj,
-            logo = rv$logo
+            logo = rv$logo$datapath
           )
         )
       }, error = function(e) {

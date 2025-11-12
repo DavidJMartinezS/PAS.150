@@ -12,7 +12,13 @@
 .bslib-value-box .value-box-value {
   font-size: 20px;
 }
-.dropdown {z-index:99999 !important;}
+/* .dropdown {
+  z-index:1 !important;
+} */
+
+/* .bslib-full-screen.bslib-full-screen-enter-active {
+  z-index: 100000 !important;
+} */
 
 .bslib-sidebar-layout .sidebar-title {
   margin-top: -1.5rem;
@@ -80,7 +86,7 @@ body ol {
   list-style: none;
   counter-reset: item;
   font: 20px/1.5 Helvetica, sans-serif;
-  color: rgba(136, 146, 144, 1);
+  color: rgba(128, 133, 135, 1)
 }
 #steps_frag li {
   counter-increment: item;
@@ -95,4 +101,78 @@ body ol {
   width: 1.5em;
   text-align: center;
   display: inline-block;
+}
+
+.importante {
+  font: 18px/1.5 Helvetica, sans-serif;
+  color:rgba(128, 133, 135, 1)
+}
+.importante h3 {
+  color: rgba(137, 208, 196, 1);
+}
+.importante ul {
+  list-style: none;
+}
+.importante .ul_main li::before {
+  content: "";
+  background-image: url(leaf.svg);
+  background-size: contain;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  position: relative;
+  top: 0.1rem;
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+}
+.importante .ul_sec li::before {
+  content: "";
+  background-image: url(leaves.svg);
+  background-size: contain;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  position: relative;
+  top: 0.1rem;
+  margin-right: 0.5rem;
+}
+.importante ul li {
+  margin-bottom: 0.8rem
+}
+
+/*Estilo de tabla*/
+.styled-table {
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 0.9em;
+    min-width: 400px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+.styled-table thead tr {
+    background-color: #65a498ff;
+    color: #ffffff;
+    text-align: left;
+}
+.styled-table th,
+.styled-table td {
+    padding: 12px 15px;
+}
+.styled-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+}
+
+.styled-table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+}
+
+.styled-table tbody tr:last-of-type {
+    border-bottom: 2px solid #65a498ff;
+}
+.styled-table th:first-child,
+.styled-table td:first-child {
+    white-space: nowrap;
+}
+
+table.dataTable tbody tr.selected {
+  background-color: #A9DFBF !important;
 }

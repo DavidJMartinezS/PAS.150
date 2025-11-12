@@ -10,13 +10,6 @@
 #' @returns lista con resultados asociados al apendices de inventarios forestales
 #'
 #' @export
-
-# BNP_cuenca <- sf::read_sf("~/KIM735_ADENDA/BDD con R/C1/OUTPUTS/Compilado_Carto_digital_1727895600.67695/BNP_Porlieria_Cuenca.shp")
-# BD_fore <- prepare_bd_fore_150("~/KIM735_ADENDA/BDD con R/BD_Inventarios.xlsx", BNP_cuenca, bd_lista = F)
-# sp <- "Porlieria chilensis"
-# portada = "default"
-# portada_opts = NULL
-
 BD_inventarios <- function(
   BD_fore,
   BNP_cuenca,
@@ -77,14 +70,20 @@ BD_inventarios <- function(
   nha_sp <- BD_Nha %>% dplyr::pull(sp) %>% mean() %>% janitor::round_half_up()
   f_row_ivi <- 3
   n_estado <- BD %>%
-    dplyr::filter(Especie == sp) %>%
+    dplyr::filter(
+      Especie == sp, 
+      stringi::stri_detect_regex(Estado, "adulto|brinzal|regenera", case_insensitive = T)
+    ) %>%
     dplyr::pull(Estado) %>%
     unique() %>%
     length()
   n_spp <- BD$Especie %>% unique() %>% length()
   n_par <- BD$Parcela %>% unique() %>% length()
   n_par_sp <- BD %>%
-    dplyr::filter(Especie == sp) %>%
+    dplyr::filter(
+      Especie == sp, 
+      stringi::stri_detect_regex(Estado, "adulto|brinzal|regenera", case_insensitive = T)
+    ) %>%
     dplyr::pull(Parcela) %>%
     unique() %>%
     length()
@@ -131,7 +130,10 @@ BD_inventarios <- function(
   IVI[nrow(IVI), 5:8] <- IVI[nrow(IVI), 5:8] %>% janitor::round_half_up()
 
   prop <- BD %>%
-    dplyr::filter(Especie %in% sp) %>%
+    dplyr::filter(
+      Especie == sp, 
+      stringi::stri_detect_regex(Estado, "adulto|brinzal|regenera", case_insensitive = T)
+    ) %>%
     dplyr::group_by(Parcela, Sup_parcela, UTM_E, UTM_N, Estado) %>%
     dplyr::summarise(n = sum(Nha, na.rm = T)) %>%
     dplyr::ungroup() %>%
@@ -176,13 +178,14 @@ BD_inventarios <- function(
     "default" = portada_opts(plantilla = "default"),
     "MLP612" = portada_opts(plantilla = "MLP612"),
     "KIM753" = portada_opts(plantilla = "KIM753"),
-    "otra" = if (is.null(portada_opts)) portada_opts() else do.call(portada_opts, portada_opts)
+    "otra" = if (is.null(portada_opts)) portada_opts() else do.call(PAS.150::portada_opts, portada_opts)
   )
 
+  nom_ssubc <- get_cuenca(BNP_cuenca) %>% dplyr::pull(NOM_SSUBC)
   wb <- openxlsx2::wb_workbook(theme = "Integral") %>%
     wb_portada_PAS150(
       apendice = "inventarios",
-      nom_ssubc = BNP_cuenca$NOM_SSUBC %>% unique(),
+      nom_ssubc = nom_ssubc,
       opts = opts 
     )
 
@@ -704,24 +707,22 @@ IVI: Valor de importancia."
     openxlsx2::wb_add_pivot_table(
       x = BD_wb,
       sheet = "Proporciones",
+      filter = "Especie",
       rows = "Parcela",
       cols = "Estado",
       data = "Nha",
-      filter = "Especie",
       params = list(
-        choose = c(Especie = sprintf("x == '%s'", sp)),
         table_style = PT_style,
+        outline = FALSE, 
         row_grand_totals = FALSE,
-        numfmt = c(
-          formatCode = c("#,##0")
+        numfmt = c(formatCode = c("#,##0")),
+        choose = c(
+          Especie = sprintf("x == '%s'", sp),
+          Estado = 'purrr::map_lgl(stringi::stri_detect_regex(x, "adulto|brinzal|regenera", case_insensitive = T), shiny::isTruthy)'
         )
       )
-    ) %>%
-    openxlsx2::wb_add_font(
-      dims = sprintf("%s4", openxlsx2::int2col(n_estado + 2)),
-      color = openxlsx2::wb_color("white"),
-      bold = T
-    )
+    ) 
+    
   
   # agregar densidades relativas por estado de desarrollo
   for (i in seq_len(n_estado) + 1) {

@@ -185,10 +185,10 @@ prepare_bd_fore_150 <- function(BD, BNP_cuenca, bd_lista = FALSE) {
       ~ stringi::stri_trim(stringi::stri_trans_totitle(., type = "sentence"))
     ) %>%
     dplyr::mutate_at(
-      dplyr::vars(dplyr::matches("N_ind"), dplyr::matches("Altura"), dplyr::matches("DAP")),
+      dplyr::vars(dplyr::starts_with("UTM"), dplyr::matches("N_ind"), dplyr::matches("Altura"), dplyr::matches("DAP")),
       as.numeric
     ) %>% 
-    dplyr::mutate_at(dplyr::vars(dplyr::starts_with("UTM")), janitor::round_half_up) %>% 
+    dplyr::mutate_at(dplyr::vars(dplyr::starts_with("UTM"), dplyr::matches("DAP")), janitor::round_half_up) %>% 
     dplyr::mutate_at(dplyr::vars(dplyr::contains("Altura")), ~ as.numeric(stringi::stri_replace_all_regex(., ",| ", "\\."))) %>% 
     dplyr::filter(!Especie %>% stringi::stri_detect_regex("identificac|indeter", case_insensitive = T)) %>%
     dplyr::mutate_at("N_ind", as.integer) %>% 

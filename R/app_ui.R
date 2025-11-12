@@ -24,12 +24,21 @@ app_ui <- function(request) {
       bslib::nav_panel(
         title = "Importante",
         icon = bsicons::bs_icon("info-circle"),
-        mod_check_ui("importante")
+        mod_importante_ui("importante")
       ),
-      bslib::nav_panel(
-        title = "Check. cartografía",
-        icon = bsicons::bs_icon("check-circle"),
-        mod_check_ui("check_carto")
+      bslib::nav_menu(
+        title = "Exploración de datos",
+        icon = icon("magnifying-glass"),
+        bslib::nav_panel(
+          title = "Cartografía uso y vegetación",
+          icon = icon("magnifying-glass-location"),
+          mod_check_ui("check_carto")
+        ),
+        bslib::nav_panel(
+          title = "Datos de parcelas",
+          icon = icon("magnifying-glass-chart"),
+          mod_explore_bd_ui("check_bd")
+        )
       ),
       bslib::nav_menu(
         title = "Info cuenca",

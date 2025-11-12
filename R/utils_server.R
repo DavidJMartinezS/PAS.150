@@ -207,3 +207,99 @@ bind_events <- function(
     }
   )
 }
+
+#' @noRd
+prepare_uso_veg <- function(x) {
+  x %>%
+    dplyr::rename_all(~ ifelse(
+      . == "geometry", ., 
+      stringi::stri_trans_totitle(stringi::stri_trans_general(., "Latin-ASCII"), type = "sentence")
+    )) %>%
+    dplyr::rename_at(dplyr::vars(dplyr::contains("ecc")), stringi::stri_trans_toupper) %>%
+    dplyr::rename_if(names(.) %>% stringi::stri_detect_regex("^uso.*tierra", case_insensitive = T), ~ "Uso") %>%
+    dplyr::rename_if(names(.) %>% stringi::stri_detect_regex("^sub.*uso", case_insensitive = T), ~ "Subuso") %>%
+    dplyr::rename_if(names(.) %>% stringi::stri_detect_regex("^tipo.*for", case_insensitive = T), ~ "Tipo_for") %>%
+    dplyr::rename_if(names(.) %>% stringi::stri_detect_regex("^sub.*tipo.*fo", case_insensitive = T), ~ "Subtipo_fo") %>%
+    dplyr::rename_if(names(.) %>% stringi::stri_detect_regex("ley.*20283", case_insensitive = T), ~ "F_ley20283") %>%
+    dplyr::rename_if(names(.) %>% stringi::stri_detect_regex("est.*censo|censado", case_insensitive = T), ~ "Censado") %>%
+    dplyr::mutate_at(dplyr::vars(dplyr::starts_with("ECC")), tidyr::replace_na, "-") %>%
+    dplyr::mutate_if(is.character, stringi::stri_trans_general, "Latin-ASCII") %>% 
+    {if(names(.) %>% stringi::stri_detect_regex("^ECC") %>% any()) {
+      .[] %>%
+        dplyr::mutate(
+          BNP_ECC = purrr::pmap_chr(
+            dplyr::select(sf::st_drop_geometry(.), dplyr::starts_with("ECC")),
+            function(...) {
+              ecc <- list(...)
+              if (all(ecc == "-")) {
+                "-"
+              } else if (any(ecc != "-")) {
+                ecc %>% subset(. != "-") %>% unique() %>% paste(collapse = " - ")
+              }
+            }
+          )
+      )
+    } else .} %>%
+    dplyr::mutate(Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2))
+}
+
+#' download_files
+#'
+#' @param x objecto o lista de objetos. admite objetos 'data.frame', 'sf' y 'wbWorkbook'.
+#' @param name_save vector de caracteres con los nombres de los objetos.
+#' @param dir_save directorio donde guardar el o los objetos.  
+#'
+#' @returns archivos 'xlsx', 'shp' o 'zip'.
+#' @name download_files
+#' @export
+download_files <- function(x, name_save, dir_save) {
+  stopifnot(dir.exists(dir_save))
+  
+  filetype <- x %>%
+    {if(any(class(.) == "list")) . else list(.)} %>%
+    purrr::map( ~ ifelse(
+      inherits(., "wbWorkbook"),
+      "wb",
+      ifelse(
+        inherits(., "sf"),
+        "sf",
+        ifelse(inherits(., "data.frame") & !inherits(., "sf"), "xlsx", "")
+      )
+    )) %>%
+    {if(length(.) == 1) unlist(.) else .}
+  
+  stopifnot("Solo se admiten objetos de tipo 'data.frame', 'sf' y 'wbWorkbook'" = all(filetype %in% c("sf", "wb", "xlsx")))
+  
+  file <- file.path(dir_save, ifelse(
+    length(filetype) > 1, 
+    ifelse(is.null(names(name_save)), "Archivos_comprimidos.zip", paste0(names(name_save), ".zip")),
+    paste0(as.character(name_save), ifelse(filetype == "sf", ".zip", ".xlsx"))
+  ))
+  
+  wd <- getwd()
+  temp_dir <- tempdir()
+  setwd(temp_dir)
+  file.remove(list.files(pattern = "\\."))
+  purrr::pwalk(
+    if(length(filetype) == 1) {
+      list(list(x), list(filetype), ifelse(inherits(name_save, "list"), name_save, list(name_save)))
+    } else {
+      list(x, unname(unlist(filetype)), unname(unlist(name_save)))
+    },
+    .f = function(x, y, z) {
+      switch(
+        y,
+        sf = sf::write_sf(x, paste0(tools::file_path_sans_ext(z), ".shp")),
+        wb = openxlsx2::wb_save(x, paste0(tools::file_path_sans_ext(z), ".xlsx"), overwrite = T),
+        xlsx = openxlsx2::write_xlsx(x, paste0(tools::file_path_sans_ext(z), ".xlsx"), overwrite = T)
+      )
+    }
+  )
+  list_files <- unname(unlist(map(unlist(name_save), function(x) {list.files(pattern = x)})))
+  if(tools::file_ext(file) == "zip") {
+    zip::zip(zipfile = file, files = list_files)
+  } else {
+    file.copy(from = list_files, to = file, overwrite = T)
+  }
+  setwd(wd)
+}

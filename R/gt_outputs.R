@@ -215,7 +215,7 @@ gt_usos <- function(uso_veg) {
 gt_IVI <- function(df_ivi) {
   df_ivi %>% 
     dplyr::rename_at(5:7, stringi::stri_replace_first_regex, "_", " ") %>% 
-    gt::gt %>% 
+    gt::gt() %>% 
     gt::fmt_number(
       columns = 3,
       decimals = 3,
@@ -273,7 +273,7 @@ gt_estadisticos <- function(df_est) {
     dplyr::mutate_at("Parámetros", forcats::as_factor) %>%
     tidyr::spread(key = Variable, value = Val) %>%
     dplyr::rename("Conjunto de especies arbóreas" = Nha_Total) %>%
-    dplyr::rename_at(3, stringi::stri_replace_all_regex(), "\\.", " ") %>%
+    dplyr::rename_at(3, stringi::stri_replace_all_regex, "\\.", " ") %>%
     gt::gt() %>%
     gt::cols_align(align = "center", columns = 2:3) %>%
     gt::cols_align(align = "left", columns = 1) %>%
@@ -358,10 +358,9 @@ gt_prop <- function(df_est, df_prop, BNP_cuenca, sp) {
     )) %>%
     gt::gt() %>%
     gt::cols_width(
-      1 ~ gt::px(120),
-      2 ~ gt::px(150),
-      c(3:4, 7) ~ gt::px(80),
-      5:6 ~ gt::px(70)
+      c(1,2) ~ gt::px(150),
+      c(3:4, 7) ~ gt::px(100),
+      5:6 ~ gt::px(80)
     ) %>%
     gt::tab_header(
       title = "Estimación puntual e intervalos de confianza para la densidad media de la especie en categoría de conservación"
@@ -415,26 +414,29 @@ gt_prop <- function(df_est, df_prop, BNP_cuenca, sp) {
 }
 
 #' @noRd
-gt_ecc_inter <- function(ecc_inter, BNP_int_sin_censo) {
+gt_ecc_inter <- function(ecc_inter, BNP_int_sin_censo, col_obras = NULL) {
+  sp <- ecc_inter$Especie %>% unique() %>% .[1]
+  vars_obras <- if(is.null(col_obras)) {
+    dplyr::syms(dplyr::select(ecc_inter, dplyr::contains("obra")) %>% names() %>% .[1])
+  } else {
+    dplyr::syms(col_obras)
+  }
   ecc_inter %>% 
     sf::st_drop_geometry() %>% 
-    dplyr::count(dplyr::across(dplyr::contains("obra")), Especie, Afectacion) %>% 
+    dplyr::count(!!!vars_obras, Especie, Afectacion) %>% 
     {if(!is.null(BNP_int_sin_censo)) {
       .[] %>% dplyr::bind_rows(
         BNP_int_sin_censo %>% 
           sf::st_drop_geometry() %>% 
-          dplyr::select(dplyr::contains("obra"), Especie, Afectacion, Ind_Interv) %>% 
-          dplyr::rename(n = Ind_Interv)
+          dplyr::mutate(Especie = sp) %>% 
+          dplyr::select(!!!vars_obras, Especie, Afectacion, Ind_interv) %>% 
+          dplyr::rename(n = Ind_interv)
       )
     } else .[]} %>% 
-    dplyr::group_by(dplyr::across(dplyr::contains("obra")), Especie, Afectacion) %>% 
+    dplyr::group_by(!!!vars_obras, Especie, Afectacion) %>% 
     dplyr::summarise(n = sum(n)) %>% 
     janitor::adorn_totals(name = "Total individuos a intervenir") %>%
     gt::gt() %>% 
-    gt::cols_width(
-      3 ~ gt::px(230),
-      4 ~ gt::px(130)
-    ) %>% 
     gt::tab_style(
       style = gt::cell_fill(color = "#A0968C", alpha = 0.1),
       locations = list(gt::cells_column_labels())
@@ -452,7 +454,7 @@ gt_ecc_inter <- function(ecc_inter, BNP_int_sin_censo) {
       locations = list(gt::cells_column_labels(gt::everything()))) %>% 
     gt::tab_style(
       style = gt::cell_text(style = "italic"),
-      locations = list(gt::cells_body(columns = 2))
+      locations = list(gt::cells_body(columns = "Especie"))
     ) %>% 
     gt::tab_style(
       style = gt::cell_text(weight = "bold"),
@@ -465,27 +467,31 @@ gt_ecc_inter <- function(ecc_inter, BNP_int_sin_censo) {
 }
 
 #' @noRd
-gt_ecc_alter <- function(ecc_alter, BNP_alt_sin_pto) {
+gt_ecc_alter <- function(ecc_alter, BNP_alt_sin_pto, col_obras = NULL) {
+  sp <- ecc_alter$Especie %>% unique() %>% .[1]
+  vars_obras <- if(is.null(col_obras)) {
+    dplyr::syms(dplyr::select(ecc_alter, dplyr::contains("obra")) %>% names() %>% .[1])
+  } else {
+    dplyr::syms(col_obras)
+  }
   ecc_alter %>% 
     sf::st_drop_geometry() %>% 
-    dplyr::count(dplyr::across(dplyr::contains("obra")), Especie) %>% 
+    dplyr::count(!!!vars_obras, Especie) %>% 
     {if(!is.null(BNP_alt_sin_pto)) {
       .[] %>% 
         dplyr::bind_rows(
           BNP_alt_sin_pto %>% 
             sf::st_drop_geometry() %>% 
-            dplyr::select(dplyr::contains("obra"), Especie, Ind_alterar) %>% 
+            dplyr::mutate(Especie = sp) %>% 
+            dplyr::select(!!!vars_obras, Especie, Ind_alterar) %>% 
             dplyr::rename(n = Ind_alterar)
         ) 
     } else .[]} %>% 
-    dplyr::group_by(dplyr::across(dplyr::contains("obra")), Especie) %>% 
+    dplyr::group_by(!!!vars_obras, Especie) %>% 
     dplyr::summarise(n = sum(n), .groups = "drop") %>%
     dplyr::mutate(Componente = "") %>% 
     janitor::adorn_totals(name = "Total individuos a alterar su hábitat") %>% 
     gt::gt() %>% 
-    gt::cols_width(
-      3:4 ~ gt::px(180)
-    ) %>% 
     gt::tab_style(
       style = gt::cell_fill(color = "#A0968C",alpha = 0.1),
       locations = list(gt::cells_column_labels())
@@ -503,7 +509,7 @@ gt_ecc_alter <- function(ecc_alter, BNP_alt_sin_pto) {
       locations = list(gt::cells_column_labels(gt::everything()))) %>% 
     gt::tab_style(
       style = gt::cell_text(style = "italic"),
-      locations = list(gt::cells_body(columns = 2))
+      locations = list(gt::cells_body(columns = "Especie"))
     ) %>% 
     gt::tab_style(
       style = gt::cell_text(weight = "bold"),
@@ -516,68 +522,84 @@ gt_ecc_alter <- function(ecc_alter, BNP_alt_sin_pto) {
 }
 
 #' @noRd
-gt_sup_inter <- function(obras, BNP_inter, BNP_alterar) {
-  obras %>%
+gt_sup_inter <- function(obras, BNP_inter, BNP_alterar, col_obras = NULL) {
+  if(is.null(col_obras)) {
+    vars_obras <- dplyr::syms(dplyr::select(obras, dplyr::contains("obra")) %>% names() %>% .[1])
+  } else {
+    vars_obras <- dplyr::syms(col_obras)
+  }
+  last_var <- vars_obras[length(vars_obras)]
+  df_1 <- obras %>%
     sf::st_drop_geometry() %>%
-    dplyr::group_by(Obra) %>%
+    dplyr::group_by(!!!vars_obras) %>%
     dplyr::summarise(Sup_obra = sum(Sup_ha), .groups = "drop") %>%
     dplyr::left_join(
       BNP_inter %>%
         sf::st_drop_geometry() %>%
-        dplyr::group_by(Obra) %>%
+        dplyr::group_by(!!!vars_obras) %>%
         dplyr::summarise(Sup_bn_obra = sum(Sup_ha), .groups = "drop")
     ) %>%
     dplyr::left_join(
       BNP_inter %>%
         sf::st_drop_geometry() %>%
-        dplyr::group_by(Obra) %>%
+        dplyr::group_by(!!!vars_obras) %>%
         dplyr::summarise(Sup_int = sum(Sup_ha), .groups = "drop")
     ) %>%
     dplyr::left_join(
       BNP_alterar %>%
         sf::st_drop_geometry() %>%
-        dplyr::group_by(Obra) %>%
-        dplyr::summarise(Sup_int = sum(Sup_ha), .groups = "drop")
+        dplyr::group_by(!!!vars_obras) %>%
+        dplyr::summarise(Sup_alt = sum(Sup_ha), .groups = "drop")
     ) %>%
-    dplyr::mutate(Sup_alt = as.double(NA)) %>%
-    dplyr::mutate(
-      Obra = dplyr::case_when(
+    dplyr::mutate_at(
+      dplyr::vars(!!!last_var), 
+      ~dplyr::case_when(
         dplyr::if_all(
           c("Sup_bn_obra", "Sup_int", "Sup_alt"),
           ~ is.na(.)
         ) ~ "Otras obras",
-        .default = Obra
+        .default = .
       )
-    ) %>%
-    dplyr::group_by(Obra) %>%
-    dplyr::summarise_all(sum) %>%
-    dplyr::arrange(Obra == "Otras obras") %>%
+    ) 
+  
+  if(length(vars_obras) > 1) {
+    for(i in vars_obras %>% dplyr::setdiff(last_var) %>% length() %>% seq_len() %>% sort(decreasing = T)) {
+      current_var <- vars_obras[[i]]
+      next_var <- vars_obras[[i+1]]
+      df_1 <- df_1 %>%
+        dplyr::group_by(!!current_var) %>%
+        dplyr::mutate("{current_var}" := if (all(!!next_var == "Otras obras")) "Otras obras" else !!current_var) %>%
+        dplyr::ungroup()
+    }
+  }
+  
+  gt <- df_1 %>% 
+    dplyr::group_by(!!!vars_obras) %>%
+    dplyr::summarise(across(where(is.numeric), sum, na.rm = TRUE), .groups = "drop") %>%
+    dplyr::arrange(dplyr::across(!!!vars_obras[1]) == "Otras obras") %>% 
     janitor::adorn_totals() %>%
-    dplyr::mutate_at(2:5, ~ ifelse(is.na(.), 0, .)) %>%
-    gt::gt %>%
-    gt::cols_width(
-      3:5 ~ gt::px(190)
-    ) %>%
+    dplyr::mutate_if(is.numeric, ~ ifelse(is.na(.), 0, .)) %>% 
+    gt::gt() %>%
     gt::fmt_number(
-      columns = c(2:5),
+      columns = c(1:4 + length(vars_obras)),
       sep_mark = '.',
       dec_mark = ',',
       decimals = 2
     ) %>%
     gt::tab_spanner(
       label = "Obra o actividad",
-      columns = 1:2
+      columns = 1:(1 + length(vars_obras))
     ) %>%
     gt::tab_spanner(
       label = "Bosque nativo de preservación (ha)",
-      columns = 3:5
+      columns = 2:4 + length(vars_obras)
     ) %>%
     gt::tab_style(
       style = gt::cell_fill(color = "#A0968C", alpha = 0.1),
       locations = list(gt::cells_column_labels(), gt::cells_column_spanners())
     ) %>%
     gt::tab_style(
-      style = gt::cell_text(size = "large"),
+      style = gt::cell_text(size = "medium"),
       locations = list(
         gt::cells_title(),
         gt::cells_body(),
@@ -598,12 +620,12 @@ gt_sup_inter <- function(obras, BNP_inter, BNP_alterar) {
       locations = gt::cells_body(rows = Obra %>% stringi::stri_detect_regex("Total"))
     ) %>%
     gt::cols_label(
-      Obra = "Nombre de la obra",
       Sup_obra = "Superficie (ha)",
       Sup_bn_obra = "Superficie en la obra o actividad",
       Sup_int = "Superficie de intervención",
       Sup_alt = "Superficie de alteración de hábitat"
     ) 
+  return(gt)
 }
 
 #' @noRd
@@ -648,7 +670,7 @@ gt_spp_acomp <- function(spp_acomp) {
 #' @noRd
 gt_indices <- function(tabla_indices) {
   tabla_indices %>% 
-    tidyr::pivot_wider(names_from = Índices, values_from = Valor) %>% 
+    tidyr::pivot_wider(names_from = `Índices`, values_from = Valor) %>% 
     dplyr::mutate(Sector = "BNP en área de proyecto") %>% 
     dplyr::relocate(Sector) %>% 
     gt::gt() %>% 
@@ -761,7 +783,7 @@ gt_frag_param <- function(df) {
 #' @noRd
 gt_frag_resultados <- function(tabla_eval) {
   tabla_eval %>% 
-    dplyr::mutate_at(4, ~str_replace(.,"\\.",",")) %>% 
+    dplyr::mutate_at(4, ~stringi::stri_replace_all_regex(.,"\\.",",")) %>% 
     janitor::adorn_totals() %>% 
     gt::gt() %>% 
     gt::fmt_number(
@@ -789,6 +811,6 @@ gt_frag_resultados <- function(tabla_eval) {
     ) %>% 
     gt::tab_style(
       style = gt::cell_text(weight = "bold"),
-      locations = gt::cells_body(rows = Parámetro %>% stringi::stri_detect_regex("Total"))
+      locations = gt::cells_body(rows = `Parámetro` %>% stringi::stri_detect_regex("Total"))
     ) 
 }

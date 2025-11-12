@@ -78,7 +78,9 @@ get_CN <- function(cuenca, dem = NULL) {
       stars::st_as_stars() %>%
       `names<-`("Elevacion")
   } else {
-    dem_stars <- if (inherits(dem, "character")) stars::read_stars(dem) else dem 
+    dem_stars <- (if (inherits(dem, "character")) stars::read_stars(dem) else dem) %>% 
+      stars::st_as_stars() %>%
+      `names<-`("Elevacion")
   }
   
   step <- 50
@@ -235,16 +237,20 @@ get_BNP_alterar <- function(BNP_alter = NULL, BNP_cuenca, alt_ok = F) {
   if (is.null(BNP_alter)) {
     return(invisible())
   } else {
-    valid_input(BNP_alter, inherit = "sf", geometry = "POLYGON")
     if (alt_ok) {
-      BNP_alter
-    }
-    BNP_alter %>% 
-      dplyr::select(dplyr::matches("obra")) %>% 
-      sf::st_intersection(BNP_cuenca) %>% 
-      sf::st_collection_extract("POLYGON") %>% 
-      dplyr::mutate(Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)) %>% 
+      valid_input(BNP_alter, names = req_names$BNP_afect, inherit = "sf", geometry = "POLYGON")
+      BNP_alter %>% 
+        dplyr::mutate(Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)) %>% 
       dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), Sup_ha)
+    } else {
+      valid_input(BNP_alter, inherit = "sf", geometry = "POLYGON")
+      BNP_alter %>% 
+        dplyr::select(dplyr::matches("obra")) %>% 
+        sf::st_intersection(BNP_cuenca) %>% 
+        sf::st_collection_extract("POLYGON") %>% 
+        dplyr::mutate(Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)) %>% 
+        dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), Sup_ha)
+    }
   } 
 }
 
@@ -263,9 +269,8 @@ get_ECC_alt <- function(BNP_alter, censo, sp) {
     return(invisible())
   }
 
-  censo %>% 
-    sf::st_zm() %>% 
-    sf::st_transform(sf::st_crs(BNP_alter)) %>% 
+  censo %>%
+    dplyr::select(Especie) %>% 
     dplyr::filter(Especie %>% stringi::stri_detect_fixed(sp)) %>%
     sf::st_intersection(BNP_alter) %>% 
     dplyr::mutate(
@@ -307,8 +312,12 @@ get_ECC_int <- function(censo, sp, BNP_inter, BNP_alter = NULL, upto5m = T) {
       .[] %>% sf::st_filter(BNP_inter, .pred = sf::st_intersects) %>% 
         sf::st_join(BNP_inter, join = sf::st_intersects)
     }} %>% 
-    dplyr::mutate(Afectacion = 'Eliminación') %>% 
-    dplyr::select(Especie, Afectacion, dplyr::matches("Obra"))
+    dplyr::mutate(
+      Afectacion = 'Eliminación',
+      UTM_E = sf::st_coordinates(geometry)[, 1] %>% as.integer(),
+      UTM_N = sf::st_coordinates(geometry)[, 2] %>% as.integer()
+    ) %>% 
+    dplyr::select(Especie, Afectacion, dplyr::matches("Obra"), UTM_E, UTM_N)
 
   return(ecc_int)
 }
@@ -523,7 +532,8 @@ get_carto_digital <- function(
   add_cam = F,
   add_hidro = F,
   fuente_hidro = c("MOP", "BCN"),
-  add_CN = F
+  add_CN = F,
+  dem = NULL
 ) {
   valid_input(
     uso_veg,
@@ -548,13 +558,21 @@ get_carto_digital <- function(
     )
   }
   if (!is.null(BNP_alter)) {
-    valid_input(
-      BNP_alter,
-      inherit = "sf",
-      names = req_names$BNP_afect,
-      geometry = "POLYGON"
-    )
     valid_input(alt_ok, inherit = "logical")
+    if(alt_ok) {
+      valid_input(
+        BNP_alter,
+        inherit = "sf",
+        names = req_names$BNP_afect,
+        geometry = "POLYGON"
+      )
+    } else {
+      valid_input(
+        BNP_alter,
+        inherit = "sf",
+        geometry = "POLYGON"
+      )
+    }
   }
   if (!is.null(BD_flora)) {
     valid_df(BD_flora, names = c('Parcela', 'UTM_E', 'UTM_N'))
@@ -576,44 +594,44 @@ get_carto_digital <- function(
     fuente_hidro <- match.arg(fuente_hidro)
   }
 
-  cuenca <- get_cuenca(uso_veg)
-  ubicacion <- get_ubicacion(obras, cuenca)
-  obras_cuenca <- get_obras(obras, cuenca)
-  BNP_cuenca <- get_BNP_cuenca(uso_veg, sp)
-  BNP_intervenir <- get_BNP_intervencion(BNP_cuenca, obras, BNP_inter)
-  BNP_alterar <- get_BNP_alterar(BNP_alter, BNP_cuenca, alt_ok)
-  ECC_alt <- get_ECC_alt(BNP_alterar, censo, sp)
-  ECC_int <- get_ECC_int(censo, sp, BNP_intervenir, BNP_alterar, upto5m)
-  uso_cuenca <- get_uso(uso_veg)
-  veg_cuenca <- get_veg(uso_veg)
-  BNP_antes <- get_BNP_antes(BNP_cuenca)
-  BNP_despues <- get_BNP_despues(BNP_cuenca, BNP_intervenir, BNP_alterar)
-  BNP_alt_sin_censo <- get_BNP_alt_sin_censo(BNP_alter, densidad)
-  BNP_int_sin_censo <- get_BNP_int_sin_censo(BNP_inter, densidad)
+  cuenca <- get_cuenca(uso_veg = uso_veg)
+  ubicacion <- get_ubicacion(obras = obras, cuenca = cuenca)
+  obras_cuenca <- get_obras(obras = obras, cuenca = cuenca)
+  BNP_cuenca <- get_BNP_cuenca(uso_veg = uso_veg, sp = sp)
+  BNP_intervenir <- get_BNP_intervencion(BNP_cuenca = BNP_cuenca, obras = obras, BNP_inter = BNP_inter)
+  BNP_alterar <- get_BNP_alterar(BNP_alter = BNP_alter, BNP_cuenca = BNP_cuenca, alt_ok = alt_ok)
+  ECC_alt <- get_ECC_alt(BNP_alter = BNP_alterar, censo = censo, sp = sp)
+  ECC_int <- get_ECC_int(censo = censo, sp = sp, BNP_inter = BNP_intervenir, BNP_alter = BNP_alterar, upto5m = upto5m)
+  uso_cuenca <- get_uso(uso_veg = uso_veg)
+  veg_cuenca <- get_veg(uso_veg = uso_veg)
+  BNP_antes <- get_BNP_antes(BNP_cuenca = BNP_cuenca)
+  BNP_despues <- get_BNP_despues(BNP_cuenca = BNP_cuenca, BNP_inter = BNP_intervenir, BNP_alter = BNP_alterar)
+  BNP_alt_sin_censo <- get_BNP_alt_sin_censo(BNP_alter = BNP_alter, densidad = densidad)
+  BNP_int_sin_censo <- get_BNP_int_sin_censo(BNP_inter = BNP_inter, densidad = densidad)
 
   if (add_cam) {
-    caminos <- get_caminos(cuenca)
+    caminos <- get_caminos(cuenca = cuenca)
   }
   if (add_hidro) {
-    hidro <- get_hidro(cuenca, fuente_hidro)
+    hidro <- get_hidro(cuenca = cuenca, fuente_hidro = fuente_hidro)
   }
   if (add_CN) {
-    curv_niv <- get_CN(cuenca)
+    curv_niv <- get_CN(cuenca = cuenca, dem = dem)
   }
   if (!is.null(BD_flora)) {
     inv_flora <- get_inv_flora(
-      BD_flora,
-      BNP_cuenca,
-      bd_flora_lista,
-      in_bnp_obra,
-      obras
+      BD_flora = BD_flora, 
+      BNP_cuenca = BNP_cuenca, 
+      bd_lista = bd_flora_lista,
+      in_bnp_obra = in_bnp_obra,
+      obras = obras
     )
   }
   if (!is.null(BD_fore)) {
-    inv_forestal <- get_inv_fores(BD_fore, BNP_cuenca, bd_fore_lista)
+    inv_forestal <- get_inv_fores(BD_fore = BD_fore, BNP_cuenca = BNP_cuenca, bd_lista = bd_fore_lista)
   }
   if (!is.null(BD_flora) & !is.null(BD_fore)) {
-    prospeccion <- get_prospeccion(BD_flora, BD_fore, censo, sp)
+    prospeccion <- get_prospeccion(BD_flora = BD_flora, BD_fore = BD_fore, censo = censo, sp = sp)
   }
 
   lista <- rlang::list2(
@@ -622,17 +640,17 @@ get_carto_digital <- function(
     "Area_de_proyecto_Obras" = obras_cuenca,
     !!paste0('BNP_', stringi::stri_extract_first_words(sp), '_Cuenca') := BNP_cuenca,
     !!paste0('BNP_', stringi::stri_extract_first_words(sp), '_a_Intervenir') := BNP_intervenir,
-    !!paste0('BNP_', stringi::stri_extract_first_words(sp), '_a_Alterar.shp') := BNP_alterar,
-    !!paste0('Censo_', stringi::stri_extract_first_words(sp), '_a_Intervenir.shp') := ECC_int,
-    !!paste0('Censo_', stringi::stri_extract_first_words(sp), '_a_Alterar.shp') := ECC_alt,
+    !!paste0('BNP_', stringi::stri_extract_first_words(sp), '_a_Alterar') := BNP_alterar,
+    !!paste0('Censo_', stringi::stri_extract_first_words(sp), '_a_Intervenir') := ECC_int,
+    !!paste0('Censo_', stringi::stri_extract_first_words(sp), '_a_Alterar') := ECC_alt,
     "Uso_actual_de_la_tierra" = uso_cuenca,
     "Vegetación_en_la_cuenca" = veg_cuenca,
-    !!paste0('BNP_fragmentacion_', stringi::stri_extract_first_words(sp), '_Antes.shp') := BNP_antes,
-    !!paste0('BNP_fragmentacion_', stringi::stri_extract_first_words(sp), '_Despues.shp') := BNP_despues,
-    !!paste0('Estimacion_Alteracion_', stringi::stri_extract_first_words(sp)) := BNP_alt_sin_censo,
-    !!paste0('Estimacion_Intervencion_', stringi::stri_extract_first_words(sp)) := BNP_int_sin_censo,
+    !!paste0('BNP_fragmentación_', stringi::stri_extract_first_words(sp), '_Antes') := BNP_antes,
+    !!paste0('BNP_fragmentación_', stringi::stri_extract_first_words(sp), '_Después') := BNP_despues,
+    !!paste0('Estimación_Alteración_', stringi::stri_extract_first_words(sp)) := BNP_alt_sin_censo,
+    !!paste0('Estimación_Intervención_', stringi::stri_extract_first_words(sp)) := BNP_int_sin_censo,
     "Caminos_cuenca" = if (add_cam) caminos else NULL,
-    "Hidrografia_cuenca" = if (add_hidro) hidro else NULL,
+    "Hidrografía_cuenca" = if (add_hidro) hidro else NULL,
     "Curvas_de_Nivel_cuenca" = if (add_CN) curv_niv else NULL,
     "UTM_Inventarios_Flora" = if (!is.null(BD_flora)) inv_flora else NULL,
     "UTM_Inventarios_Forestales" = if (!is.null(BD_fore)) inv_forestal else NULL,

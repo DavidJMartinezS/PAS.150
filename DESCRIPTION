@@ -46,7 +46,6 @@ Imports:
     stats,
     stringdist,
     stringi,
-    stringr,
     tibble,
     tidyr,
     tools,

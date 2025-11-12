@@ -71,8 +71,8 @@ Por otra parte, esta la opción de incluir las capas de bases cartográficas, qu
 
 Los apéndices del PAS 150 los siguientes 3:
 
-* Apéndice BD inventarios forestales: requiere cargar previamente la base de datos de inventarios forestales y la cartografía de uso y vegetación.
-* Apéndice BD biodiversidad: Este se genera junto con los otros inputs y requiere cargar previamente la base de datos de flora y la cartografía de uso y vegetación.
+* Apéndice BD inventarios forestales: Requiere cargar previamente la base de datos de inventarios forestales y la cartografía de uso y vegetación.
+* Apéndice BD biodiversidad: Requiere cargar previamente la base de datos de flora y la cartografía de uso y vegetación.
 * Apéndice BD fragmentación: Este se genera en la ventana de "Fragmentación" y requiere cargar previamente la capa de uso y vegetación y la de obras. 
 
 **Se solicita reportar cualquier error o bug de la aplicación y/o sus funciones**

@@ -181,7 +181,7 @@ mod_parcelas_server <- function(id, rv){
       rv$sp
     }, handlerExpr = {
       req(rv$BD_fore)
-      rv$densidad <- get_densidad(rv$BD_fore, rv$sp)
+      rv$densidad_bd <- get_densidad(rv$BD_fore, rv$sp)
     })
 
   })

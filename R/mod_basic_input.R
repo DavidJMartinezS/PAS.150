@@ -28,7 +28,8 @@ mod_basic_input_ui <- function(id) {
     tags$h5("Definir afectación (Opcional)"),
     mod_read_sf_ui(ns("bnp_inter"), "BNP a intervenir"),
     mod_read_sf_ui(ns("bnp_alter"), "BNP a alterar"),
-    checkboxInput(ns("listo_bnp_alter"), "Capa de alteración lista")
+    checkboxInput(ns("listo_bnp_alter"), "Capa de alteración lista"),
+    uiOutput(ns("densidad_ui"))
   )
 }
     
@@ -40,43 +41,30 @@ mod_basic_input_server <- function(id, rv){
     ns <- session$ns
 
     bind_events(
-      ids = c("sp", "upto5m", "listo_bnp_alter"), 
+      ids = c("sp", "upto5m", "listo_bnp_alter", "densidad"), 
       rv = rv, 
       parent_input = input
     )
+
+    observeEvent({rv$BNP_inter; rv$BNP_alter}, {
+      if("Censado" %in% union(names(rv$BNP_inter), names(rv$BNP_alter))) {
+        output$densidad_ui <- renderUI({
+          tags$div(
+            numericInput(ns("densidad"), label = "Densidad para estimación (ind/ha)", value = 0)
+          )
+        })
+      }
+    })
+
+    observeEvent(rv$densidad_bd, {
+      updateNumericInput(session = session, inputId = "densidad", value = rv$densidad_bd)
+    })
+
+    output$densidad_bd_out <- renderPrint({rv$densidad_bd})
+    output$densidad_out <- renderPrint({rv$densidad})
     
     # Uso_veg ----
-    mod_read_sf_server("uso_veg", rv = rv, i = "uso_veg", fx = function(x) {
-      x %>%
-        dplyr::rename_all(~ ifelse(
-          . == "geometry", ., 
-          stringi::stri_trans_totitle(stringi::stri_trans_general(., "Latin-ASCII"), type = "sentence")
-        )) %>%
-        dplyr::rename_at(dplyr::vars(dplyr::contains("ecc")), stringi::stri_trans_toupper) %>%
-        dplyr::rename_if(names(.) %>% stringi::stri_detect_regex("^uso.*tierra", case_insensitive = T), ~ "Uso") %>%
-        dplyr::rename_if(names(.) %>% stringi::stri_detect_regex("^sub.*uso", case_insensitive = T), ~ "Subuso") %>%
-        dplyr::rename_if(names(.) %>% stringi::stri_detect_regex("^tipo.*for", case_insensitive = T), ~ "Tipo_for") %>%
-        dplyr::rename_if(names(.) %>% stringi::stri_detect_regex("^sub.*tipo.*fo", case_insensitive = T), ~ "Subtipo_fo") %>%
-        dplyr::rename_if(names(.) %>% stringi::stri_detect_regex("ley.*20283", case_insensitive = T), ~ "F_ley20283") %>%
-        dplyr::mutate_at(dplyr::vars(dplyr::starts_with("ECC")), tidyr::replace_na, "-") %>%
-        {if(names(.) %>% stringi::stri_detect_regex("^ECC") %>% any()) {
-          .[] %>%
-            dplyr::mutate(
-              BNP_ECC = purrr::pmap_chr(
-                dplyr::select(sf::st_drop_geometry(.), dplyr::starts_with("ECC")),
-                function(...) {
-                  ecc <- list(...)
-                  if (all(ecc == "-")) {
-                    "-"
-                  } else if (any(ecc != "-")) {
-                    ecc %>% subset(. != "-") %>% unique() %>% paste(collapse = " - ")
-                  }
-                }
-              )
-          )
-        } else .} %>%
-        dplyr::mutate(Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2))
-    })
+    mod_read_sf_server("uso_veg", rv = rv, i = "uso_veg", fx = prepare_uso_veg)
     
     observeEvent(rv$uso_veg, {
       req(rv$uso_veg)
@@ -119,7 +107,8 @@ mod_basic_input_server <- function(id, rv){
     })
 
     # Inputs afectacion ----
-    mod_read_sf_server("bnp_inter", rv = rv, i = "BNP_inter")
+    mod_read_sf_server("bnp_inter", rv = rv, i = "BNP_inter", fx = prepare_uso_veg)
+
     observeEvent(rv$BNP_inter, {
       check_input(
         rv = rv,
@@ -128,13 +117,13 @@ mod_basic_input_server <- function(id, rv){
         id_reset = "bnp_inter-sf_file"
       )
       if(!is.null(rv$BNP_inter)) {
-        if(rv$BNP_inter$BNP_ECC %>% stringi::stri_detect_fixed(sp, case_insensitive = T) %>% all()) {
+        if(!all(rv$BNP_inter$BNP_ECC %>% stringi::stri_detect_fixed(rv$sp, case_insensitive = T))) {
           shinyalert::shinyalert(
             title = "Existen BNP sin la especie objetivo",
             text = tags$p(
               "Las siguientes entidades no tienen la especie objetivo en el campo 'BNP_ECC'",
               tags$br(),
-              which(rv$BNP_inter$BNP_ECC %>% stringi::stri_detect_fixed(sp, case_insensitive = T)) %>% 
+              which(rv$BNP_inter$BNP_ECC %>% stringi::stri_detect_fixed(rv$sp, case_insensitive = T, negate = T)) %>% 
                 paste(collapse = ", ")
             ),
             html = TRUE,
@@ -147,7 +136,9 @@ mod_basic_input_server <- function(id, rv){
         }
       }
     })
-    mod_read_sf_server("bnp_alter", rv = rv, i = "BNP_alter")
+
+    mod_read_sf_server("bnp_alter", rv = rv, i = "BNP_alter", fx = prepare_uso_veg)
+    
     observeEvent(rv$BNP_alter, {
       check_input(
         rv = rv,
@@ -156,13 +147,13 @@ mod_basic_input_server <- function(id, rv){
         id_reset = "bnp_alter-sf_file"
       )
       if(!is.null(rv$BNP_alter)) {
-        if(rv$BNP_alter$BNP_ECC %>% stringi::stri_detect_fixed(sp, case_insensitive = T) %>% all()) {
+        if(!all(rv$BNP_alter$BNP_ECC %>% stringi::stri_detect_fixed(rv$sp, case_insensitive = T))) {
           shinyalert::shinyalert(
             title = "Existen BNP sin la especie objetivo",
             text = tags$p(
               "Las siguientes entidades no tienen la especie objetivo en el campo 'BNP_ECC'",
               tags$br(),
-              which(rv$BNP_alter$BNP_ECC %>% stringi::stri_detect_fixed(sp, case_insensitive = T)) %>% 
+              which(rv$BNP_alter$BNP_ECC %>% stringi::stri_detect_fixed(rv$sp, case_insensitive = T, negate = T)) %>% 
                 paste(collapse = ", ")
             ),
             html = TRUE,
