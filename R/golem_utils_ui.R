@@ -299,6 +299,32 @@ col_1 <- function(...) {
 }
 
 
+#' @noRd
+table_row <- function(list, class = NULL, header = F) {
+  if (is.null(class)) {
+    tagList(tags$tr(
+      lapply(
+        list,
+        if (header) tags$th else tags$td
+      )
+    ))
+  } else {
+    res <- lapply(
+      list,
+      tags$li
+    )
+    res <- lapply(
+      res,
+      function(x) {
+        tagAppendAttributes(
+          x,
+          class = class
+        )
+      }
+    )
+    tagList(res)
+  }
+}
 
 #' Make the current tag behave like an action button
 #'
