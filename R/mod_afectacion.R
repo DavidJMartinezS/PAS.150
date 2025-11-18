@@ -21,8 +21,7 @@ mod_afectacion_ui <- function(id) {
           multiple = TRUE,
           width = "100%",
           dropboxWrapper = "body"
-        ),
-        verbatimTextOutput(outputId = ns("vars_obras_sel"))
+        )
       ),
       bslib::nav_panel("Censo a Intervenir", gt::gt_output(ns("gt_c_inter"))),
       bslib::nav_panel("Censo a Alterar", gt::gt_output(ns("gt_c_alter"))),
@@ -44,10 +43,6 @@ mod_afectacion_server <- function(id, rv){
         choices = sf::st_drop_geometry(rv$obras) %>% dplyr::select(dplyr::contains("obra")) %>% names(),
         selected = sf::st_drop_geometry(rv$obras) %>% dplyr::select(dplyr::contains("obra")) %>% names() %>% .[1]
       )
-    })
-
-    output$vars_obras_sel <- renderPrint({
-      input$vars_obras
     })
 
     output$gt_c_inter <- gt::render_gt({
