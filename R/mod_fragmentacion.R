@@ -12,7 +12,7 @@ mod_fragmentacion_ui <- function(id) {
   bslib::page_fillable(
     bslib::navset_card_underline(
       id = "navset_frag",
-      selected = "Ajuste de parámetros", 
+      selected = "Ajuste de parámetros",
       bslib::nav_panel(
         title = tags$img(
           height = "20px",
@@ -81,7 +81,13 @@ mod_fragmentacion_ui <- function(id) {
         tags$div(
           id = "flex",
           style = "align-items: center",
-          fileInput(ns("path_frag"), "", accept = c(".xls", ".xlsx")),
+          fileInput(
+            ns("path_frag"),
+            "",
+            accept = c(".xls", ".xlsx"),
+            buttonLabel = "Seleccionar",
+            placeholder = "Archivo no seleccionado"
+          ),
           actionButton(
             class = "div_med",
             ns("get_bd_frag"),
@@ -192,14 +198,9 @@ mod_fragmentacion_server <- function(id, rv){
           subusos_noveg = input$select_subusos,
           alteracion = input$alt_bd_frag, 
           spp_acomp = if(!is.null(rv$BD_biodiversidad)) NULL else rv$BD_biodiversidad$spp_acomp, 
-          prop = if(!is.null(rv$BD_biodiversidad)) NULL else rv$BD_biodiversidad$spp_acomp,
+          prop = if(!is.null(rv$BD_inv_forestales)) NULL else rv$BD_inv_forestales$prop,
           estadisticos = rv$estadisticos, 
-          portada = rv$portada,
-          portada_opts = portada_opts(
-            tipo_proj = rv$tipo_proj,
-            nom_proj = rv$nom_proj,
-            logo = rv$logo$datapath
-          )
+          portada_opts = rv$portada_opts
         )
       }, error = function(e) {
         shinyalert::shinyalert(

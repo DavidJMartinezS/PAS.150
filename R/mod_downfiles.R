@@ -77,7 +77,7 @@ mod_downfiles_server <- function(id, x, name_save){
               y,
               sf = sf::write_sf(x, paste0(tools::file_path_sans_ext(z), ".shp")),
               wb = openxlsx2::wb_save(x, paste0(tools::file_path_sans_ext(z), ".xlsx"), overwrite = T),
-              xlsx = writexl::write_xlsx(x, paste0(tools::file_path_sans_ext(z), ".xlsx"))
+              xlsx = openxlsx2::write_xlsx(x, paste0(tools::file_path_sans_ext(z), ".xlsx"))
             )
           }
         )

@@ -11,7 +11,7 @@ estadisticos_PAS150(a, A, data, sp)
 
 \item{A}{superficie unidad a inventariar. ej: BNP de la cuenca.}
 
-\item{data}{data.frame con los datos del NHA. Obter con `BD_inv_for()`.}
+\item{data}{data.frame con los datos del NHA. Obter con `BD_inventarios()`.}
 
 \item{sp}{especie en categoría de conservación objeto del informe.}
 }

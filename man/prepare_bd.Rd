@@ -13,7 +13,7 @@ prepare_bd_flora_150(
   obras = NULL
 )
 
-prepare_bd_fore_150(BD, BNP_cuenca, bd_lista = FALSE)
+prepare_bd_fore_150(BD, bd_lista = FALSE, BNP_cuenca = NULL)
 }
 \arguments{
 \item{BD}{dataframe o ruta con la base de datos de las parcelas de inventarios.}

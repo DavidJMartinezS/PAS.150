@@ -111,8 +111,9 @@ prepare_bd_flora_150 <- function(BD, bd_lista = TRUE, BNP_cuenca = NULL, in_bnp_
 
 #' @rdname prepare_bd
 #' @export
-prepare_bd_fore_150 <- function(BD, BNP_cuenca, bd_lista = FALSE) {
+prepare_bd_fore_150 <- function(BD, bd_lista = FALSE, BNP_cuenca = NULL) {
   valid_df(BD)
+  if (!bd_lista) valid_input(BNP_cuenca, inherit = "sf", geometry = "POLYGON")
   
   bd <- tryCatch({
     (if (inherits(BD, "data.frame")) {

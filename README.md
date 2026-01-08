@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# `{PAS.150}`
+# `{PAS.150}` <a href='https://github.com/DavidJMartinezS/PAS.150'><img src='inst/app/www/favicon.ico' align="right" height="175" /></a>
 
 <!-- badges: start -->
 
@@ -9,6 +9,7 @@
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![Codecov test
 coverage](https://codecov.io/gh/DavidJMartinezS/PAS.150/graph/badge.svg)](https://app.codecov.io/gh/DavidJMartinezS/PAS.150)
+
 <!-- badges: end -->
 
 Este paquete está elaborado con el propósito de ayudar en la elaboración
@@ -27,7 +28,7 @@ Para la instalación del paquete `{PAS.150}` debe de ejecutar:
 ``` r
 options(timeout = 600)
 remotes::install_github("DavidJMartinezS/dataPAS", dependencies = T, force = T)
-remotes::install_github("DavidJMartinezS/PAS148y151", dependencies = T, force = T)LE INSTALL YOUR DEV PACKAGE?
+remotes::install_github("DavidJMartinezS/PAS.150", dependencies = T, force = T)
 ```
 
 ## Run
@@ -55,8 +56,12 @@ aplicación. Estas se encuentran en el acordeón que está en la pestaña
 ### Cartografía digital
 
 Para generar la cartografía digital debe ingresar al menos 4 inputs
-basicos, que son: \* Cartografía de uso y vegetación de la cuenca \*
-Especie objeto del informe \* Layout de obras \* Compilado de censos
+basicos, que son:
+
+- Cartografía de uso y vegetación de la cuenca.
+- Especie objeto del informe.
+- Layout de obras.
+- Compilado de censos.
 
 Adicionalmente a estos se pueden ingresar los BNP a intervenir y
 alterar. Si estas contienen el campo “Censado”, donde por medio de “si”
@@ -79,15 +84,315 @@ nivel.
 
 Los apéndices del PAS 150 los siguientes 3:
 
-- Apéndice BD inventarios forestales: requiere cargar previamente la
+- Apéndice BD inventarios forestales: Requiere cargar previamente la
   base de datos de inventarios forestales y la cartografía de uso y
   vegetación.
-- Apéndice BD biodiversidad: Este se genera junto con los otros inputs y
-  requiere cargar previamente la base de datos de flora y la cartografía
-  de uso y vegetación.
+- Apéndice BD biodiversidad: Requiere cargar previamente la base de
+  datos de flora y la cartografía de uso y vegetación.
 - Apéndice BD fragmentación: Este se genera en la ventana de
   “Fragmentación” y requiere cargar previamente la capa de uso y
   vegetación y la de obras.
+
+## Uso de funciones en R
+
+Si desea generar los insumos para el informe de experto del PAS 150 en
+el enterno de R, a continuación se muestra cómo:
+
+### Cargar inputs
+
+``` r
+library(PAS.150)
+library(sf)
+library(openxlsx2)
+
+# INPUTS
+## Inputs obligatorios
+uso_veg <- prepare_uso_veg(read_sf("")) # Capa uso y vegetación de la cuenca. Ingresar ruta del archivo .shp
+especie <- "" # "Porlieria chilensis", "Prosopis chilensis", etc
+obras <- read_sf("") # Capa del layout de obras. Ingresar ruta del archivo .shp
+censos <- read_sf("") # Capa de censos. Ingresar ruta del archivo .shp
+upto5m <- T # Valor lógico (T o F) para indicar si considerar individuos censados hasta 5 metros de las obras
+
+## Inputs opcionales
+BNP_inter <- read_sf("") # Capa del BNP a intervenir. Ingresar ruta del archivo .shp
+BNP_alter <- read_sf("") # Capa del BNP a alterar. Ingresar ruta del archivo .shp
+alt_ok <- F # Valor lógico (T o F) para indicar si la capa de BNP a alterar contiene todos los cambios requeridos o no
+
+## Inputs bases de datos
+BNP_cuenca <- get_BNP_cuenca(uso_veg = uso_veg, sp = especie)
+BD_flora <- prepare_bd_flora_150(
+  BD = "", # Ingresar ruta del archivo .xlsx de la BD de inventarios florísticos
+  bd_lista = T, # Valor lógico (T o F). T para utilizar los datos tal cual se ingresan. F para filtrar por aquellos que estan en la cuenca.
+  BNP_cuenca = BNP_cuenca, # Capa de BNP en la cuenca. Necesaria si bd_lista = F
+  in_bnp_obra = T, # Valor lógico (T o F). T para filtrar las parcelas en rodales con obra
+  obras = obras # Capa de obras. Necesaria si bd_lista = F y in_bnp_obra = T
+)
+BD_fore <- prepare_bd_fore_150(
+  BD = , # Ingresar ruta del archivo .xlsx de la BD de inventarios forestales
+  bd_lista = F, # Valor lógico (T o F). T para utilizar los datos tal cual se ingresan. F para filtrar por aquellos que estan en la cuenca.
+  BNP_cuenca = BNP_cuenca # Capa de BNP en la cuenca. Necesaria si bd_lista = F
+)
+
+## Chequear bases de datos
+check_bd_flora(BD_flora)
+check_bd_fore(BD_fore)
+
+## Inputs bases cartográficas
+add_cam <- T # Valor lógico (T o F). T para agregar capa de caminos
+add_hidro <- T # Valor lógico (T o F). T para agregar capa de hidrografía
+fuente_hidro <- "MOP" # Seleccionar "MOP" o "BCN"
+add_CN <- T # Valor lógico (T o F). T para agregar capa de curvas de nivel
+dem <- "" # DEM. Ingresar ruta del archivo .tif. Opcional si add_CN = T. Si no se ingresa se utiliza la función `elevatr::get_elev_raster()`
+
+densidad <- get_densidad(BD_fore = BD_fore, sp = especie)
+```
+
+### Cartografía digital
+
+Para generar la cartografía digital debe ingresar al menos la capa de
+uso y vegetación, la especie objetivo del informe, las obras y el censo.
+El resto es opcional y determina la creación de algunas capas como la de
+bases cartograficas o prospección de terreno.
+
+``` r
+# Generar Cartografía digital
+carto_digital <- get_carto_digital(
+  uso_veg = uso_veg, # Requerido
+  sp = especie, # Requerido
+  obras = obras, # Requerido
+  censo = censo, # Requerido
+  upto5m = upto5m, # default TRUE.
+  BNP_inter = BNP_inter, # default NULL
+  BNP_alter = BNP_alter, # default NULL
+  alt_ok = alt_ok, # default FALSE
+  densidad = densidad, # default NULL
+  BD_flora = BD_flora, # default NULL
+  BD_fore = BD_fore, # default NULL
+  bd_flora_lista = F, # default FALSE
+  bd_fore_lista = F, # default FALSE
+  in_bnp_obra = T, # default TRUE
+  add_cam = T, # default FALSE
+  add_hidro = T, # default FALSE
+  fuente_hidro = fuente_hidro, # default FALSE
+  add_CN = T, # default FALSE
+  dem = "" # default NULL
+)
+```
+
+El resultado, es una lista con diferentes capas de la cartografía
+digital. Para guardarlas, debe definir un directorio y utilzar la
+función `download_files()`, que creará una carpeta comprimida (.zip) en
+el directorio declarado.
+
+``` r
+dir_save <- getwd() # o bien ingresar la ruta del directorio donde desea guardar el ZIP con la cartografía digital
+download_files(
+  x = carto_digital, # Objeto 
+  name_save = list(Cartografia_digital = names(carto_digital)), # lista con los nombres de cada capa. Se sugiere no cambiar esto del código
+  dir_save = dir_save
+)
+```
+
+### Apéndices
+
+#### Portada
+
+Cada apéndice presenta una portada, cuya información de nombre de
+proyecto y logo del cliente se debe definir previamente. Existen algunas
+plantillas predeterminadas, aunque también es posible configurar una
+para un proyecto en particular. A continuación, unos ejemplos de como
+configurar una portada:
+
+``` r
+# Configurar datos de portadas
+portada_opts(
+  nom_proj = NULL, # Nombre del proyecto
+  logo = NULL, # Ruta con el logo del cliente
+  plantilla = c("default", "KIM753", "MLP612") # Seleccionar una opción. "default" por default.
+)
+portada_opts(plantilla = "default")
+# $nom_proj
+# [1] "INGRESE NOMBRE DEL PROYECTO"
+
+# $logo
+# [1] "C:/Users/dmartinez/Documents/R/PAS.150/inst/app/www/logo_default.png"
+portada_opts(plantilla = "KIM753")
+# $nom_proj
+# [1] "LÍNEA DE TRANSMISIÓN ELÉCTRICA HVDC KIMAL - LO AGUIRRE"
+
+# $logo
+# [1] "C:/Users/dmartinez/Documents/R/PAS.150/inst/app/www/logo_conexion.png"
+portada_opts(
+  nom_proj = "Proyecto nuevo", # Nombre del proyecto 
+  logo = "C:/ruta/al/archivo/logo_cliente.png." # Ingresar ruta con el logo del cliente
+)
+# $nom_proj
+# [1] "Proyecto nuevo"
+
+# $logo
+# [1] "C:/ruta/al/archivo/logo_cliente.png."
+
+# Previsualizar portada
+library(openxlsx2)
+nom_ssubc <- "" # Nombre de la subsubcuenca. Se puede obtener igual con la función get_cuenca(uso_veg)$NOM_SSUBC
+wb_workbook(theme = "Integral") |>
+    wb_portada_PAS150(
+      apendice = c("inventarios", "biodiversidad", "fragmentacion"), # Seleccionar una opción
+      nom_ssubc = nom_ssubc,
+      opts = portada_opts()
+    ) |>
+      wb_open()
+```
+
+#### Apéndice de biodiversidad
+
+``` r
+# Generar
+BD_biodiversidad <- BD_biodiversidad(
+  BD_flora = BD_flora, 
+  sp = especie, 
+  nom_ssubc = nom_ssubc, 
+  portada_opts = portada_opts() # Configurar a gusto
+)
+
+# Guardar
+download_files(
+  x = BD_biodiversidad, 
+  name_save = sprintf("BD Biodiversidad %s", especie), # Ingresar nombre que desee para el archivo xlsx
+  dir_save = dir_save
+)
+```
+
+#### Apéndice de inventarios forestales
+
+``` r
+# Generar
+BD_inv_forestales <- BD_inventarios(
+  BD_fore = BD_fore, 
+  BNP_cuenca = BNP_cuenca, 
+  sp = especie, 
+  portada_opts = portada_opts()
+)
+
+# Guardar
+download_files(
+  x = BD_inventarios, 
+  name_save = sprintf("BD Inventarios forestales BNP %s", especie), # Ingresar nombre que desee para el archivo xlsx
+  dir_save = dir_save
+)
+
+# Estadísticos
+estadisticos <- estadisticos_PAS150(
+  a = 500/10000, # Superficie de las parcelas de inventario en hectárea
+  A = BNP_cuenca$Sup_ha %>% sum(), # Superficie de BNP en la cuenca
+  data = BD_inv_forestales$BD_Nha, # Base de datos de NHA
+  sp = especie
+)
+```
+
+#### Apéndice de fragmentación
+
+El apéndice de fragmentación se divide en dos partes principalmente; la
+ejecución del modelo FragStats y el análisis de amenaza, la cual utiliza
+los resultados del modelo.
+
+##### Ejecutar modelo FragStats
+
+Es necesario tener instalado previamente el software FragStats. Si no lo
+tiene, puede descargarlo con el siguiente
+[enlace](%22https://www.fragstats.org/download/frg4.2.681%5Bx64%5D.zip%22).
+
+Antes de correr el modelo debe definir el directorio y la ruta de los
+BNP antes y después del proyecto. Con esto se puede ejecutar la
+`FragStats_pre` que crea las carpetas con algunos archivos que requerirá
+el modelo.
+
+``` r
+dir <- "" # Ingresar ruta del directorio donde dejar los resultados del Fragstats 
+if (!dir.exists(dir)) dir.create(dir, recursive = T) # Crea el directorio si es que no existe
+path_antes = "" # Ingresar ruta del archivo .shp del BNP antes del proyecto
+path_despues = "" # Ingresar ruta del archivo .shp del BNP despues del proyecto. Es decir, sin la superficie a intervenir y alterar
+
+FragStats_pre(dir = dir, path_antes = path_antes, path_despues = path_despues)
+```
+
+Para correr el modelo debe copiar y abrir el archivo “FragStats.fca”.
+Este ya contiene las configuraciones necesarias, solo debe cargar el
+archivo ‘.tif’ del BNP antes del proyecto desde la carpeta ‘IMG’ y
+correr el modelo.
+
+Guardar la salida en la carpeta de ‘RESULTADOS’ y luego limpiar los
+inputs y outputs. A continuación ejecutar el mismo modelo, ahora para el
+‘.tif’ del BNP despues del proyecto.
+
+Una vez guardados ambos resultados, ejecutar la función
+`FragStats_post`.
+
+``` r
+# Copiar el modelo al directorio
+file.copy(
+  from = system.file("app/www/FragStats.fca", package = "PAS.150"), 
+  to = file.path(dir, "FragStats.fca")
+)
+system.file("app/www/FragStats.fca", package = "PAS.150")
+# EJECUTAR EL MODELO FRAGSTATS ANTES DE CONTINUAR!
+FragStats_post(dir = dir, path_antes = path_antes, path_despues = path_despues)
+```
+
+##### Analisis de amenaza (19 parámetros)
+
+``` r
+BD_fragmentacion <- BD_fragmentacion(
+  sf_uso = uso_veg,
+  sf_obras = obras,
+  path_frag = "", # Ingresar ruta del archivo .xlsx con los resultados del FragStats
+  ECC = especie,
+  subusos_noveg = c(""), # vector con la lista de subusos que no corresponden a vegetación. Ej, Áreas industriales, ríos, minería, etc
+  alteracion = T, 
+  spp_acomp = BD_biodiversidad$spp_acomp, # default NULL
+  prop = BD_inv_forestales$prop, # default NULL
+  estadisticos = estadisticos, # default NULL
+  portada_opts = portada_opts()
+)
+
+# Guardar 
+download_files(
+  x = BD_fragmentacion, 
+  name_save = sprintf("BD Tabla análisis de fragmentación %s", especie), # Ingresar nombre que desee para el archivo xlsx
+  dir_save = dir_save
+)
+```
+
+### Visualización de resultados
+
+A continuación, las funciones para generar las tablas con resultados que
+se visualizan en la aplicación.
+
+``` r
+gt_usos(uso_veg = uso_veg)
+gt_tipos_forestales(uso_veg = uso_veg, sp = especie)
+BNP_intervenir <- get_BNP_intervencion(BNP_cuenca = BNP_cuenca, obras = obras, BNP_inter = BNP_inter)
+gt_ecc_inter(
+  ecc_inter = get_ECC_int(censo = censo, sp = especie, BNP_inter = BNP_intervenir, BNP_alter = BNP_alter, upto5m = upto5m), 
+  BNP_int_sin_censo = get_BNP_int_sin_censo(BNP_inter = BNP_inter, densidad = densidad), 
+  col_obras = c("Obra", "Nom_obra") # Nombre de los campos con las obras que desea agrupar el censo 
+)
+BNP_alterar <- get_BNP_alterar(BNP_alter = BNP_alter, BNP_cuenca = BNP_cuenca, alt_ok = alt_ok)
+gt_ecc_alter(
+  ecc_alter = get_ECC_alt(BNP_alter = BNP_alterar, censo = censo, sp = especie), 
+  BNP_alt_sin_pto = get_BNP_alt_sin_censo(BNP_alter = BNP_alter, densidad = densidad), 
+  col_obras = c("Obra", "Nom_obra")
+)
+gt_sup_inter(obras = obras, BNP_inter = BNP_intervenir, BNP_alterar = BNP_alterar, col_obras = c("Obra", "Nom_obra"))
+gt_indices(tabla_indices = BD_biodiversidad$tabla_indices)
+gt_spp_acomp(spp_acomp = BD_biodiversidad$spp_acomp)
+gt_estadisticos(df_est = estadisticos)
+gt_IVI(df_ivi = BD_inv_forestales$IVI)
+gt_prop(df_est = estadisticos, df_prop = BD_inv_forestales$prop, BNP_cuenca = BNP_cuenca, sp = especie)
+gt_frag_matriz(matriz_paisaje = BD_fragmentacion$matriz_paisaje)
+gt_frag_param(df = BD_fragmentacion$df)
+gt_frag_resultados(tabla_eval = BD_fragmentacion$tabla_eval)
+```
 
 **Se solicita reportar cualquier error o bug de la aplicación y/o sus
 funciones**

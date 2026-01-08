@@ -9,7 +9,6 @@
 #' @param spp_acomp data.frame con especies acompañantes. obtener con `BD_biodiversidad()`
 #' @param prop data.frame con las proporciones por estado de desarrollo de la especie objetivo. obtener con `BD_inventarios()`
 #' @param estadisticos data.frame con los estadísticos de muestreo. obtener con `estadisticos_PAS150()`
-#' @param portada portada para los apendices. Disponible: `default`, `MLP612`, `KIM753` u `otra`.
 #' @param portada_opts opciones para personalizar una portada. ver `details`.
 #'
 #' @returns lista con resultados asociados al apéndice de fragmentacion
@@ -25,8 +24,7 @@ BD_fragmentacion <- function(
   spp_acomp = NULL, 
   prop = NULL,
   estadisticos = NULL,
-  portada = "default",
-  portada_opts = NULL
+  portada_opts = PAS.150::portada_opts()
 ){
   valid_input(sf_uso, inherit = "sf", names = "Subuso", geometry = "POLYGON")
   valid_input(sf_obras, inherit = "sf", geometry = "POLYGON")
@@ -45,6 +43,7 @@ BD_fragmentacion <- function(
   if(!is.null(spp_acomp)) valid_df(df = spp_acomp)
   if(!is.null(prop)) valid_df(df = prop, names = c("Proporciones", "Estado"))
   if(!is.null(estadisticos)) valid_df(df = estadisticos, names = c("Variable"))
+  valid_input(portada_opts, inherit = "list")
   
   # FragStats ----
   results_antes <- {if (tools::file_ext(path_frag) == "xls"){
@@ -254,25 +253,14 @@ BD_fragmentacion <- function(
   ### EXCEL ----
   title_color <- openxlsx2::wb_color(hex = "#62A39F")
   header_color <- openxlsx2::wb_color(hex = "#DFECEB")
+
   # Portada ----
-  opts <- switch(
-    portada,
-    "default" = portada_opts(plantilla = "default"),
-    "MLP612" = portada_opts(plantilla = "MLP612"),
-    "KIM753" = portada_opts(plantilla = "KIM753"),
-    "otra" = if (is.null(portada_opts)) {
-      portada_opts()
-    } else {
-      do.call(PAS.150::portada_opts, portada_opts)
-    }
-  )
-  
   nom_ssubc <- get_cuenca(sf_uso) %>% dplyr::pull(NOM_SSUBC)
   wb <- openxlsx2::wb_workbook(theme = "Integral") %>%
     wb_portada_PAS150(
       apendice = "fragmentacion",
       nom_ssubc = nom_ssubc,
-      opts = opts
+      opts = portada_opts
     )
   
   # Presentación ----

@@ -90,7 +90,7 @@ mod_fragstats_ui <- function(id) {
             "Abrir el archivo '.fca' disponible en el siguiente ", 
             downloadLink(ns("download_model"), "enlace", .noWS = "outside"),
             ", correspondiente al modelo a ejecutar en FragStats. Este ya contiene las configuraciones necesarias, solo 
-            debe cargar el archivo '.tif' del BNP antes del proyecto en el FragStats de la carpeta 'IMG'."
+            debe cargar el archivo '.tif' del BNP antes del proyecto desde la carpeta 'IMG'."
           )
         ),
         tags$li(

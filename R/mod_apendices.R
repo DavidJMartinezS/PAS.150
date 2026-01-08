@@ -29,17 +29,6 @@ mod_apendices_ui <- function(id) {
       condition = "input.portada == 'otra'",
       ns = ns,
       tags$div(
-        shinyWidgets::pickerInput(
-          inputId = ns("tipo_proj"),
-          label = "Tipo de proyecto",
-          choices = c("EIA", "DIA"),
-          selected = "EIA",
-          width = "150px",
-          options = shinyWidgets::pickerOptions(
-            container = "body",
-            style = "btn-outline-primary"
-          )
-        ),
         textInput(
           inputId = ns("nom_proj"),
           label = "Nombre de proyecto",
@@ -50,7 +39,9 @@ mod_apendices_ui <- function(id) {
           inputId = ns("logo"),
           label = "Logo del cliente",
           multiple = FALSE,
-          accept = "image/*"
+          accept = "image/*",
+          buttonLabel = "Seleccionar",
+          placeholder = "Archivo no seleccionado"
         )
       )
     ),
@@ -87,15 +78,21 @@ mod_apendices_server <- function(id, rv){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    bind_events(
-      ids = c("portada", "tipo_proj", "nom_proj", "logo"), 
-      rv = rv, 
-      parent_input = input
-    )
+    observe({
+      rv$portada_opts <- switch(
+        as.character(input$portada != "otra"),
+        "TRUE" = portada_opts(plantilla = input$portada),
+        "FALSE" = PAS.150::portada_opts(
+          nom_proj = input$nom_proj, 
+          logo = input$logo$datapath, 
+          plantilla = "default"
+        )
+      )
+    })
 
     observe({
       if(all(c(
-        isTruthy(rv$BD_flora), isTruthy(rv$cuenca), isTruthy(rv$sp), isTruthy(rv$portada) 
+        isTruthy(rv$BD_flora), isTruthy(rv$cuenca), isTruthy(rv$sp), isTruthy(rv$portada_opts) 
       ))) {
         shinyjs::enable("get_flora_btn")
       } else {
@@ -124,12 +121,7 @@ mod_apendices_server <- function(id, rv){
           BD_flora = rv$BD_flora,
           sp = rv$sp,
           nom_ssubc = rv$cuenca$NOM_SSUBC,
-          portada = rv$portada,
-          portada_opts = portada_opts(
-            tipo_proj = rv$tipo_proj,
-            nom_proj = rv$nom_proj,
-            logo = rv$logo$datapath
-          )
+          portada_opts = rv$portada_opts
         )
       }, error = function(e) {
         shinyalert::shinyalert(
@@ -160,7 +152,7 @@ mod_apendices_server <- function(id, rv){
 
     observe({
       if(all(c(
-        isTruthy(rv$BD_fore), isTruthy(rv$BNP_cuenca), isTruthy(rv$sp), isTruthy(rv$portada) 
+        isTruthy(rv$BD_fore), isTruthy(rv$BNP_cuenca), isTruthy(rv$sp), isTruthy(rv$portada_opts) 
       ))) {
         shinyjs::enable("get_fore_btn")
       } else {
@@ -189,12 +181,8 @@ mod_apendices_server <- function(id, rv){
           BD_fore = rv$BD_fore, 
           BNP_cuenca = rv$BNP_cuenca, 
           sp = rv$sp,
-          portada = rv$portada,
-          portada_opts = portada_opts(
-            tipo_proj = rv$tipo_proj,
-            nom_proj = rv$nom_proj,
-            logo = rv$logo$datapath
-          )
+          # portada = rv$portada,
+          portada_opts = rv$portada_opts
         )
       }, error = function(e) {
         shinyalert::shinyalert(
