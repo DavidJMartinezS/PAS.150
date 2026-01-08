@@ -98,8 +98,7 @@ mod_importante_ui <- function(id) {
             "Layout de obras",
             "Compilado de censos"
           ))
-        ), 
-        "Si in gresó"
+        )
       ),
       tags$li(
         "Para generar los apéndices de biodiversidad e inventarios forestales se requiere haber cargado previamente la cartorgafía de uso y vegetación de la cuenca además de la base de datos correspondiente"
@@ -108,11 +107,7 @@ mod_importante_ui <- function(id) {
         "Uno de los inputs más importante son la capa de cartorgafía de uso y vegetación junto con las bases de datos de parcelas. Por lo cual es importante que los datos que se ingresen no contenga errores. En la ventana de 'Exploración de datos' se presentan algunos resumenes de datos que facilitan la detección de errores."
       ),
       tags$li(
-        "Respecto de la ",
-        tags$b(
-          "cartografía de uso y vegetación",
-          ", tener en consideración lo siguiente:"
-        ),
+        "Respecto de la ", tags$b("cartografía de uso y vegetación"),", tener en consideración lo siguiente:",
         tags$ul(
           class = "ul_sec",
           list_to_li(c(
@@ -123,31 +118,31 @@ mod_importante_ui <- function(id) {
         )
       ),
       tags$li(
-        "En cuanto a las bases de datos de flora e inventarios, tener en consideración lo siguiente:",
+        "En cuanto a las ", tags$b("bases de datos de flora e inventarios"), ", tener en consideración lo siguiente:",
         tags$ul(
           class = "ul_sec",
           tags$li(
-            "Fijarse en la consistencia de las parcelas y sus coordenadas, cada parcela debe tener coordenadas unicas"
+            "Fijarse en la consistencia de las parcelas y sus coordenadas, cada parcela debe tener coordenadas unicas."
           ),
           tags$li(
             "Al ingresar las bases de datos estas son automaticamente filtradas a las parcelas que se encuentran dentro de los BNP de la cuenca. ",
             tags$b(
-              "Seleccionar 'BD lista' para usar la base tal como la ingresó"
+              "Seleccionar 'BD lista' para usar la base tal como la ingresó."
             )
           ),
           tags$li(
-            "Se recomienda realizar un chequeo de las bases de datos antes de utilizarlas dando click al boton 'Check'"
+            "Se recomienda realizar un chequeo de las bases de datos antes de utilizarlas dando click al boton 'Check'."
           ),
           tags$li(
-            "Los campos 'Sup_parcela', 'UTM_E', 'UTM_N', 'N_ind', 'DAP' y 'Altura' deben ser numéricos. Fijarse bien en el separador de decimales, que no se utilicen puntos y comas en la misma base de datos"
+            "Los campos 'Sup_parcela', 'UTM_E', 'UTM_N', 'N_ind', 'DAP' y 'Altura' deben ser numéricos. Fijarse bien en el separador de decimales, que no se utilicen puntos y comas en la misma base de datos."
           ),
           tags$li(
             "En la base de datos de inventarios forestales, fijarse que solo estén las especies que sean de su interés presentar. Generalmente se dejan fuera del analisis las especies exóticas como ",
             tags$i("'Olea europaea', 'Salix babylonica', 'Populus sp.'"),
-            ", etc"
+            ", etc."
           ),
           tags$li(
-            "El campo 'Estado' debe estar idealmente completo al menos para la especie objetivo del infome, con una de las siguientes clases: 'Adulto', 'Brinzal', 'Regeneración'"
+            "El campo 'Estado' debe estar idealmente completo al menos para la especie objetivo del infome, con una de las siguientes clases: 'Adulto', 'Brinzal', 'Regeneración'."
           )
         )
       )

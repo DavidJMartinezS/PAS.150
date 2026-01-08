@@ -8,8 +8,7 @@ BD_biodiversidad(
   BD_flora,
   sp,
   nom_ssubc,
-  portada = "default",
-  portada_opts = NULL
+  portada_opts = PAS.150::portada_opts()
 )
 }
 \arguments{
@@ -18,8 +17,6 @@ BD_biodiversidad(
 \item{sp}{especie en categoría de conservación objeto del informe.}
 
 \item{nom_ssubc}{Nombre de la subsubcuenca}
-
-\item{portada}{portada para los apendices. Disponible: `default`, `MLP612`, `KIM753` u `otra`.}
 
 \item{portada_opts}{opciones para personalizar una portada. ver `details`.}
 }

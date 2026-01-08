@@ -153,13 +153,12 @@ FragStats_post <- function(dir, path_antes, path_despues) {
     dplyr::select(PID, Description) %>% 
     sf::write_sf(file.path(dir, "ENTREGA/Raster/KML", gsub(".shp", ".kml", basename(path_despues))))
   
-  writexl::write_xlsx(
-    list(
-      ANTES = read.table(list.files(file.path(dir, "RESULTADOS/ANTES/"), pattern = ".patch$", full.names = T), header = T, sep = ",") %>% dplyr::select(-1),
-      DESPUES = read.table(list.files(file.path(dir, "RESULTADOS/DESPUES/"), pattern = ".patch$", full.names = T), header = T, sep = ",") %>% dplyr::select(-1)
-    ),
-    file.path(dir, "TABLA/JOIN_PATCH25_PROX1000.xlsx")
-  )
+  wb <- openxlsx2::wb_workbook() %>% 
+    openxlsx2::wb_add_worksheet(sheet = "ANTES") %>% 
+    openxlsx2::wb_add_data(x = read.table(list.files(file.path(dir, "RESULTADOS/ANTES/"), pattern = ".patch$", full.names = T), header = T, sep = ",") %>% select(-1)) %>% 
+    openxlsx2::wb_add_worksheet(sheet = "DESPUES") %>% 
+    openxlsx2::wb_add_data(x = read.table(list.files(file.path(dir, "RESULTADOS/DESPUES/"), pattern = ".patch$", full.names = T), header = T, sep = ",") %>% select(-1)) 
+  openxlsx2::wb_save(wb = wb, file = file.path(dir, "TABLA/JOIN_PATCH25_PROX1000.xlsx"))
   
   names_from <- list.files(file.path(dir, "RESULTADOS/ANTES"), recursive = T, full.names = T)
   names_to <- file.path(dir, "RESULTADOS/ANTES", paste(

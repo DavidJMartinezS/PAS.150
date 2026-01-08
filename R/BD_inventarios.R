@@ -1,6 +1,5 @@
 #' Apéndice BD inventarios forestales
 #'
-#' @param portada portada para los apendices. Disponible: `default`, `MLP612`, `KIM753` u `otra`.
 #' @param portada_opts opciones para personalizar una portada. ver `details`.
 #' @inheritParams carto_digital
 #' 
@@ -14,14 +13,12 @@ BD_inventarios <- function(
   BD_fore,
   BNP_cuenca,
   sp,
-  portada = "default",
-  portada_opts = NULL
+  portada_opts = PAS.150::portada_opts()
 ) {
   valid_input(BD_fore, inherit = "data.frame", names = req_names$BD_fore)
   valid_input(BNP_cuenca, inherit = "sf")
   valid_input(sp, inherit = "character")
-  portada <- match.arg(portada, c("default", "MLP612", "KIM753", "otra"))
-  valid_input(portada_opts, inherit = c("NULL", "list"))
+  valid_input(portada_opts, inherit = "list")
 
   # Datos ----
   clase_corte <- BD_fore %>%
@@ -173,20 +170,12 @@ BD_inventarios <- function(
   header_color <- openxlsx2::wb_color(hex = "#DFECEB")
   
   # Portada ----
-  opts <- switch(
-    portada,
-    "default" = portada_opts(plantilla = "default"),
-    "MLP612" = portada_opts(plantilla = "MLP612"),
-    "KIM753" = portada_opts(plantilla = "KIM753"),
-    "otra" = if (is.null(portada_opts)) portada_opts() else do.call(PAS.150::portada_opts, portada_opts)
-  )
-
   nom_ssubc <- get_cuenca(BNP_cuenca) %>% dplyr::pull(NOM_SSUBC)
   wb <- openxlsx2::wb_workbook(theme = "Integral") %>%
     wb_portada_PAS150(
       apendice = "inventarios",
       nom_ssubc = nom_ssubc,
-      opts = opts 
+      opts = portada_opts
     )
 
   # Presentacion ----

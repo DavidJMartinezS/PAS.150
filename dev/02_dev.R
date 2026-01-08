@@ -49,7 +49,6 @@ usethis::use_package('plotly')
 usethis::use_package('readxl', )
 usethis::use_package('shinyFiles')
 usethis::use_package('leafpop')
-usethis::use_package('writexl')
 
 tabla_guia_fragmentacion <- read_xlsx("inst/app/www/tabla_guia_fragmentacion.xlsx") %>% tibble::as_tibble()
 usethis::use_data(tabla_guia_fragmentacion)

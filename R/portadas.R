@@ -19,9 +19,8 @@ wb_portada_PAS150 <- function(
   if(!is.null(nom_ssubc)) valid_input(nom_ssubc, inherit = "character")
   stopifnot(
     inherits(opts, "list"),
-    sort(names(opts)) == sort(c("tipo_proj", "nom_proj", "logo")),
-    lengths(opts) == 1,
-    opts$tipo_proj %in% c("DIA", "EIA")
+    sort(names(opts)) == sort(c("nom_proj", "logo")),
+    lengths(opts) == 1
   )
   
   mes <- Sys.Date() %>% format('%B') %>% stringi::stri_trans_totitle()
@@ -59,7 +58,7 @@ wb_portada_PAS150 <- function(
     ) %>%
     # Tipo proyecto
     openxlsx2::wb_add_data(
-      x = ifelse(opts$tipo_proj == "EIA", "ESTUDIO DE IMPACTO AMBIENTAL", "DECLARACIÓN DE IMPACTO AMBIENTAL"),
+      x = "ESTUDIO DE IMPACTO AMBIENTAL",
       start_col = 2,
       start_row = 16
     ) %>%
@@ -104,7 +103,6 @@ wb_portada_PAS150 <- function(
 
 #' Ajuste de portada
 #'
-#' @param tipo_proj Tipo de proyecto. `DIA` o `EIA`. default `EIA`.
 #' @param nom_proj Nombre del proyecto.
 #' @param logo Ruta del archivo de tipo imagen con el logo del cliente.
 #' @param plantilla Plantilla realizada para proyectos en particular, disponible `KIM753`, `MLP612` y `default`.
@@ -113,30 +111,27 @@ wb_portada_PAS150 <- function(
 #' @return lista con ajustes de portada
 #' @export
 portada_opts <- function(
-    tipo_proj = "EIA",
     nom_proj = NULL,
     logo = NULL,
     plantilla = "default"
   ) {
-  tipo_proj <- match.arg(tipo_proj, choices = c("DIA", "EIA"))
   plantilla <- match.arg(plantilla, choices = c("default", "KIM753", "MLP612"))
-
-  nom_proj <- switch (
+  
+  nom_proj <- switch(
     plantilla,
     "KIM753" = "LÍNEA DE TRANSMISIÓN ELÉCTRICA HVDC KIMAL - LO AGUIRRE",
     "MLP612" = "PROYECTO EXTENSIÓN VIDA ÚTIL DE MINERA LOS PELAMBRES",
     "default" = if (!is.null(nom_proj)) nom_proj else "INGRESE NOMBRE DEL PROYECTO"
   )
 
-  logo <- switch (
+  logo <- switch(
     plantilla,
     "KIM753" = app_sys("app/www/logo_conexion.png"),
     "MLP612" = app_sys("app/www/logo_mlp.png"),
-    "default" = if (!is.null(logo)) logo else app_sys("app/www/logo_default.png")
+    "default" = if (!is.null(logo)) tools::file_path_as_absolute(logo) else app_sys("app/www/logo_default.png")
   )
 
   opts <- list(
-    tipo_proj = tipo_proj,
     nom_proj = nom_proj,
     logo = logo
   )

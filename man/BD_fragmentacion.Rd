@@ -14,8 +14,7 @@ BD_fragmentacion(
   spp_acomp = NULL,
   prop = NULL,
   estadisticos = NULL,
-  portada = "default",
-  portada_opts = NULL
+  portada_opts = PAS.150::portada_opts()
 )
 }
 \arguments{
@@ -36,8 +35,6 @@ BD_fragmentacion(
 \item{prop}{data.frame con las proporciones por estado de desarrollo de la especie objetivo. obtener con `BD_inventarios()`}
 
 \item{estadisticos}{data.frame con los estadísticos de muestreo. obtener con `estadisticos_PAS150()`}
-
-\item{portada}{portada para los apendices. Disponible: `default`, `MLP612`, `KIM753` u `otra`.}
 
 \item{portada_opts}{opciones para personalizar una portada. ver `details`.}
 }

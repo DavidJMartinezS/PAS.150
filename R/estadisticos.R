@@ -2,7 +2,7 @@
 #'
 #' @param a superficie parcela en hectareas.
 #' @param A superficie unidad a inventariar. ej: BNP de la cuenca.
-#' @param data data.frame con los datos del NHA. Obter con `BD_inv_for()`.
+#' @param data data.frame con los datos del NHA. Obter con `BD_inventarios()`.
 #' @inheritParams carto_digital
 #'
 #' @returns data.frame con estadisticos

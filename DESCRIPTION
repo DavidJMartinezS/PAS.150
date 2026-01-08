@@ -50,7 +50,6 @@ Imports:
     tidyr,
     tools,
     units,
-    writexl,
     zip
 Suggests: 
     testthat (>= 3.0.0)

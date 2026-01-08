@@ -60,9 +60,6 @@ mod_basic_input_server <- function(id, rv){
       updateNumericInput(session = session, inputId = "densidad", value = rv$densidad_bd)
     })
 
-    output$densidad_bd_out <- renderPrint({rv$densidad_bd})
-    output$densidad_out <- renderPrint({rv$densidad})
-    
     # Uso_veg ----
     mod_read_sf_server("uso_veg", rv = rv, i = "uso_veg", fx = prepare_uso_veg)
     

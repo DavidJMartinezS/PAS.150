@@ -40,6 +40,7 @@ golem::install_dev_deps()
 ## See ?usethis for more information
 usethis::use_gpl_license() # You can set another license here
 golem::use_readme_rmd(open = FALSE)
+# credentials::set_github_pat("my_pat")
 devtools::build_readme()
 # Note that `contact` is required since usethis version 2.1.5
 # If your {usethis} version is older, you can remove that param

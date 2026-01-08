@@ -13,12 +13,7 @@ wb_portada_PAS150(
   opts = portada_opts()
 )
 
-portada_opts(
-  tipo_proj = "EIA",
-  nom_proj = NULL,
-  logo = NULL,
-  plantilla = "default"
-)
+portada_opts(nom_proj = NULL, logo = NULL, plantilla = "default")
 }
 \arguments{
 \item{wb}{Workbook.}
@@ -28,8 +23,6 @@ portada_opts(
 \item{nom_ssubc}{nombre de la subsubcuenca.}
 
 \item{opts}{Opciones para personalizar una portada. usar [portada_opts()].}
-
-\item{tipo_proj}{Tipo de proyecto. `DIA` o `EIA`. default `EIA`.}
 
 \item{nom_proj}{Nombre del proyecto.}
 

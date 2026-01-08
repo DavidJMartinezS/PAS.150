@@ -1,7 +1,6 @@
 #' Apéndice BD biodiversidad
 #'
 #' @param nom_ssubc Nombre de la subsubcuenca
-#' @param portada portada para los apendices. Disponible: `default`, `MLP612`, `KIM753` u `otra`.
 #' @param portada_opts opciones para personalizar una portada. ver `details`.
 #' @inheritParams carto_digital
 #'
@@ -15,13 +14,11 @@ BD_biodiversidad <- function(
   BD_flora,
   sp,
   nom_ssubc,
-  portada = "default",
-  portada_opts = NULL
+  portada_opts = PAS.150::portada_opts()
 ) {
   valid_df(BD_flora, req_names$BD_flora)
   valid_input(sp, inherit = "character")
-  portada <- match.arg(portada, c("default", "MLP612", "KIM753", "otra"))
-  valid_input(portada_opts, inherit = c("NULL", "list"))
+  valid_input(portada_opts, inherit = "list")
 
   # DATOS ----
   BD_indices <- BD_flora %>%
@@ -51,23 +48,11 @@ BD_biodiversidad <- function(
   title_color <- wb_color(hex = "#62A39F")
 
   ## Portada ----
-  opts <- switch(
-    portada,
-    "default" = portada_opts(plantilla = "default"),
-    "MLP612" = portada_opts(plantilla = "MLP612"),
-    "KIM753" = portada_opts(plantilla = "KIM753"),
-    "otra" = if (is.null(portada_opts)) {
-      portada_opts()
-    } else {
-      do.call(PAS.150::portada_opts, portada_opts)
-    }
-  )
-
   wb <- openxlsx2::wb_workbook(theme = "Integral") %>%
     wb_portada_PAS150(
       apendice = "biodiversidad",
       nom_ssubc = nom_ssubc,
-      opts = opts
+      opts = portada_opts
     )
 
   ## Presentación ----

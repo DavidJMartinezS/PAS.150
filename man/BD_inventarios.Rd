@@ -4,13 +4,7 @@
 \alias{BD_inventarios}
 \title{Apéndice BD inventarios forestales}
 \usage{
-BD_inventarios(
-  BD_fore,
-  BNP_cuenca,
-  sp,
-  portada = "default",
-  portada_opts = NULL
-)
+BD_inventarios(BD_fore, BNP_cuenca, sp, portada_opts = PAS.150::portada_opts())
 }
 \arguments{
 \item{BD_fore}{dataframe con la base de datos de las parcelas de inventarios forestales.}
@@ -18,8 +12,6 @@ BD_inventarios(
 \item{BNP_cuenca}{capa vectorial con los BNP en la cuenca. Obtener con `get_BNP_cuenca()`.}
 
 \item{sp}{especie en categoría de conservación objeto del informe.}
-
-\item{portada}{portada para los apendices. Disponible: `default`, `MLP612`, `KIM753` u `otra`.}
 
 \item{portada_opts}{opciones para personalizar una portada. ver `details`.}
 }
