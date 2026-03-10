@@ -21,7 +21,7 @@ mod_fragstats_ui <- function(id) {
         ),
         tags$p(
           "Es necesario tener instalado previamente el software FragStats. Si no lo tiene, puede descargarlo con el siguiente ",
-          actionLink(ns("link_fragstats"), "enlace", .noWS = "outside"), ".\n",
+          actionLink(ns("link_fragstats"), "enlace"), ".\n",
           "Siga atentamente las instrucciones para evitar errores."
         )
       )
@@ -88,7 +88,7 @@ mod_fragstats_ui <- function(id) {
         tags$li(
           tags$span(
             "Abrir el archivo '.fca' disponible en el siguiente ", 
-            downloadLink(ns("download_model"), "enlace", .noWS = "outside"),
+            downloadLink(ns("download_model"), "enlace"),
             ", correspondiente al modelo a ejecutar en FragStats. Este ya contiene las configuraciones necesarias, solo 
             debe cargar el archivo '.tif' del BNP antes del proyecto desde la carpeta 'IMG'."
           )
