@@ -60,7 +60,5 @@ app_server <- function(input, output, session) {
   observeEvent(input$link_github, {
     browseURL("https://github.com/DavidJMartinezS")
   })
-  observeEvent(input$link_geobiota, {
-    browseURL("https://www.geobiota.com/")
-  })
+  
 }

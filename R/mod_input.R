@@ -31,12 +31,6 @@ mod_input_ui <- function(id) {
         icon = bsicons::bs_icon("file-spreadsheet"),
         mod_apendices_ui(ns("apendices"))
       )
-    ),
-    tags$img(
-      src = "www/favicon.ico",
-      width = "50%",
-      height = "auto",
-      style = "align: center; display: block; margin-left: auto; margin-right: auto;"
     )
   )
 }

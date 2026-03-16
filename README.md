@@ -27,6 +27,7 @@ Para la instalación del paquete `{PAS.150}` debe de ejecutar:
 
 ``` r
 options(timeout = 600)
+remotes::install_github("DavidJMartinezS/leaflet.extras")
 remotes::install_github("DavidJMartinezS/dataPAS", dependencies = T, force = T)
 remotes::install_github("DavidJMartinezS/PAS.150", dependencies = T, force = T)
 ```

@@ -11,7 +11,7 @@ app_ui <- function(request) {
     # Your application UI logic
     bslib::page_navbar(
       title = tags$a(
-        tags$img(height = "35px", src = "www/logo_geobiota_mini.png", style = "margin-right: 10px"),
+        tags$img(height = "35px", src = "www/favicon.ico", style = "margin-right: 10px"),
         "Dashboard Informe de Experto, PAS 150"
       ),
       theme = bslib::bs_theme(
@@ -104,16 +104,6 @@ app_ui <- function(request) {
             shiny::icon("github"),
             "Github",
             href = "https://github.com/DavidJMartinezS",
-            target = "_blank",
-            class = "action-button"
-          )
-        ),
-        bslib::nav_item(
-          tags$a(
-            id = "link_geobiota",
-            shiny::icon("globe"),
-            "Geobiota",
-            href = "https://geobiota.com/",
             target = "_blank",
             class = "action-button"
           )
