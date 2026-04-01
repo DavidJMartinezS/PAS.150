@@ -1,6 +1,6 @@
 Package: PAS.150
 Title: Dashboard para elaborar PAS 150
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: 
     person("David", "Martínez", , "david.tinez1@gmail.com", role = c("aut", "cre"))
 Description: Paquete realizado para ayudar en la elaboracion del informe
