@@ -34,7 +34,7 @@ BD_biodiversidad <- function(
     list %>% purrr::map_dbl(~ .x^2) %>% sum()
   } # función suma cuadrados
   tabla_indices_R <- tibble::tibble(
-    Indices = c("Simpson", "Div. Simpson", "Shannon-Weaver"),
+    `Índices` = c("Simpson", "Div. Simpson", "Shannon-Weaver"),
     Valor = c(
       janitor::round_half_up(sc(BD_indices$p), 3),
       1 - janitor::round_half_up(sc(BD_indices$p), 3),

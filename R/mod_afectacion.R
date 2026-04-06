@@ -23,9 +23,9 @@ mod_afectacion_ui <- function(id) {
           dropboxWrapper = "body"
         )
       ),
-      bslib::nav_panel("Censo a Intervenir", gt::gt_output(ns("gt_c_inter"))),
-      bslib::nav_panel("Censo a Alterar", gt::gt_output(ns("gt_c_alter"))),
-      bslib::nav_panel("Superficies", gt::gt_output(ns("gt_sup_inter")))
+      bslib::nav_panel("Censo a Intervenir", div_gt(gt::gt_output(ns("gt_c_inter")))),
+      bslib::nav_panel("Censo a Alterar", div_gt(gt::gt_output(ns("gt_c_alter")))),
+      bslib::nav_panel("Superficies", div_gt(gt::gt_output(ns("gt_sup_inter")))),
     )
   )
 }
@@ -36,29 +36,94 @@ mod_afectacion_ui <- function(id) {
 mod_afectacion_server <- function(id, rv){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
-    observeEvent(rv$obras, {
+    observeEvent(rv$carto_digital, {
       shinyWidgets::updateVirtualSelect(
         session = session,
         inputId = "vars_obras",
-        choices = sf::st_drop_geometry(rv$obras) %>% dplyr::select(dplyr::contains("obra")) %>% names(),
-        selected = sf::st_drop_geometry(rv$obras) %>% dplyr::select(dplyr::contains("obra")) %>% names() %>% .[1]
+        choices = purrr::keep(
+          rv$carto_digital,
+          .p = stringi::stri_detect_regex(
+            names(rv$carto_digital),
+            "Censo.*Inter",
+            case_insensitive = T
+          )
+        ) %>%
+          purrr::pluck(1) %>%
+          dplyr::select(dplyr::contains("obra")) %>%
+          sf::st_drop_geometry() %>%
+          names(),
+        selected = purrr::keep(
+          rv$carto_digital,
+          .p = stringi::stri_detect_regex(
+            names(rv$carto_digital),
+            "Censo.*Inter",
+            case_insensitive = T
+          )
+        ) %>%
+          purrr::pluck(1) %>%
+          dplyr::select(dplyr::contains("obra")) %>%
+          sf::st_drop_geometry() %>%
+          names() %>%
+          .[1]
       )
     })
 
     output$gt_c_inter <- gt::render_gt({
       validate(need(rv$carto_digital, "Requiere generar cartografía digital"))
       gt_ecc_inter(
-        ecc_inter = purrr::keep(rv$carto_digital, .p = stringi::stri_detect_regex(names(rv$carto_digital), "Censo.*Inter", case_insensitive = T)) %>% .[[1]], 
-        BNP_int_sin_censo = purrr::keep(rv$carto_digital, .p = stringi::stri_detect_regex(names(rv$carto_digital), "Estimación_Inter", case_insensitive = T)) %>% .[[1]],
+        ecc_inter = purrr::keep(
+          rv$carto_digital,
+          .p = stringi::stri_detect_regex(
+            names(rv$carto_digital),
+            "Censo.*Inter",
+            case_insensitive = T
+          )
+        ) %>%
+          purrr::pluck(1),
+        BNP_int_sin_censo = purrr::keep(
+          rv$carto_digital,
+          .p = stringi::stri_detect_regex(
+            names(rv$carto_digital),
+            "Estimación_Inter",
+            case_insensitive = T
+          )
+        ) %>%
+          purrr::pluck(1),
         col_obras = input$vars_obras
       )
     })
 
     output$gt_c_alter <- gt::render_gt({
-      validate(need(rv$carto_digital, "Requiere generar cartografía digital"))
+      if(!isTruthy(rv$carto_digital)) {
+        validate(need(rv$carto_digital, "Requiere generar cartografía digital"))
+      } else {
+        validate(need(purrr::keep(
+          rv$carto_digital, 
+          .p = stringi::stri_detect_regex(
+            names(rv$carto_digital), 
+            "Censo.*Alter", 
+            case_insensitive = T
+          )
+        ) %>% purrr::pluck(1), 
+        sprintf("No existe alteración de individuos de %s", rv$sp)))
+      }
       gt_ecc_alter(
-        ecc_alter = purrr::keep(rv$carto_digital, .p = stringi::stri_detect_regex(names(rv$carto_digital), "Censo.*Alter", case_insensitive = T)) %>% .[[1]], 
-        BNP_alt_sin_pto = purrr::keep(rv$carto_digital, .p = stringi::stri_detect_regex(names(rv$carto_digital), "Estimación_Alter", case_insensitive = T)) %>% .[[1]],
+        ecc_alter = purrr::keep(
+          rv$carto_digital, 
+          .p = stringi::stri_detect_regex(
+            names(rv$carto_digital), 
+            "Censo.*Alter", 
+            case_insensitive = T
+          )
+        ) %>% purrr::pluck(1), 
+        BNP_alt_sin_pto = purrr::keep(
+          rv$carto_digital, 
+          .p = stringi::stri_detect_regex(
+            names(rv$carto_digital), 
+            "Estimación_Alter", 
+            case_insensitive = T
+          )
+        ) %>% purrr::pluck(1),
         col_obras = input$vars_obras
       )
     })
@@ -67,8 +132,22 @@ mod_afectacion_server <- function(id, rv){
       validate(need(rv$carto_digital, "Requiere generar cartografía digital"))
       gt_sup_inter(
         obras = rv$obras, 
-        BNP_inter = purrr::keep(rv$carto_digital, .p = stringi::stri_detect_regex(names(rv$carto_digital), "BNP.*a_Inter", case_insensitive = T)) %>% .[[1]], 
-        BNP_alterar = purrr::keep(rv$carto_digital, .p = stringi::stri_detect_regex(names(rv$carto_digital), "BNP.*a_Alter", case_insensitive = T)) %>% .[[1]],
+        BNP_inter = purrr::keep(
+          rv$carto_digital, 
+          .p = stringi::stri_detect_regex(
+            names(rv$carto_digital), 
+            "BNP.*a_Inter", 
+            case_insensitive = T
+          )
+        ) %>% purrr::pluck(1), 
+        BNP_alterar = purrr::keep(
+          rv$carto_digital, 
+          .p = stringi::stri_detect_regex(
+            names(rv$carto_digital), 
+            "BNP.*a_Alter", 
+            case_insensitive = T
+          )
+        ) %>% purrr::pluck(1),
         col_obras = input$vars_obras
       )
     })

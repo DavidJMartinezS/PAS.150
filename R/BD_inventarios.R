@@ -50,7 +50,7 @@ BD_inventarios <- function(
           unlist() %>% as.numeric() %>% mean()
       })
     ) %>%
-    tibble::rowid_to_column('Correlativo') %>%
+    # tibble::rowid_to_column('Correlativo') %>%
     dplyr::mutate(AB = 'IFERROR(PI()*(BD[[#This Row], [DAP]]/200)^2, "")')
   class(BD$AB) <- "formula"
 

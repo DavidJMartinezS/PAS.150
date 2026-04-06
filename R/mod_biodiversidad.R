@@ -16,8 +16,8 @@ mod_biodiversidad_ui <- function(id) {
       tagList(
         bslib::card(
           full_screen = T,
-          bslib::card_header("Frecuencia de especies acompañantes"),
-          bslib::card_body(gt::gt_output(ns("gt_spp_acomp")))
+          bslib::card_header("Índices de biodiversidad"),
+          div_gt(gt::gt_output(ns("gt_indices")))
         ),
         # Un layout de columnas anidado para poner los value_box en una fila
         bslib::layout_columns(
@@ -48,8 +48,8 @@ mod_biodiversidad_ui <- function(id) {
         width = 1,
         bslib::card(
           full_screen = T,
-          bslib::card_header("Índices de biodiversidad"),
-          bslib::card_body(gt::gt_output(ns("gt_indices")))
+          bslib::card_header("Frecuencia de especies acompañantes"),
+          div_gt(gt::gt_output(ns("gt_spp_acomp")))
         ),
         bslib::card(
           full_screen = T,

@@ -121,6 +121,8 @@ mod_fragstats_server <- function(id, rv){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
+    refresh_tree <- reactiveVal(0)
+
     # Downloads ----
     observeEvent(input$link_fragstats, {
       browseURL("https://www.fragstats.org/download/frg4.2.681[x64].zip")
@@ -158,6 +160,7 @@ mod_fragstats_server <- function(id, rv){
     })
     
     output$dir_tree <- renderPrint({
+      refresh_tree()
       if (dir.exists(directorio())) {
         fs::dir_tree(path = tools::file_path_as_absolute(directorio()))
       } else {
@@ -216,6 +219,7 @@ mod_fragstats_server <- function(id, rv){
 
       tryCatch({
         FragStats_pre(dir = directorio(), path_antes = rv$BNP_antes, path_despues = rv$BNP_despues)
+        refresh_tree(refresh_tree() + 1)
       }, error = function(e) {
         shinyalert::shinyalert(
           title = "Error al preparar las carpetas",
@@ -256,6 +260,7 @@ mod_fragstats_server <- function(id, rv){
 
       tryCatch({
         FragStats_post(dir = directorio(), path_antes = rv$BNP_antes, path_despues = rv$BNP_despues)
+        refresh_tree(refresh_tree() + 1)
       }, error = function(e) {
         shinyalert::shinyalert(
           title = "Error en procesos post-FragStats",

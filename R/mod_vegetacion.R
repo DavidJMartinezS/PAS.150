@@ -33,7 +33,7 @@ mod_vegetacion_ui <- function(id) {
         bslib::card(
           full_screen = T,
           bslib::card_header("Tipos forestales"),
-          gt::gt_output(ns("gt_tf"))
+          div_gt(gt::gt_output(ns("gt_tf")))
         )
       ),
       bslib::layout_column_wrap(

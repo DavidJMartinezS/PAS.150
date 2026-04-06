@@ -181,16 +181,35 @@ valid_df <- function(df, names = NULL){
   invisible()
 }
 
-#' @noRd
+#' Obtener densidad media de una especie
+#'
+#' @param BD_fore Dataframe con datos de inventario forestal.
+#' @param sp Nombre de la especie objetivo.
+#'
+#' @return Densidad media (N/ha) redondeada.
 get_densidad <- function(BD_fore, sp){
-  BD_fore %>%
-    dplyr::group_by(Parcela, Sup_parcela, UTM_E, UTM_N, Especie) %>%
-    dplyr::summarise(n = sum(N_ind, na.rm = T), .groups = "drop") %>%
-    dplyr::mutate(n = (n * 10000 / Sup_parcela)) %>%
-    tidyr::pivot_wider(names_from = Especie, values_from = n) %>%
-    dplyr::mutate(Nha_Total = rowSums(dplyr::select(., -c(1:4)), na.rm = TRUE)) %>%
-    dplyr::mutate_at(-c(1:4), ~ ifelse(is.na(.), 0, .)) %>%
-    dplyr::pull(sp) %>% mean() %>% janitor::round_half_up()
+  valid_input(BD_fore, inherit = "data.frame", names = req_names$BD_fore)
+  
+  if (nrow(BD_fore) == 0) {
+    stop("Error: La base de datos de inventario forestal no contiene registros para procesar.", call. = FALSE)
+  }
+
+  if (!sp %in% unique(BD_fore$Especie)) {
+    stop(sprintf("Error: La especie '%s' no se encuentra en los registros de la base de datos de inventarios.", sp), call. = FALSE)
+  }
+
+  tryCatch({
+    BD_fore %>%
+      dplyr::group_by(Parcela, Sup_parcela, UTM_E, UTM_N, Especie) %>%
+      dplyr::summarise(n = sum(N_ind, na.rm = T), .groups = "drop") %>%
+      dplyr::mutate(n = (n * 10000 / Sup_parcela)) %>%
+      tidyr::pivot_wider(names_from = Especie, values_from = n) %>%
+      dplyr::mutate(Nha_Total = rowSums(dplyr::select(., -c(1:4)), na.rm = TRUE)) %>%
+      dplyr::mutate_at(-c(1:4), ~ ifelse(is.na(.), 0, .)) %>%
+      dplyr::pull(sp) %>% mean() %>% janitor::round_half_up()
+  }, error = function(e) {
+    stop(paste("Fallo interno al calcular la densidad:", e$message), call. = FALSE)
+  })
 }
 
 #' @noRd
@@ -208,7 +227,11 @@ bind_events <- function(
   )
 }
 
-#' @noRd
+#' Preparar y estandarizar datos de Uso y Vegetación
+#'
+#' @param x Objeto sf con la cartografía de uso.
+#'
+#' @return Objeto sf con columnas renombradas y superficie calculada.
 prepare_uso_veg <- function(x) {
   x %>%
     dplyr::rename_all(~ ifelse(

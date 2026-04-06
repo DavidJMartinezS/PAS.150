@@ -14,7 +14,10 @@ app_server <- function(input, output, session) {
   )
   rv <- reactiveValues(
     uso_veg = NULL,
+    df_sp = df_sp,
     sp = NULL,
+    rce = NULL,
+    tipo_rep = NULL,
     obras = NULL, 
     censo = NULL, 
     upto5m = NULL,

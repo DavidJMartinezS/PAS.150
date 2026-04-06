@@ -14,11 +14,16 @@ mod_basic_input_ui <- function(id) {
     shinyWidgets::pickerInput(
       inputId = ns("sp"),
       label = "Especie:",
-      choices = sort(req_names$sp),
+      choices = c(sort(df_sp$Especie), "Agregar nueva..."),
       selected = "Porlieria chilensis",
       options = shinyWidgets::pickerOptions(
         container = "body",
-        style = "btn-primary"
+        style = "btn-primary",
+        showSubtext = TRUE
+      ),
+      choicesOpt = list(
+        subtext = c(df_sp$Desc, ""),
+        style = c(rep("", length(df_sp$Especie)), "color: #3d93ab; font-weight: bold; border-top: 1px solid #ddd")
       )
     ),
     mod_read_sf_ui(ns("obras"), label = "Obras", required = TRUE),
@@ -46,13 +51,98 @@ mod_basic_input_server <- function(id, rv){
       parent_input = input
     )
 
-    observeEvent({rv$BNP_inter; rv$BNP_alter}, {
-      if("Censado" %in% union(names(rv$BNP_inter), names(rv$BNP_alter))) {
+    prev_sp <- reactiveVal("Porlieria chilensis")
+
+    observeEvent(rv$df_sp, {
+      shinyWidgets::updatePickerInput(
+        session = session,
+        inputId = "sp",
+        choices = c(sort(rv$df_sp$Especie), "Agregar nueva..."),
+        choicesOpt = list(
+          subtext = c(rv$df_sp$Desc, ""),
+          style = c(rep("", length(rv$df_sp$Especie)), "color: #3d93ab; font-weight: bold; border-top: 1px solid #ddd")
+        ),
+        selected = input$sp
+      )
+    })
+
+    observeEvent(input$sp, {
+      if (isTruthy(input$sp) && input$sp == "Agregar nueva...") {
+        showModal(modalDialog(
+          title = "Agregar nueva especie",
+          textInput(ns("new_sp_name"), "Nombre de la especie:"),
+          selectInput(
+            ns("new_sp_rce"), "Clasificación RCE:",
+            choices = c("VU", "EN", "CR")
+          ),
+          radioButtons(
+            ns("new_sp_tipo_rep"), "Tipo de reproducción:",
+            choices = c("dioica", "monoica"),
+            inline = TRUE
+          ),
+          footer = tagList(
+            modalButton("Cancelar"),
+            actionButton(ns("confirm_add_sp"), "Agregar", class = "btn-primary")
+          ),
+          easyClose = TRUE
+        ))
+        shinyWidgets::updatePickerInput(session, "sp", selected = prev_sp())
+      } else if (isTruthy(input$sp)) {
+        prev_sp(input$sp)
+      }
+    })
+
+    observeEvent(input$confirm_add_sp, {
+      req(input$new_sp_name)
+      new_sp_val <- input$new_sp_name
+      
+      # Agregar a la tabla de metadatos si no existe
+      if (!new_sp_val %in% rv$df_sp$Especie) {
+        new_row <- tibble::tibble(
+          Especie = new_sp_val,
+          RCE = input$new_sp_rce,
+          Tipo_rep = input$new_sp_tipo_rep,
+          Desc = paste0("RCE: ", RCE, " | Tipo: ", Tipo_rep)
+        )
+        
+        rv$df_sp <- dplyr::bind_rows(rv$df_sp, new_row) %>% 
+          dplyr::arrange(Especie)
+      }
+      
+      shinyWidgets::updatePickerInput(
+        session = session,
+        inputId = "sp",
+        selected = new_sp_val
+      )
+      
+      removeModal()
+    })
+
+    # Actualizar metadatos reactivosde la especie
+    observeEvent(input$sp, {
+      req(input$sp)
+      # Si es una especie válida (no la opción de agregar)
+      if (input$sp != "Agregar nueva...") {
+        # Buscamos la info en nuestra tabla reactiva de especies
+        info <- rv$df_sp %>% dplyr::filter(Especie == input$sp)
+        
+        if (nrow(info) > 0) {
+          rv$rce <- info$RCE
+          rv$tipo_rep <- info$Tipo_rep
+        }
+      }
+    })
+
+    # Afectacion
+    observe({
+      if ("Censado" %in% names(rv$BNP_inter) || "Censado" %in% names(rv$BNP_alter)) {
         output$densidad_ui <- renderUI({
           tags$div(
             numericInput(ns("densidad"), label = "Densidad para estimación (ind/ha)", value = 0)
           )
         })
+      } else {
+        output$densidad_ui <- renderUI(NULL)
       }
     })
 

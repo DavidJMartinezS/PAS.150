@@ -429,8 +429,8 @@ gt_ecc_inter <- function(ecc_inter, BNP_int_sin_censo, col_obras = NULL) {
         BNP_int_sin_censo %>% 
           sf::st_drop_geometry() %>% 
           dplyr::mutate(Especie = sp) %>% 
-          dplyr::select(!!!vars_obras, Especie, Afectacion, Ind_interv) %>% 
-          dplyr::rename(n = Ind_interv)
+          dplyr::select(!!!vars_obras, Especie, Afectacion, Ind_inter) %>% 
+          dplyr::rename(n = Ind_inter)
       )
     } else .[]} %>% 
     dplyr::group_by(!!!vars_obras, Especie, Afectacion) %>% 
@@ -483,8 +483,8 @@ gt_ecc_alter <- function(ecc_alter, BNP_alt_sin_pto, col_obras = NULL) {
           BNP_alt_sin_pto %>% 
             sf::st_drop_geometry() %>% 
             dplyr::mutate(Especie = sp) %>% 
-            dplyr::select(!!!vars_obras, Especie, Ind_alterar) %>% 
-            dplyr::rename(n = Ind_alterar)
+            dplyr::select(!!!vars_obras, Especie, Ind_alter) %>% 
+            dplyr::rename(n = Ind_alter)
         ) 
     } else .[]} %>% 
     dplyr::group_by(!!!vars_obras, Especie) %>% 
@@ -545,12 +545,16 @@ gt_sup_inter <- function(obras, BNP_inter, BNP_alterar, col_obras = NULL) {
         dplyr::group_by(!!!vars_obras) %>%
         dplyr::summarise(Sup_int = sum(Sup_ha), .groups = "drop")
     ) %>%
-    dplyr::left_join(
-      BNP_alterar %>%
-        sf::st_drop_geometry() %>%
-        dplyr::group_by(!!!vars_obras) %>%
-        dplyr::summarise(Sup_alt = sum(Sup_ha), .groups = "drop")
-    ) %>%
+    {if(!is.null(BNP_alterar)){
+      dplyr::left_join(.[],
+        BNP_alterar %>%
+          sf::st_drop_geometry() %>%
+          dplyr::group_by(!!!vars_obras) %>%
+          dplyr::summarise(Sup_alt = sum(Sup_ha), .groups = "drop")
+      )
+    } else {
+      dplyr::mutate(.[], Sup_alt = 0)
+    }} %>% 
     dplyr::mutate_at(
       dplyr::vars(!!!last_var), 
       ~dplyr::case_when(

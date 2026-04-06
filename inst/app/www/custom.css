@@ -176,3 +176,20 @@ body ol {
 table.dataTable tbody tr.selected {
   background-color: #A9DFBF !important;
 }
+
+/* Para zoom a las tablas*/
+.container_zoom {
+  overflow: auto; 
+  border: 1px solid #ddd;
+  cursor: default;
+  background: white;
+  flex: 1 1 auto;
+  height: 100%;
+  width: 100%;
+}
+.inner_table {
+  transform-origin: 0 0;
+  display: table;
+  margin: 0 auto;
+  transition: transform 0.1s ease-out;
+}

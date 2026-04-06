@@ -72,24 +72,31 @@ prepare_bd_flora_150 <- function(BD, bd_lista = TRUE, BNP_cuenca = NULL, in_bnp_
 
   if (!bd_lista) {
     ptos_todos <- BD %>% 
-      dplyr::count(Parcela, UTM_E, UTM_N) %>% 
-      na.omit() %>% 
-      sf::st_as_sf(coords = c('UTM_E', 'UTM_N'), crs = get_utm_epsg(BNP_cuenca))
+      dplyr::group_by(Parcela, UTM_E, UTM_N) %>% 
+      dplyr::mutate(ID = dplyr::cur_group_id()) %>% 
+      dplyr::count(ID, Parcela, UTM_E, UTM_N) %>% 
+      dplyr::select(-n) %>% na.omit() %>% 
+      sf::st_as_sf(coords = c('UTM_E', 'UTM_N'), crs = get_utm_epsg(BNP_cuenca), remove = F)
     if (in_bnp_obra) {
       ptos <- ptos_todos %>% 
-        sf::st_intersection(sf::st_geometry(
+        sf::st_intersection(sf::st_union(
           BNP_cuenca %>% 
             sf::st_filter(obras, .predicate = sf::st_relate, pattern = "T********")
         )) %>% 
         sf::st_drop_geometry() %>% 
-        dplyr::pull(Parcela)
+        dplyr::pull(ID)
     } else {
       ptos <- ptos_todos %>% 
         sf::st_intersection(sf::st_union(BNP_cuenca)) %>% 
         sf::st_drop_geometry() %>% 
-        dplyr::pull(Parcela)
+        dplyr::pull(ID)
     }
-    BD <- BD %>% dplyr::filter(Parcela %in% ptos) 
+    BD <- BD %>% 
+      dplyr::group_by(Parcela, UTM_E, UTM_N) %>% 
+      dplyr::mutate(ID = dplyr::cur_group_id()) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::filter(ID %in% ptos) %>% 
+      dplyr::select(-ID)
   }
 
   BD %>%

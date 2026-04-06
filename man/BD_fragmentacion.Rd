@@ -9,6 +9,8 @@ BD_fragmentacion(
   sf_obras,
   path_frag,
   ECC,
+  RCE,
+  Tipo_rep,
   subusos_noveg,
   alteracion = T,
   spp_acomp = NULL,
@@ -25,6 +27,10 @@ BD_fragmentacion(
 \item{path_frag}{ruta del archivo `xls` o `xlsx` con los resultados del FragStats}
 
 \item{ECC}{especie objeto del informe}
+
+\item{RCE}{Clasificación RCE de la especie objetivo. Valores posibles: "VU", "EN", "CR".}
+
+\item{Tipo_rep}{Tipo de reproducción de la especie objetivo. Valores posibles: "monoica", "dioica".}
 
 \item{subusos_noveg}{subusos que no corresponden a vegetación}
 

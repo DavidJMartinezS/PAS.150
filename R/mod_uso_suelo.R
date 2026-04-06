@@ -15,7 +15,7 @@ mod_uso_suelo_ui <- function(id) {
       bslib::card(
         bslib::card_header("Tabla usos y sub-usos"),
         full_screen = T,
-        gt::gt_output(ns("gt_subusos"))
+        div_gt(gt::gt_output(ns("gt_subusos")))
       ),
       bslib::card(
         bslib::card_header("Mapa sub-usos"),

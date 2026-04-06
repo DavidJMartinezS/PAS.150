@@ -4,6 +4,8 @@
 #' @param sf_obras objeto sf con las obras
 #' @param path_frag ruta del archivo `xls` o `xlsx` con los resultados del FragStats 
 #' @param ECC especie objeto del informe
+#' @param RCE Clasificación RCE de la especie objetivo. Valores posibles: "VU", "EN", "CR".
+#' @param Tipo_rep Tipo de reproducción de la especie objetivo. Valores posibles: "monoica", "dioica".
 #' @param subusos_noveg subusos que no corresponden a vegetación 
 #' @param alteracion valor lógico. \code{TRUE} si existe alteración de hábitat
 #' @param spp_acomp data.frame con especies acompañantes. obtener con `BD_biodiversidad()`
@@ -19,6 +21,8 @@ BD_fragmentacion <- function(
   sf_obras, 
   path_frag,
   ECC,
+  RCE,
+  Tipo_rep,
   subusos_noveg,
   alteracion = T, 
   spp_acomp = NULL, 
@@ -30,6 +34,8 @@ BD_fragmentacion <- function(
   valid_input(sf_obras, inherit = "sf", geometry = "POLYGON")
   stopifnot("Extensión de archivos no válida. 'xls' o 'xlsx'." = tools::file_ext(path_frag) %in% c("xls", "xlsx"))
   valid_input(ECC, inherit = "character")
+  RCE <- match.arg(RCE, choices = c("VU", "EN", "CR"))
+  Tipo_rep <- match.arg(Tipo_rep, choices = c("monoica", "dioica"))
   valid_input(subusos_noveg, inherit = c("character", "NULL"))
   if(is.null(subusos_noveg)) {
     subusos_noveg <- sort(unique(sf_uso$Subuso)) %>%
@@ -46,7 +52,7 @@ BD_fragmentacion <- function(
   valid_input(portada_opts, inherit = "list")
   
   # FragStats ----
-  results_antes <- {if (tools::file_ext(path_frag) == "xls"){
+  resultados_antes <- {if (tools::file_ext(path_frag) == "xls"){
     readxl::read_xls(path_frag, sheet = 1)
   } else {
     readxl::read_xlsx(path_frag, sheet = 1)
@@ -54,7 +60,7 @@ BD_fragmentacion <- function(
     dplyr::mutate(CA = AREA, NP = 1, PID = as.character(PID)) %>% 
     dplyr::select(PID, NP, CA, AREA, SHAPE, FRAC, CORE, NCORE, PROX, ENN)
   
-  results_despues <- {if (tools::file_ext(path_frag) == "xls"){
+  resultados_despues <- {if (tools::file_ext(path_frag) == "xls"){
     readxl::read_xls(path_frag, sheet = 2)
   } else {
     readxl::read_xlsx(path_frag, sheet = 2)
@@ -84,10 +90,10 @@ BD_fragmentacion <- function(
       )
   }
   
-  antes <- results_antes %>% add_total_lsm(name_tot = 'Total Antes')
-  despues <- results_despues %>% add_total_lsm(name_tot = 'Total Después')
+  antes <- resultados_antes %>% add_total_lsm(name_tot = 'Total Antes')
+  despues <- resultados_despues %>% add_total_lsm(name_tot = 'Total Después')
   
-  eval_frag <- function(SIGLA,DIFF,CLASE){
+  eval_frag <- function(SIGLA, DIFF, CLASE){
     DIFF <- abs(DIFF)
     if(SIGLA == 'NP') val <- ifelse(CLASE == "Aumento", ifelse(DIFF > 10, 1, ifelse(DIFF > 5, 2, ifelse(DIFF > 1, 4, 8))), 8)
     if(SIGLA %in%  c('CA', 'PROX')) val <- ifelse(CLASE == "Reducción", ifelse(DIFF > 5, 1, ifelse(DIFF > 1, 2, ifelse(DIFF < 1, 3, 4))), 4)
@@ -191,15 +197,9 @@ BD_fragmentacion <- function(
       val <- ifelse(abs(matriz_paisaje[matriz_paisaje$Subuso == 'Total vegetación', 'Tasa']) > 5, 1,
                     ifelse(abs(matriz_paisaje[matriz_paisaje$Subuso == 'Total vegetación', 'Tasa']) > 1, 3, 6))
     } 
-    if(param == 'Hábitat natural') val <- 8
+    if(param == 'Hábitat natural') val <- dplyr::case_match(RCE, "CR" ~ 1, "EN" ~ 5, "VU" ~ 8)
     if(param == 'Riqueza de especies'){
-      val <- if(is.null(spp_acomp)) {1} else {
-        dplyr::case_when(
-          nrow(spp_acomp) == 0 ~ 3,
-          nrow(spp_acomp) == 1 ~ 2,
-          .default = 3,
-        )
-      }
+      val <- if(is.null(spp_acomp)) 1 else dplyr::case_match(nrow(spp_acomp), 0 ~ 3, 1 ~ 2,.default = 1)
     } 
     if(param == 'Abundancia de especies') val <- if(is.null(spp_acomp)) {1} else {ifelse(nrow(spp_acomp) >= 1, 1, 3)}
     if(param == 'Regeneración') {
@@ -224,13 +224,13 @@ BD_fragmentacion <- function(
     }
     if(param == 'Árboles adultos') {
       val <- if (is.null(densidades_prop)) {1} else {
-        ifelse(densidades_prop[densidades_prop$Estado == "Adulto","Int_inf"] > 150, 9,
-               ifelse(densidades_prop[densidades_prop$Estado == "Adulto","Int_inf"] > 50, 5, 1))
+        ifelse(densidades_prop[densidades_prop$Estado == "Adulto", "Int_inf"] > 150, 9,
+               ifelse(densidades_prop[densidades_prop$Estado == "Adulto", "Int_inf"] > 50, 5, 1))
       }
     }
     if(param == 'Alteración') val <- ifelse(alteracion, 1, 2)
     if(param == 'Extensión de la presencia') val <- 3
-    if(param == 'Sistema reproductivo') val <- ifelse(ECC == 'Carica chilensis', 2, 4)
+    if(param == 'Sistema reproductivo') val <- dplyr::case_match(Tipo_rep, 'dioica' ~ 2, "monoica" ~ 4)
     return(val)
   }
   
@@ -239,7 +239,9 @@ BD_fragmentacion <- function(
     dplyr::select(-n) %>% 
     dplyr::rename_all(stringi::stri_trans_toupper) %>% 
     merge(df[, c(2,7:8)], by = 'PARÁMETRO', all = T) %>% 
-    dplyr::mutate(`PONDERACIÓN` = ifelse(ESCALA_ESPACIAL == 'PAISAJE', 0.2, ifelse(ESCALA_ESPACIAL == 'HÁBITAT', 0.5, 0.3))) %>% 
+    dplyr::mutate(`PONDERACIÓN` = dplyr::case_match(
+      ESCALA_ESPACIAL, 'PAISAJE' ~ 0.2, 'HÁBITAT' ~ 0.5, .default = 0.3
+    )) %>% 
     dplyr::select(N, ESCALA_ESPACIAL, `PARÁMETRO`, `VALORACIÓN`, `PONDERACIÓN`) %>% 
     dplyr::arrange(N) %>% 
     tibble::as_tibble() %>% 
@@ -343,20 +345,20 @@ Tasa: Porcentaje de pérdida de superficie. Calculado como log(Después/Antes)*1
     openxlsx2::wb_add_font(dims = "A1", color = openxlsx2::wb_color("white"), bold = T) %>% 
     openxlsx2::wb_add_fill(dims = "A1", color = title_color) %>% 
     openxlsx2::wb_add_cell_style(dims = "A1", horizontal = "center") %>% 
-    openxlsx2::wb_merge_cells(dims = openxlsx2::wb_dims(cols = 1:ncol(results_antes), rows = 1), solve = T) %>% 
+    openxlsx2::wb_merge_cells(dims = openxlsx2::wb_dims(cols = 1:ncol(resultados_antes), rows = 1), solve = T) %>% 
     # Datos antes
-    openxlsx2::wb_add_data(x = results_antes, start_col = 1, start_row = 2) %>% 
-    openxlsx2::wb_add_font(dims = openxlsx2::wb_dims(rows = 2, cols = 1:ncol(results_antes)), bold = T) %>% 
-    openxlsx2::wb_add_fill(dims = openxlsx2::wb_dims(rows = 2, cols = 1:ncol(results_antes)), color = header_color) %>% 
-    openxlsx2::wb_add_cell_style(dims = openxlsx2::wb_dims(rows = 2, cols = 1:ncol(results_antes)), horizontal = "center") %>% 
+    openxlsx2::wb_add_data(x = resultados_antes, start_col = 1, start_row = 2) %>% 
+    openxlsx2::wb_add_font(dims = openxlsx2::wb_dims(rows = 2, cols = 1:ncol(resultados_antes)), bold = T) %>% 
+    openxlsx2::wb_add_fill(dims = openxlsx2::wb_dims(rows = 2, cols = 1:ncol(resultados_antes)), color = header_color) %>% 
+    openxlsx2::wb_add_cell_style(dims = openxlsx2::wb_dims(rows = 2, cols = 1:ncol(resultados_antes)), horizontal = "center") %>% 
     openxlsx2::wb_add_border(
-      dims = openxlsx2::wb_dims(cols = 1:ncol(results_antes), rows = 1:(nrow(results_antes)+3)),
+      dims = openxlsx2::wb_dims(cols = 1:ncol(resultados_antes), rows = 1:(nrow(resultados_antes)+3)),
       inner_hgrid = "thin", 
       inner_vgrid = "thin", 
       inner_hcolor = openxlsx2::wb_color(hex = "#6F7B62"), 
       inner_vcolor = openxlsx2::wb_color(hex = "#6F7B62")
     ) %>% 
-    openxlsx2::wb_add_data(x = "Total antes", start_col = 1, start_row = nrow(results_antes)+3)
+    openxlsx2::wb_add_data(x = "Total antes", start_col = 1, start_row = nrow(resultados_antes)+3)
   for (i in c(2:10)) {
     j <- LETTERS[i]
     fx <- ifelse(i %in% c(2,3,7,8), "SUM", "AVERAGE")
@@ -364,12 +366,12 @@ Tasa: Porcentaje de pérdida de superficie. Calculado como log(Después/Antes)*1
     numfmt <- ifelse(i %in% c(3,4,7), "#,##0.00", ifelse(i %in% c(10), "#,##0.0", ifelse(i %in% c(5,6,9), "#,##0.000", "0")))
     wb <- wb %>% 
       openxlsx2::wb_add_formula(
-        x = sprintf("ROUND(%s(%s3:%s%s),%s)", fx, j, j, nrow(results_antes)+2, red), 
-        dims = sprintf("%s%s", j, nrow(results_antes)+3)
+        x = sprintf("ROUND(%s(%s3:%s%s),%s)", fx, j, j, nrow(resultados_antes)+2, red), 
+        dims = sprintf("%s%s", j, nrow(resultados_antes)+3)
       ) %>% 
       openxlsx2::wb_add_numfmt(
         dims = openxlsx2::wb_dims(
-          x = results_antes %>% janitor::adorn_totals(), 
+          x = resultados_antes %>% janitor::adorn_totals(), 
           from_row = 2, 
           select = "data", 
           cols = i
@@ -378,26 +380,26 @@ Tasa: Porcentaje de pérdida de superficie. Calculado como log(Después/Antes)*1
       ) 
   }
   wb <- wb %>% 
-    openxlsx2::wb_add_font(dims = openxlsx2::wb_dims(cols = 1:ncol(results_antes), rows = nrow(results_antes) + 3), bold = T) %>% 
+    openxlsx2::wb_add_font(dims = openxlsx2::wb_dims(cols = 1:ncol(resultados_antes), rows = nrow(resultados_antes) + 3), bold = T) %>% 
     # Titulo después
     openxlsx2::wb_add_data(x = "DSPUÉS (CON PROYECTO)", dims = "L1") %>% 
     openxlsx2::wb_add_font(dims = "L1", color = openxlsx2::wb_color("white"), bold = T) %>% 
     openxlsx2::wb_add_fill(dims = "L1", color = title_color) %>% 
     openxlsx2::wb_add_cell_style(dims = "L1", horizontal = "center") %>% 
-    openxlsx2::wb_merge_cells(dims = openxlsx2::wb_dims(cols = 1:ncol(results_despues) + 11, rows = 1), solve = T) %>% 
+    openxlsx2::wb_merge_cells(dims = openxlsx2::wb_dims(cols = 1:ncol(resultados_despues) + 11, rows = 1), solve = T) %>% 
     # Datos después
-    openxlsx2::wb_add_data(x = results_despues, start_col = 12, start_row = 2) %>% 
-    openxlsx2::wb_add_font(dims = openxlsx2::wb_dims(rows = 2, cols = 1:ncol(results_despues), from_col = "L"), bold = T) %>% 
-    openxlsx2::wb_add_fill(dims = openxlsx2::wb_dims(rows = 2, cols = 1:ncol(results_despues), from_col = "L"), color = header_color) %>% 
-    openxlsx2::wb_add_cell_style(dims = openxlsx2::wb_dims(rows = 2, cols = 1:ncol(results_despues), from_col = "L"), horizontal = "center") %>% 
+    openxlsx2::wb_add_data(x = resultados_despues, start_col = 12, start_row = 2) %>% 
+    openxlsx2::wb_add_font(dims = openxlsx2::wb_dims(rows = 2, cols = 1:ncol(resultados_despues), from_col = "L"), bold = T) %>% 
+    openxlsx2::wb_add_fill(dims = openxlsx2::wb_dims(rows = 2, cols = 1:ncol(resultados_despues), from_col = "L"), color = header_color) %>% 
+    openxlsx2::wb_add_cell_style(dims = openxlsx2::wb_dims(rows = 2, cols = 1:ncol(resultados_despues), from_col = "L"), horizontal = "center") %>% 
     openxlsx2::wb_add_border(
-      dims = openxlsx2::wb_dims(cols = 1:ncol(results_despues) + 11, rows = 1:(nrow(results_despues)+3)),
+      dims = openxlsx2::wb_dims(cols = 1:ncol(resultados_despues) + 11, rows = 1:(nrow(resultados_despues)+3)),
       inner_hgrid = "thin", 
       inner_vgrid = "thin", 
       inner_hcolor = openxlsx2::wb_color(hex = "#6F7B62"), 
       inner_vcolor = openxlsx2::wb_color(hex = "#6F7B62")
     ) %>% 
-    openxlsx2::wb_add_data(x = "Total después", start_col = 12, start_row = nrow(results_despues)+3)
+    openxlsx2::wb_add_data(x = "Total después", start_col = 12, start_row = nrow(resultados_despues)+3)
   for (i in c(2:10)) {
     j <- LETTERS[i+11]
     fx <- ifelse(i %in% c(2, 3, 7, 8), "SUM", "AVERAGE")
@@ -405,12 +407,12 @@ Tasa: Porcentaje de pérdida de superficie. Calculado como log(Después/Antes)*1
     numfmt <- ifelse(i %in% c(3, 4, 7), "0.00", ifelse(i %in% c(10), "0.0", ifelse(i %in% c(5, 6, 9), "0.000", "0")))
     wb <- wb %>% 
       openxlsx2::wb_add_formula(
-        x = sprintf("ROUND(%s(%s3:%s%s),%s)", fx, j, j, nrow(results_despues) + 2, red), 
-        dims = sprintf("%s%s", j, nrow(results_despues)+3)
+        x = sprintf("ROUND(%s(%s3:%s%s),%s)", fx, j, j, nrow(resultados_despues) + 2, red), 
+        dims = sprintf("%s%s", j, nrow(resultados_despues)+3)
       ) %>% 
       openxlsx2::wb_add_numfmt(
         dims = openxlsx2::wb_dims(
-          x = results_despues %>% janitor::adorn_totals(),
+          x = resultados_despues %>% janitor::adorn_totals(),
           from_row = 2,
           select = "data",
           cols = i + 11
@@ -419,52 +421,52 @@ Tasa: Porcentaje de pérdida de superficie. Calculado como log(Después/Antes)*1
       )
   }
   wb <- wb %>% 
-    openxlsx2::wb_add_font(dims = openxlsx2::wb_dims(cols = 1:ncol(results_despues) + 11, rows = nrow(results_despues) + 3), bold = T) %>% 
+    openxlsx2::wb_add_font(dims = openxlsx2::wb_dims(cols = 1:ncol(resultados_despues) + 11, rows = nrow(resultados_despues) + 3), bold = T) %>% 
     # Parametros
     openxlsx2::wb_add_data(
       x = df %>% dplyr::mutate_at(3:6, ~ifelse(is.numeric(.), NA, NA_character_)), 
-      dims = openxlsx2::wb_dims(rows = nrow(results_antes) + 5, cols = 1)
+      dims = openxlsx2::wb_dims(rows = nrow(resultados_antes) + 5, cols = 1)
     ) %>% 
-    openxlsx2::wb_add_font(dims = openxlsx2::wb_dims(cols = seq_len(ncol(df)), rows = nrow(results_antes) + 5), bold = T) %>% 
-    openxlsx2::wb_add_fill(dims = openxlsx2::wb_dims(cols = seq_len(ncol(df)), rows = nrow(results_antes) + 5), color = header_color) %>% 
-    openxlsx2::wb_add_cell_style(dims = openxlsx2::wb_dims(cols = seq_len(ncol(df)), rows = nrow(results_antes) + 5), horizontal = "center") %>% 
+    openxlsx2::wb_add_font(dims = openxlsx2::wb_dims(cols = seq_len(ncol(df)), rows = nrow(resultados_antes) + 5), bold = T) %>% 
+    openxlsx2::wb_add_fill(dims = openxlsx2::wb_dims(cols = seq_len(ncol(df)), rows = nrow(resultados_antes) + 5), color = header_color) %>% 
+    openxlsx2::wb_add_cell_style(dims = openxlsx2::wb_dims(cols = seq_len(ncol(df)), rows = nrow(resultados_antes) + 5), horizontal = "center") %>% 
     openxlsx2::wb_add_border(
-      dims = openxlsx2::wb_dims(cols = 1:ncol(df), rows = 1:(nrow(df) + 1), from_row = nrow(results_antes)+5),
+      dims = openxlsx2::wb_dims(cols = 1:ncol(df), rows = 1:(nrow(df) + 1), from_row = nrow(resultados_antes)+5),
       inner_hgrid = "thin", 
       inner_vgrid = "thin", 
       inner_hcolor = openxlsx2::wb_color(hex = "#6F7B62"), 
       inner_vcolor = openxlsx2::wb_color(hex = "#6F7B62")
     ) %>% 
     openxlsx2::wb_add_formula(
-      x = sprintf("TRANSPOSE(B%s:J%s)", nrow(results_antes)+3, nrow(results_antes)+3),
-      dims = openxlsx2::wb_dims(x = df, from_row = nrow(results_antes)+5, cols = 3), 
+      x = sprintf("TRANSPOSE(B%s:J%s)", nrow(resultados_antes)+3, nrow(resultados_antes)+3),
+      dims = openxlsx2::wb_dims(x = df, from_row = nrow(resultados_antes)+5, cols = 3), 
       array = T, cm = T
     ) %>% 
     openxlsx2::wb_add_formula(
-      x = sprintf("TRANSPOSE(M%s:U%s)", nrow(results_despues)+3, nrow(results_despues)+3),
-      dims = openxlsx2::wb_dims(x = df, from_row = nrow(results_antes)+5, cols = 4), 
+      x = sprintf("TRANSPOSE(M%s:U%s)", nrow(resultados_despues)+3, nrow(resultados_despues)+3),
+      dims = openxlsx2::wb_dims(x = df, from_row = nrow(resultados_antes)+5, cols = 4), 
       array = T, cm = T
     ) %>% 
     openxlsx2::wb_add_formula(
       x = sprintf(
         "ROUND((%s-%s)/%s*100,2)", 
-        openxlsx2::wb_dims(x = df, from_row = nrow(results_antes)+5, cols = 4), 
-        openxlsx2::wb_dims(x = df, from_row = nrow(results_antes)+5, cols = 3), 
-        openxlsx2::wb_dims(x = df, from_row = nrow(results_antes)+5, cols = 3)
+        openxlsx2::wb_dims(x = df, from_row = nrow(resultados_antes)+5, cols = 4), 
+        openxlsx2::wb_dims(x = df, from_row = nrow(resultados_antes)+5, cols = 3), 
+        openxlsx2::wb_dims(x = df, from_row = nrow(resultados_antes)+5, cols = 3)
       ),
-      dims = openxlsx2::wb_dims(x = df, from_row = nrow(results_antes)+5, cols = 5), 
+      dims = openxlsx2::wb_dims(x = df, from_row = nrow(resultados_antes)+5, cols = 5), 
       array = T, 
       cm = T
     ) %>% 
     openxlsx2::wb_add_formula(
       x = sprintf(
         'IF(%s=%s,"Igual",IF(%s>%s,"Aumento","Reduccion"))', 
-        openxlsx2::wb_dims(x = df, from_row = nrow(results_antes)+5, cols = 3), 
-        openxlsx2::wb_dims(x = df, from_row = nrow(results_antes)+5, cols = 4), 
-        openxlsx2::wb_dims(x = df, from_row = nrow(results_antes)+5, cols = 4),
-        openxlsx2::wb_dims(x = df, from_row = nrow(results_antes)+5, cols = 3)
+        openxlsx2::wb_dims(x = df, from_row = nrow(resultados_antes)+5, cols = 3), 
+        openxlsx2::wb_dims(x = df, from_row = nrow(resultados_antes)+5, cols = 4), 
+        openxlsx2::wb_dims(x = df, from_row = nrow(resultados_antes)+5, cols = 4),
+        openxlsx2::wb_dims(x = df, from_row = nrow(resultados_antes)+5, cols = 3)
       ),
-      dims = openxlsx2::wb_dims(x = df, from_row = nrow(results_antes)+5, cols = 6), 
+      dims = openxlsx2::wb_dims(x = df, from_row = nrow(resultados_antes)+5, cols = 6), 
       array = T, 
       cm = T
     ) %>% 
@@ -587,5 +589,3 @@ Tasa: Porcentaje de pérdida de superficie. Calculado como log(Después/Antes)*1
     )
   )
 }
-
-

@@ -54,7 +54,8 @@ mod_parcelas_ui <- function(id) {
           class = "btn-primary btn-sm"
         )
       )
-    )
+    ),
+    uiOutput(ns("msg_error_densidad"))
   )
 }
     
@@ -134,7 +135,20 @@ mod_parcelas_server <- function(id, rv){
 
     observeEvent(input$check_bd_flora, {
       req(rv$BD_flora)
-      check_bd_flora(rv$BD_flora)
+      tryCatch({
+        check_bd_flora(rv$BD_flora)
+      }, error = function(e) {
+        shinyalert::shinyalert(
+          title = "Error al ejecutar el chequeo de flora",
+          text = e$message,
+          html = F,
+          type = "error",
+          closeOnEsc = T,
+          showConfirmButton = T,
+          confirmButtonCol = "#6FB58F",
+          animation = T
+        )
+      })
     })
     
     # BD fore ----
@@ -177,15 +191,41 @@ mod_parcelas_server <- function(id, rv){
 
     observeEvent(input$check_bd_fore, {
       req(rv$BD_fore)
-      check_bd_fore(rv$BD_fore)
+      tryCatch({
+        check_bd_fore(rv$BD_fore)
+      }, error = function(e) {
+        shinyalert::shinyalert(
+          title = "Error al ejecutar el chequeo forestal",
+          text = e$message,
+          html = F,
+          type = "error",
+          closeOnEsc = T,
+          showConfirmButton = T,
+          confirmButtonCol = "#6FB58F",
+          animation = T
+        )
+      })
     })
 
     observeEvent(eventExpr = {
       rv$BD_fore
       rv$sp
     }, handlerExpr = {
-      req(rv$BD_fore)
-      rv$densidad_bd <- get_densidad(rv$BD_fore, rv$sp)
+      req(rv$BD_fore, rv$sp)
+      output$msg_error_densidad <- renderUI(NULL)
+
+      tryCatch({
+        rv$densidad_bd <- get_densidad(rv$BD_fore, rv$sp)
+      }, error = function(e) {
+        output$msg_error_densidad <- renderUI({
+          tags$p(
+            style = "color: #b91c1c; font-size: 0.85rem; margin-top: 5px; font-weight: 500;",
+            icon("triangle-exclamation"),
+            e$message
+          )
+        })
+        rv$densidad_bd <- NULL
+      })
     })
 
   })

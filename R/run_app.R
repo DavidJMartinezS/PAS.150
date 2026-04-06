@@ -12,7 +12,7 @@
 #' @importFrom bsicons bs_icon 
 #' @importFrom bslib accordion accordion_panel bs_theme card card_body card_header input_dark_mode input_switch layout_column_wrap layout_columns nav_item nav_menu nav_panel nav_spacer navset_card_underline page_fillable page_navbar sidebar tooltip value_box 
 #' @importFrom config get 
-#' @importFrom dplyr across add_count add_row add_tally arrange bind_cols bind_rows case_when contains count ends_with filter full_join group_by if_all if_else inner_join last_col left_join matches mutate mutate_all mutate_at mutate_if n pull relocate rename rename_all rename_at rename_if row_number select slice slice_head slice_max slice_tail starts_with summarise summarise_all summarise_at syms tally ungroup vars 
+#' @importFrom dplyr across add_count add_row add_tally arrange bind_cols bind_rows case_match case_when contains count ends_with filter full_join group_by if_all if_else inner_join last_col left_join matches mutate mutate_all mutate_at mutate_if n pull relocate rename rename_all rename_at rename_if row_number select slice slice_head slice_max slice_tail starts_with summarise summarise_all summarise_at syms tally ungroup vars 
 #' @importFrom DT DTOutput datatable formatStyle renderDT
 #' @importFrom elevatr get_elev_raster 
 #' @importFrom forcats as_factor fct_na_value_to_level 
@@ -28,7 +28,7 @@
 #' @importFrom openxlsx2 fmt_txt int2col wb_add_border wb_add_cell_style wb_add_data wb_add_data_table wb_add_fill wb_add_font wb_add_formula wb_add_image wb_add_numfmt wb_add_pivot_table wb_add_worksheet wb_color wb_data wb_dims wb_merge_cells wb_page_setup wb_save wb_set_col_widths wb_workbook write_xlsx
 #' @importFrom plotly layout plot_ly plotlyOutput renderPlotly 
 #' @importFrom plyr round_any 
-#' @importFrom purrr compact map map_dbl map_lgl map2_dbl pmap_chr pmap_dbl pwalk keep
+#' @importFrom purrr compact map map_dbl map_lgl map2_dbl pluck pmap_chr pmap_dbl pwalk keep
 #' @importFrom R6 R6Class 
 #' @importFrom readxl read_xls read_xlsx 
 #' @importFrom rlang list2 

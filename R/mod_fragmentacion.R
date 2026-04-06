@@ -109,18 +109,18 @@ mod_fragmentacion_ui <- function(id) {
             bslib::card(
               full_screen = T,
               bslib::card_header("Matriz del paisaje"),
-              bslib::card_body(gt::gt_output(ns("gt_frag_matriz")))
+              div_gt(gt::gt_output(ns("gt_frag_matriz")))
             ),
             bslib::card(
               full_screen = T,
               bslib::card_header("Parámetros de fragmentación"),
-              bslib::card_body(gt::gt_output(ns("gt_frag_param")))
+              div_gt(gt::gt_output(ns("gt_frag_param")))
             )
           ),
           bslib::card(
             full_screen = T,
             bslib::card_header("Resultados análisis de amenazas"),
-            bslib::card_body(gt::gt_output(ns("gt_frag_resultados")))
+            div_gt(gt::gt_output(ns("gt_frag_resultados")))
           )
         )
       )
@@ -195,10 +195,12 @@ mod_fragmentacion_server <- function(id, rv){
           sf_obras = rv$obras,
           path_frag = input$path_frag$datapath,
           ECC = rv$sp,
+          RCE = rv$rce,
+          Tipo_rep = rv$tipo_rep,
           subusos_noveg = input$select_subusos,
           alteracion = input$alt_bd_frag, 
-          spp_acomp = if(!is.null(rv$BD_biodiversidad)) NULL else rv$BD_biodiversidad$spp_acomp, 
-          prop = if(!is.null(rv$BD_inv_forestales)) NULL else rv$BD_inv_forestales$prop,
+          spp_acomp = if(is.null(rv$BD_biodiversidad)) NULL else rv$BD_biodiversidad$spp_acomp, 
+          prop = if(is.null(rv$BD_inv_forestales)) NULL else rv$BD_inv_forestales$prop,
           estadisticos = rv$estadisticos, 
           portada_opts = rv$portada_opts
         )

@@ -137,6 +137,7 @@ golem_add_external_resources <- function() {
       app_title = "PAS.150"
     ),
     tags$link(rel="stylesheet", type="text/css", href="www/custom.css"),
+    tags$script(src = "www/handlers.js"),
     # Add here other external resources
     shinyjs::useShinyjs(),
     tags$script(
