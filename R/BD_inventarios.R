@@ -206,10 +206,7 @@ BD_inventarios <- function(
     tibble::as_tibble_col()
   wb <- wb %>%
     openxlsx2::wb_add_data(
-      x = desc_general,
-      start_col = 1,
-      start_row = 1,
-      col_names = F
+      x = desc_general, start_col = 1, start_row = 1, col_names = F
     )
   for (i in 1:2) {
     wb <- wb %>% openxlsx2::wb_merge_cells(dims = openxlsx2::wb_dims(cols = 1:2, rows = i))
@@ -225,10 +222,8 @@ Cod_ssubc:	Código de la DGA para la subsubcuenca."
     table.fun()
   wb <- wb %>%
     openxlsx2::wb_add_data(
-      x = desc_h1,
-      start_col = 1,
-      start_row = nrow(desc_general) + 2,
-      col_names = F
+      x = desc_h1, start_col = 1, col_names = F,
+      start_row = nrow(desc_general) + 2
     )
   desc_h2 <- c(
     'Frec. sp_x_parc: En esta se muestra la tabla con las frecuencias (n° de repeticiones) de cada especie arbórea. En esta ultima se calculan los siguientes datos por especie:
@@ -239,10 +234,8 @@ Frec_rel: Frecuencia relativa. Calculada como Frec_abs / suma total(Count) * 100
     table.fun()
   wb <- wb %>%
     openxlsx2::wb_add_data(
-      x = desc_h2,
-      start_col = 1,
+      x = desc_h2, start_col = 1, col_names = F,
       start_row = nrow(desc_general) + 2 + nrow(desc_h1) + 1,
-      col_names = F
     )
   desc_h3 <- c(
     "Tabla IVI: En esta sección, se presentan los calculos para obtener el índice del valor de importancia (IVI) de cada especie arbórea. En la tabla se muestra la densidad por ha (Nha), área basal por ha (Gha), Altura promedio (H) y Frecuencia relativa por especie, además de otros campos que se detallan a continuación:
@@ -253,15 +246,9 @@ IVI: Valor de importancia."
     table.fun()
   wb <- wb %>%
     openxlsx2::wb_add_data(
-      x = desc_h3,
-      start_col = 1,
-      start_row = nrow(desc_general) +
-        2 +
-        nrow(desc_h1) +
-        1 +
-        nrow(desc_h2) +
-        1,
-      col_names = F
+      x = desc_h3, start_col = 1, col_names = F,
+      start_row = nrow(desc_general) + 2 +
+        nrow(desc_h1) + 1 + nrow(desc_h2) + 1
     )
   desc_h4 <- paste0(
     "BD Nha: Corresponde a la base de datos del número de árboles por hectárea por cada parcela y especie. En ella se utilizan conceptos previamente descritos en las pestañas anteriores"
@@ -269,17 +256,10 @@ IVI: Valor de importancia."
     table.fun()
   wb <- wb %>%
     openxlsx2::wb_add_data(
-      x = desc_h4,
-      start_col = 1,
-      start_row = nrow(desc_general) +
-        2 +
-        nrow(desc_h1) +
-        1 +
-        nrow(desc_h2) +
-        1 +
-        nrow(desc_h3) +
-        1,
-      col_names = F
+      x = desc_h4, start_col = 1, col_names = F,
+      start_row = nrow(desc_general) + 2 +
+        nrow(desc_h1) + 1 + nrow(desc_h2) + 1 +
+        nrow(desc_h3) + 1
     )
   desc_h5 <- c(
     "Proporciones: Este segmento se refiere a las proporciones relacionadas con los distintos estados de desarrollo de la especie en cuestión, tal como se ha detallado en el informe de expertos. Esta hoja presenta una tabla con las proporciones de los estados de desarrollo de la especie, por cada parcela de inventario, las cuales se calcularon a partir del Nha por cada estado de desarrollo. Aparte se muestra una tabla con las proporciones promedio de todas las parcelas y su extrapolación a la superficie total de BNP."
@@ -287,19 +267,10 @@ IVI: Valor de importancia."
     table.fun()
   wb <- wb %>%
     openxlsx2::wb_add_data(
-      x = desc_h5,
-      start_col = 1,
-      start_row = nrow(desc_general) +
-        2 +
-        nrow(desc_h1) +
-        1 +
-        nrow(desc_h2) +
-        1 +
-        nrow(desc_h3) +
-        1 +
-        nrow(desc_h4) +
-        1,
-      col_names = F
+      x = desc_h5, start_col = 1, col_names = F,
+      start_row = nrow(desc_general) + 2 +
+        nrow(desc_h1) + 1 + nrow(desc_h2) + 1 +
+        nrow(desc_h3) + 1 + nrow(desc_h4) + 1
     )
   desc_h6 <- c(
     "Estadígrafos: Corresponde a los estadígrafos del número de individuos por hectárea de las parcelas de inventario forestal presentadas en la hoja 'BD_Nha'. También se muestran algunos estadísticos por estado de desarrollo de la especie objeto del informe, los cuales son utilizados para el análisis de amenazas."
@@ -307,57 +278,18 @@ IVI: Valor de importancia."
     table.fun()
   wb <- wb %>%
     openxlsx2::wb_add_data(
-      x = desc_h6,
-      start_col = 1,
-      start_row = nrow(desc_general) +
-        2 +
-        nrow(desc_h1) +
-        1 +
-        nrow(desc_h2) +
-        1 +
-        nrow(desc_h3) +
-        1 +
-        nrow(desc_h4) +
-        1 +
-        nrow(desc_h5) +
-        1,
-      col_names = F
+      x = desc_h6, start_col = 1, col_names = F,
+      start_row = nrow(desc_general) + 2 + 
+        nrow(desc_h1) + 1 + nrow(desc_h2) + 1 + 
+        nrow(desc_h3) + 1 + nrow(desc_h4) + 1 + nrow(desc_h5) + 1
     )
-  dim_1 <- c(
-    1,
+  dim_1 <- c(1,
     nrow(desc_general) + 2,
     nrow(desc_general) + 2 + nrow(desc_h1) + 1,
     nrow(desc_general) + 2 + nrow(desc_h1) + 1 + nrow(desc_h2) + 1,
-    nrow(desc_general) +
-      2 +
-      nrow(desc_h1) +
-      1 +
-      nrow(desc_h2) +
-      1 +
-      nrow(desc_h3) +
-      1,
-    nrow(desc_general) +
-      2 +
-      nrow(desc_h1) +
-      1 +
-      nrow(desc_h2) +
-      1 +
-      nrow(desc_h3) +
-      1 +
-      nrow(desc_h4) +
-      1,
-    nrow(desc_general) +
-      2 +
-      nrow(desc_h1) +
-      1 +
-      nrow(desc_h2) +
-      1 +
-      nrow(desc_h3) +
-      1 +
-      nrow(desc_h4) +
-      1 +
-      nrow(desc_h5) +
-      1
+    nrow(desc_general) + 2 + nrow(desc_h1) + 1 + nrow(desc_h2) + 1 + nrow(desc_h3) + 1, 
+    nrow(desc_general) + 2 + nrow(desc_h1) + 1 + nrow(desc_h2) + 1 + nrow(desc_h3) + 1 + nrow(desc_h4) + 1,
+    nrow(desc_general) + 2 + nrow(desc_h1) + 1 + nrow(desc_h2) + 1 + nrow(desc_h3) + 1 + nrow(desc_h4) + 1 + nrow(desc_h5) + 1
   ) %>%
     paste0("A", ., collapse = ";")
   dim_2 <- dim_1 %>% stringi::stri_replace_all_fixed("A", "B")
@@ -498,6 +430,7 @@ IVI: Valor de importancia."
   # Tabla IVI ----
   wb <- wb %>%
     openxlsx2::wb_add_worksheet("Tabla IVI") %>%
+    # Factor de expansión
     openxlsx2::wb_add_data(x = "Factor de expansión", dims = "A1") %>%
     openxlsx2::wb_add_font(dims = "A1", bold = T) %>%
     openxlsx2::wb_add_formula(
@@ -513,143 +446,139 @@ IVI: Valor de importancia."
       inner_hgrid = "thin",
       inner_vgrid = "thin"
     ) %>% 
+    # Titulos
     openxlsx2::wb_add_data(
-    x = t(tibble::as_tibble_col(c(
-      "Especie",
-      "Suma de N_ind",
-      "Suma de AB",
-      "Promedio de Altura"
-    ))),
-    dims = "A3",
-    col_names = F
-  ) %>%
-  openxlsx2::wb_add_formula(
-    x = "_xlfn.UNIQUE(BD[Especie])",
-    dims = "A4",
-    array = T,
-    cm = T
-  ) %>%
-  openxlsx2::wb_add_data(x = "Total general", dims = sprintf("A%s", n_spp + 4)) %>% 
-  openxlsx2::wb_add_formula(
-    x = sprintf(
-      "SUMIFS(BD[N_ind], BD[Especie], %s)",
-      openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4)
-    ),
-    dims = openxlsx2::wb_dims(
-      rows = 1:n_spp,
-      from_row = 4,
-      from_col = 2
-    ),
-    array = T,
-    cm = TRUE
-  ) %>%
-  openxlsx2::wb_add_formula(
-    x = sprintf("SUM(B4:B%s)", n_spp + 3),
-    dims = sprintf("B%s", n_spp + 4)
-  ) %>% 
-  openxlsx2::wb_add_numfmt(
-    dims = openxlsx2::wb_dims(rows = 1:(n_spp + 1), from_row = 4, from_col = 2),
-    numfmt = "#,##0"
-  ) %>%
-  openxlsx2::wb_add_formula(
-    x = sprintf(
-      "SUMIFS(BD[AB], BD[Especie], %s)",
-      openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4)
-    ),
-    dims = openxlsx2::wb_dims(
-      rows = 1:n_spp,
-      from_row = 4,
-      from_col = 3
-    ),
-    array = T,
-    cm = TRUE
-  ) %>%
-  openxlsx2::wb_add_formula(
-    x = sprintf("SUM(C4:C%s)", n_spp + 3),
-    dims = sprintf("C%s", n_spp + 4)
-  ) %>% 
-  openxlsx2::wb_add_numfmt(
-    dims = openxlsx2::wb_dims(rows = 1:(n_spp + 1), from_row = 4, from_col = 3),
-    numfmt = "#,##0.000"
-  ) %>%
-  openxlsx2::wb_add_formula(
-    x = sprintf(
-      "AVERAGEIFS(BD[Altura], BD[Especie], %s)",
-      openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4)
-    ),
-    dims = openxlsx2::wb_dims(
-      rows = 1:n_spp,
-      from_row = 4,
-      from_col = 4
-    ),
-    array = T,
-    cm = TRUE
-  ) %>%
-  openxlsx2::wb_add_formula(
-    x = sprintf("SUM(D4:D%s)", n_spp + 3),
-    dims = sprintf("D%s", n_spp + 4)
-  ) %>% 
-  openxlsx2::wb_add_numfmt(
-    dims = openxlsx2::wb_dims(rows = 1:(n_spp + 1), from_row = 4, from_col = 4),
-    numfmt = "#,##0.0"
-  ) %>%
-  openxlsx2::wb_add_data(x = "Nha (Ind/ha)", dims = "E3") %>%
-  openxlsx2::wb_add_formula(
-    x = sprintf("ROUND(MMULT(B4:B%s,B1),0)", n_spp + 4),
-    dims = sprintf("E4:E%s", n_spp + 4),
-    array = T,
-    cm = TRUE
-  ) %>%
-  openxlsx2::wb_add_data(x = "Gha (m2/ha)", dims = "F3") %>%
-  openxlsx2::wb_add_formula(
-    x = sprintf("ROUND(MMULT(C4:C%s,B1),3)", n_spp + 3),
-    dims = sprintf("F4:F%s", n_spp + 3),
-    array = T,
-    cm = TRUE
-  ) %>%
-  openxlsx2::wb_add_formula(
-    x = sprintf("ROUND(SUM(F4:F%s),3)", n_spp + 3),
-    dims = sprintf("F%s", n_spp + 4)
-  ) %>%
-  openxlsx2::wb_add_data(x = "Densidad_rel", dims = "G3") %>%
-  openxlsx2::wb_add_formula(
-    x = sprintf(
-      "ROUND(MMULT(E4:E%s,1/E%s)*100,1)",
-      n_spp + 3,
-      n_spp + 4
-    ),
-    dims = sprintf("G4:G%s", n_spp + 3),
-    array = T,
-    cm = TRUE
-  ) %>%
-  openxlsx2::wb_add_data(x = "Dominancia_rel", dims = "H3") %>%
-  openxlsx2::wb_add_formula(
-    x = sprintf(
-      "ROUND(MMULT(F4:F%s,1/F%s)*100,1)",
-      n_spp + 3,
-      n_spp + 4
-    ),
-    dims = sprintf("H4:H%s", n_spp + 3),
-    array = T,
-    cm = TRUE
-  ) %>%
-  openxlsx2::wb_add_data(x = "Frecuencia_rel", dims = "I3") %>%
-  openxlsx2::wb_add_formula(
-    x = sprintf(
-      "MMULT(Frec.spp_x_parc!%s3:%s%s,1)",
-      openxlsx2::int2col(n_par + 4),
-      openxlsx2::int2col(n_par + 4),
-      n_spp + 2
-    ),
-    dims = sprintf("I4:I%s", n_spp + 3),
-    array = T,
-    cm = TRUE
-  ) %>%
-  openxlsx2::wb_add_data(x = "IVI", dims = "J3") %>%
-  openxlsx2::wb_add_cell_style(dims = "E3:J3", horizontal = "center") %>%
-  openxlsx2::wb_set_col_widths(cols = 1:4, widths = "auto") %>%
-  openxlsx2::wb_set_col_widths(cols = 5:9, widths = 13.5)
-
+      x = t(tibble::as_tibble_col(c(
+        "Especie",
+        "Suma de N_ind",
+        "Suma de AB",
+        "Promedio de Altura"
+      ))),
+      dims = "A3",
+      col_names = F
+    ) %>%
+    # Especies
+    openxlsx2::wb_add_formula(
+      x = "_xlfn.UNIQUE(BD[Especie])",
+      dims = "A4",
+      array = T,
+      cm = T
+    ) %>%
+    openxlsx2::wb_add_data(x = "Total general", dims = sprintf("A%s", n_spp + 4)) %>% 
+    # Suma N_ind
+    openxlsx2::wb_add_formula(
+      x = sprintf(
+        "SUMIFS(BD[N_ind], BD[Especie], %s)",
+        openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4)
+      ),
+      dims = openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4, from_col = 2),
+      array = T,
+      cm = TRUE
+    ) %>%
+    openxlsx2::wb_add_formula(
+      x = sprintf("SUM(B4:B%s)", n_spp + 3),
+      dims = sprintf("B%s", n_spp + 4)
+    ) %>% 
+    openxlsx2::wb_add_numfmt(
+      dims = openxlsx2::wb_dims(rows = 1:(n_spp + 1), from_row = 4, from_col = 2),
+      numfmt = "#,##0"
+    ) %>%
+    # Suma AB
+    openxlsx2::wb_add_formula(
+      x = sprintf(
+        "SUMIFS(BD[AB], BD[Especie], %s)",
+        openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4)
+      ),
+      dims = openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4, from_col = 3),
+      array = T,
+      cm = TRUE
+    ) %>%
+    openxlsx2::wb_add_formula(
+      x = sprintf("SUM(C4:C%s)", n_spp + 3),
+      dims = sprintf("C%s", n_spp + 4)
+    ) %>% 
+    openxlsx2::wb_add_numfmt(
+      dims = openxlsx2::wb_dims(rows = 1:(n_spp + 1), from_row = 4, from_col = 3),
+      numfmt = "#,##0.000"
+    ) %>%
+    # Promedio H
+    openxlsx2::wb_add_formula(
+      x = sprintf(
+        "AVERAGEIFS(BD[Altura], BD[Especie], %s)",
+        openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4)
+      ),
+      dims = openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4, from_col = 4),
+      array = T,
+      cm = TRUE
+    ) %>%
+    openxlsx2::wb_add_formula(
+      x = sprintf("AVERAGE(D4:D%s)", n_spp + 3),
+      dims = sprintf("D%s", n_spp + 4)
+    ) %>% 
+    openxlsx2::wb_add_numfmt(
+      dims = openxlsx2::wb_dims(rows = 1:(n_spp + 1), from_row = 4, from_col = 4),
+      numfmt = "#,##0.0"
+    ) %>%
+    # NHA
+    openxlsx2::wb_add_data(x = "Nha (Ind/ha)", dims = "E3") %>%
+    openxlsx2::wb_add_formula(
+      x = sprintf("ROUND(MMULT(B4:B%s,B1),0)", n_spp + 4),
+      dims = sprintf("E4:E%s", n_spp + 4),
+      array = T,
+      cm = TRUE
+    ) %>%
+    # GHA
+    openxlsx2::wb_add_data(x = "Gha (m2/ha)", dims = "F3") %>%
+    openxlsx2::wb_add_formula(
+      x = sprintf("ROUND(MMULT(C4:C%s,B1),3)", n_spp + 3),
+      dims = sprintf("F4:F%s", n_spp + 3),
+      array = T,
+      cm = TRUE
+    ) %>%
+    openxlsx2::wb_add_formula(
+      x = sprintf("ROUND(SUM(F4:F%s),3)", n_spp + 3),
+      dims = sprintf("F%s", n_spp + 4)
+    ) %>%
+    # Densidad relativa
+    openxlsx2::wb_add_data(x = "Densidad_rel", dims = "G3") %>%
+    openxlsx2::wb_add_formula(
+      x = sprintf(
+        "ROUND(MMULT(E4:E%s,1/E%s)*100,1)",
+        n_spp + 3, n_spp + 4
+      ),
+      dims = sprintf("G4:G%s", n_spp + 3),
+      array = T,
+      cm = TRUE
+    ) %>%
+    # Dominancia relativa
+    openxlsx2::wb_add_data(x = "Dominancia_rel", dims = "H3") %>%
+    openxlsx2::wb_add_formula(
+      x = sprintf(
+        "ROUND(MMULT(F4:F%s,1/F%s)*100,1)",
+        n_spp + 3, n_spp + 4
+      ),
+      dims = sprintf("H4:H%s", n_spp + 3),
+      array = T,
+      cm = TRUE
+    ) %>%
+    # Frecuencia relativa
+    openxlsx2::wb_add_data(x = "Frecuencia_rel", dims = "I3") %>%
+    openxlsx2::wb_add_formula(
+      x = sprintf(
+        "VLOOKUP(A4:A%s,Frec.spp_x_parc!A3:%s%s,%s)",
+        n_spp + 3, openxlsx2::int2col(n_par + 4), 
+        n_spp + 2, n_par + 4
+      ),
+      dims = sprintf("I4:I%s", n_spp + 3),
+      array = T,
+      cm = TRUE
+    ) %>%
+    openxlsx2::wb_add_data(x = "IVI", dims = "J3") %>%
+    openxlsx2::wb_add_cell_style(dims = "E3:J3", horizontal = "center") %>%
+    openxlsx2::wb_set_col_widths(cols = 1:4, widths = "auto") %>%
+    openxlsx2::wb_set_col_widths(cols = 5:9, widths = 13.5)
+  
+  # IVI
   for (i in seq_len(n_spp) + 3) {
     wb <- wb %>%
       openxlsx2::wb_add_formula(
@@ -657,6 +586,7 @@ IVI: Valor de importancia."
         dims = sprintf("J%s", i)
       )
   }
+  # Total de valores relativos
   for (i in LETTERS[7:10]) {
     wb <- wb %>%
       openxlsx2::wb_add_formula(
@@ -664,6 +594,7 @@ IVI: Valor de importancia."
         dims = sprintf("%s%s", i, n_spp + f_row_ivi + 1)
       )
   }
+  # Formato de encabezado y totales
   for (i in c(3, n_spp + 4)) {
     wb <- wb %>%
       openxlsx2::wb_add_font(dims = sprintf("A%s:J%s", i, i), bold = T) %>%
