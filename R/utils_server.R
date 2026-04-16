@@ -326,3 +326,45 @@ download_files <- function(x, name_save, dir_save) {
   }
   setwd(wd)
 }
+
+#' @noRd
+prepare_kml <- function(x, basename) {
+  name <- dplyr::case_when(
+    stringi::stri_detect_regex(basename, "Cuenca_de_estudio") ~ "NOM_SSUBC",
+    stringi::stri_detect_regex(basename, "Area_de_proyecto_Ubicación") ~ "NOM_SSUBC",
+    stringi::stri_detect_regex(basename, "Area_de_proyecto_Obras") ~ "Obra",
+    stringi::stri_detect_regex(basename, "BNP_.*_Cuenca") ~ "BNP_ECC",
+    stringi::stri_detect_regex(basename, "BNP_.*_a_") ~ "Obra",
+    stringi::stri_detect_regex(basename, "Censo_.*_a_") ~ "Especie",
+    stringi::stri_detect_regex(basename, "Uso_actual_de_la_tierra") ~ "Subuso",
+    stringi::stri_detect_regex(basename, "Vegetación_en_la_cuenca") ~ "Formacion",
+    stringi::stri_detect_regex(basename, "Estimación") ~ "Obra",
+    stringi::stri_detect_regex(basename, "Caminos_cuenca") ~ "ROL_LABEL",
+    stringi::stri_detect_regex(basename, "Hidrografía_cuenca") ~ "Tipo",
+    stringi::stri_detect_regex(basename, "Curvas_de_Nivel_cuenca") ~ "Elevacion",
+    stringi::stri_detect_regex(basename, "UTM_Inventarios|COT") ~ "Parcela",
+    stringi::stri_detect_regex(basename, "UTM_Registros") ~ "Especie",
+    .default = names(x)[1]
+  ) %>% dplyr::sym()
+
+  shp_kml <- x %>% 
+    dplyr::mutate(
+      Name = !!name,
+      Description = tabla_kml(sf::st_drop_geometry(.)) 
+    ) %>% 
+    dplyr::select(Name, Description)
+  return(shp_kml)
+}
+
+#' @noRd
+tabla_kml <- function(fila) {
+  columnas <- setdiff(names(fila), c("geometry", "geom", "Name"))
+  filas_html <- lapply(columnas, function(col) {
+    paste0("<tr><td bgcolor='#EEEEEE'><b>", col, "</b></td><td>", fila[[col]], "</td></tr>")
+  })
+  paste0(
+    "<table border='1' style='border-collapse: collapse; width: 100%; font-family: Arial;'>",
+    paste(filas_html, collapse = ""),
+    "</table>"
+  )
+}

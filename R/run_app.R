@@ -23,7 +23,6 @@
 #' @importFrom kableExtra kable_styling kbl 
 #' @importFrom leaflet addAwesomeMarkers addCircles addLayersControl addLegend addMeasure addMiniMap addPolygons addProviderTiles addScaleBar colorFactor highlightOptions layersControlOptions leaflet leafletOutput makeAwesomeIcon providers renderLeaflet scaleBarOptions 
 #' @importFrom leaflet.extras addFullscreenControl addResetMapButton 
-#' @importFrom leafpop popupTable 
 #' @importFrom magick image_info image_read image_read_svg 
 #' @importFrom openxlsx2 fmt_txt int2col wb_add_border wb_add_cell_style wb_add_data wb_add_data_table wb_add_fill wb_add_font wb_add_formula wb_add_image wb_add_numfmt wb_add_pivot_table wb_add_worksheet wb_color wb_data wb_dims wb_merge_cells wb_page_setup wb_save wb_set_col_widths wb_workbook write_xlsx
 #' @importFrom plotly layout plot_ly plotlyOutput renderPlotly 
@@ -31,6 +30,7 @@
 #' @importFrom purrr compact map map_dbl map_lgl map2_dbl pluck pmap_chr pmap_dbl pwalk keep
 #' @importFrom R6 R6Class 
 #' @importFrom readxl read_xls read_xlsx 
+#' @importFrom readr write_excel_csv2 
 #' @importFrom rlang list2 
 #' @importFrom sf read_sf st_area st_as_sf st_as_text st_bbox st_buffer st_cast st_centroid st_collection_extract st_combine st_coordinates st_crs st_difference st_drop_geometry st_filter st_geometry st_geometry_type st_intersection st_intersects st_is_within_distance st_join st_make_valid st_nearest_feature st_relate st_set_geometry st_transform st_union st_zm write_sf 
 #' @importFrom shinyFiles shinyDirButton shinyDirChoose 

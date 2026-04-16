@@ -25,6 +25,26 @@ mod_apendices_ui <- function(id) {
       )
     ),
     tags$div(style = "margin-top: 10px"),
+    tags$div(
+      id = "inline",
+      shinyWidgets::pickerInput(
+        inputId = ns("etapa_proj"),
+        label = "Etapa: ",
+        choices = c(
+          "EIA" = "EIA", 
+          "Adenda" = "Ad", 
+          "Adenda compl." = "AdComp", 
+          "Res. fundada" = "RF"
+        ),
+        selected = "EIA",
+        width = "150px",
+        options = shinyWidgets::pickerOptions(
+          container = "body",
+          style = "btn-outline-primary"
+        )
+      )
+    ),
+    tags$div(style = "margin-top: 10px"),
     conditionalPanel(
       condition = "input.portada == 'otra'",
       ns = ns,
@@ -66,7 +86,8 @@ mod_apendices_ui <- function(id) {
         icon = icon("tree"),
         class = "btn-outline-info btn-sm"
       ),
-      mod_downfiles_ui(ns("down_bd_fore"))
+      mod_downfiles_ui(ns("down_bd_fore")),
+      mod_downfiles_ui(ns("down_bd_nha"), icon = icon("file-csv"))
     )
   )
 }
@@ -81,9 +102,10 @@ mod_apendices_server <- function(id, rv){
     observe({
       rv$portada_opts <- switch(
         as.character(input$portada != "otra"),
-        "TRUE" = portada_opts(plantilla = input$portada),
+        "TRUE" = portada_opts(plantilla = input$portada, etapa_proj = input$etapa_proj),
         "FALSE" = PAS.150::portada_opts(
           nom_proj = input$nom_proj, 
+          etapa_proj = input$etapa_proj, 
           logo = input$logo$datapath, 
           plantilla = "default"
         )
@@ -181,7 +203,6 @@ mod_apendices_server <- function(id, rv){
           BD_fore = rv$BD_fore, 
           BNP_cuenca = rv$BNP_cuenca, 
           sp = rv$sp,
-          # portada = rv$portada,
           portada_opts = rv$portada_opts
         )
       }, error = function(e) {
@@ -209,6 +230,12 @@ mod_apendices_server <- function(id, rv){
       "down_bd_fore", 
       x = reactive(rv$BD_inv_forestales$wb), 
       name_save = sprintf("BD Inventarios forestales BNP %s", stringi::stri_extract_first_words(rv$sp))
+    )
+    mod_downfiles_server(
+      "down_bd_nha", 
+      x = reactive(rv$BD_inv_forestales$BD_Nha), 
+      name_save ="BD_Nha",
+      csv = TRUE
     )
 
   })

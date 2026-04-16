@@ -504,7 +504,7 @@ IVI: Valor de importancia."
     # Promedio H
     openxlsx2::wb_add_formula(
       x = sprintf(
-        "AVERAGEIFS(BD[Altura], BD[Especie], %s)",
+        'IFERROR(AVERAGEIFS(BD[Altura], BD[Especie], %s),"")',
         openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4)
       ),
       dims = openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4, from_col = 4),
@@ -512,7 +512,7 @@ IVI: Valor de importancia."
       cm = TRUE
     ) %>%
     openxlsx2::wb_add_formula(
-      x = sprintf("AVERAGE(D4:D%s)", n_spp + 3),
+      x = sprintf("ROUND(SUMPRODUCT(B4:B%s,D4:D%s)/B%s,1)", n_spp + 3, n_spp + 3, n_spp + 4),
       dims = sprintf("D%s", n_spp + 4)
     ) %>% 
     openxlsx2::wb_add_numfmt(
@@ -1120,4 +1120,3 @@ IVI: Valor de importancia."
     )
   )
 }
-

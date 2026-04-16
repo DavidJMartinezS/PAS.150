@@ -74,6 +74,7 @@ prepare_bd_flora_150 <- function(BD, bd_lista = TRUE, BNP_cuenca = NULL, in_bnp_
     ptos_todos <- BD %>% 
       dplyr::group_by(Parcela, UTM_E, UTM_N) %>% 
       dplyr::mutate(ID = dplyr::cur_group_id()) %>% 
+      dplyr::ungroup() %>% 
       dplyr::count(ID, Parcela, UTM_E, UTM_N) %>% 
       dplyr::select(-n) %>% na.omit() %>% 
       sf::st_as_sf(coords = c('UTM_E', 'UTM_N'), crs = get_utm_epsg(BNP_cuenca), remove = F)

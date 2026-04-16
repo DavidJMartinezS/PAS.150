@@ -19,7 +19,7 @@ wb_portada_PAS150 <- function(
   if(!is.null(nom_ssubc)) valid_input(nom_ssubc, inherit = "character")
   stopifnot(
     inherits(opts, "list"),
-    sort(names(opts)) == sort(c("nom_proj", "logo")),
+    sort(names(opts)) == sort(c("nom_proj", "etapa_proj", "logo")),
     lengths(opts) == 1
   )
   
@@ -58,7 +58,7 @@ wb_portada_PAS150 <- function(
     ) %>%
     # Tipo proyecto
     openxlsx2::wb_add_data(
-      x = "ESTUDIO DE IMPACTO AMBIENTAL",
+      x = opts$etapa_proj,
       start_col = 2,
       start_row = 16
     ) %>%
@@ -101,20 +101,31 @@ wb_portada_PAS150 <- function(
   return(wb)
 }
 
-#' Ajuste de portada
+#' Opciones de personalización para la portada
 #'
-#' @param nom_proj Nombre del proyecto.
-#' @param logo Ruta del archivo de tipo imagen con el logo del cliente.
-#' @param plantilla Plantilla realizada para proyectos en particular, disponible `KIM753`, `MLP612` y `default`.
+#' Genera una lista de configuración para definir títulos, logos y el tipo de estudio
+#' que se mostrarán en la portada de los libros de Excel generados para los apéndices.
+#'
+#' @param nom_proj Carácter. Nombre oficial del proyecto que se mostrará en la portada.
+#' @param etapa_proj Carácter. Etapa del proceso de evaluación del proyecto. Las opciones permitidas son \code{"EIA"}, \code{"A1"}, \code{"A2"} y \code{"RF"}. Por defecto es \code{"EIA"}.
+#' @param logo Carácter. Ruta al archivo de imagen (ej. PNG, JPG, SVG) que contiene el logo institucional del cliente.
+#' @param plantilla Carácter. Selección de una configuración predefinida para proyectos específicos. 
+#'   Las opciones disponibles son \code{"default"}, \code{"KIM753"} (Kimal-Lo Aguirre) y \code{"MLP612"} (Minera Los Pelambres).
+#'
+#' @details 
+#' Al seleccionar una \code{plantilla} específica distinta de \code{"default"}, los valores de \code{nom_proj} y \code{logo} 
+#' se ajustarán automáticamente a los parámetros predefinidos del proyecto, ignorando los valores proporcionados manualmente.
 #'
 #' @rdname portada 
-#' @return lista con ajustes de portada
+#' @return Una \code{lista} que contiene los parámetros configurados para ser utilizados por \code{wb_portada_PAS150()}.
 #' @export
 portada_opts <- function(
     nom_proj = NULL,
+    etapa_proj = "EIA",
     logo = NULL,
     plantilla = "default"
   ) {
+  etapa_proj <- match.arg(etapa_proj, choices = c("EIA", "Ad", "AdComp", "RF"))
   plantilla <- match.arg(plantilla, choices = c("default", "KIM753", "MLP612"))
   
   nom_proj <- switch(
@@ -122,6 +133,14 @@ portada_opts <- function(
     "KIM753" = "LÍNEA DE TRANSMISIÓN ELÉCTRICA HVDC KIMAL - LO AGUIRRE",
     "MLP612" = "PROYECTO EXTENSIÓN VIDA ÚTIL DE MINERA LOS PELAMBRES",
     "default" = if (!is.null(nom_proj)) nom_proj else "INGRESE NOMBRE DEL PROYECTO"
+  )
+
+  etapa_proj <- switch(
+    etapa_proj,
+    "EIA" = "EVALUACIÓN DE IMPACTO AMBIENTAL",
+    "Ad" = "ADENDA",
+    "AdComp" = "ADENDA COMPLEMENTARIA",
+    "RF" = "RESOLUCIÓN FUNDADA"
   )
 
   logo <- switch(
@@ -133,6 +152,7 @@ portada_opts <- function(
 
   opts <- list(
     nom_proj = nom_proj,
+    etapa_proj = etapa_proj,
     logo = logo
   )
   return(opts)

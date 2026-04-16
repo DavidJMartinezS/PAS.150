@@ -98,7 +98,7 @@ gt_tipos_forestales <- function(uso_veg, sp) {
       dec_mark = ','
     ) %>%
     gt::tab_style(
-      style = gt::cell_fill(color = "#A0968C", alpha = 0.2),
+      style = gt::cell_fill(color = "#7f8684", alpha = 0.2),
       locations = list(
         gt::cells_column_labels(gt::everything()),
         gt::cells_column_spanners(gt::everything()),
@@ -196,7 +196,7 @@ gt_usos <- function(uso_veg) {
       locations = gt::cells_column_labels()
     ) %>% 
     gt::tab_style(
-      style = gt::cell_fill(color = "#A0968C",alpha = 0.1),
+      style = gt::cell_fill(color = "#7f8684",alpha = 0.1),
       locations = list(gt::cells_column_labels())
     ) %>% 
     gt::tab_style(
@@ -241,7 +241,7 @@ gt_IVI <- function(df_ivi) {
       )
     ) %>% 
     gt::tab_style(
-      style = gt::cell_fill(color = "#A0968C", alpha = 0.1),
+      style = gt::cell_fill(color = "#7f8684", alpha = 0.1),
       locations = list(gt::cells_column_labels())
     ) %>% 
     gt::tab_style(
@@ -283,7 +283,7 @@ gt_estadisticos <- function(df_est) {
       dec_mark = ','
     ) %>%
     gt::tab_style(
-      style = gt::cell_fill(color = "#A0968C", alpha = 0.1),
+      style = gt::cell_fill(color = "#7f8684", alpha = 0.1),
       locations = list(gt::cells_column_labels())
     ) %>%
     gt::tab_style(
@@ -385,7 +385,7 @@ gt_prop <- function(df_est, df_prop, BNP_cuenca, sp) {
       drop_trailing_zeros = T
     ) %>%
     gt::tab_style(
-      style = gt::cell_fill(color = "#A0968C", alpha = 0.1),
+      style = gt::cell_fill(color = "#7f8684", alpha = 0.1),
       locations = list(gt::cells_column_labels(), gt::cells_column_spanners())
     ) %>%
     gt::tab_style(
@@ -438,7 +438,7 @@ gt_ecc_inter <- function(ecc_inter, BNP_int_sin_censo, col_obras = NULL) {
     janitor::adorn_totals(name = "Total individuos a intervenir") %>%
     gt::gt() %>% 
     gt::tab_style(
-      style = gt::cell_fill(color = "#A0968C", alpha = 0.1),
+      style = gt::cell_fill(color = "#7f8684", alpha = 0.1),
       locations = list(gt::cells_column_labels())
     ) %>% 
     gt::tab_style(
@@ -493,7 +493,7 @@ gt_ecc_alter <- function(ecc_alter, BNP_alt_sin_pto, col_obras = NULL) {
     janitor::adorn_totals(name = "Total individuos a alterar su hábitat") %>% 
     gt::gt() %>% 
     gt::tab_style(
-      style = gt::cell_fill(color = "#A0968C",alpha = 0.1),
+      style = gt::cell_fill(color = "#7f8684",alpha = 0.1),
       locations = list(gt::cells_column_labels())
     ) %>% 
     gt::tab_style(
@@ -599,7 +599,7 @@ gt_sup_inter <- function(obras, BNP_inter, BNP_alterar, col_obras = NULL) {
       columns = 2:4 + length(vars_obras)
     ) %>%
     gt::tab_style(
-      style = gt::cell_fill(color = "#A0968C", alpha = 0.1),
+      style = gt::cell_fill(color = "#7f8684", alpha = 0.1),
       locations = list(gt::cells_column_labels(), gt::cells_column_spanners())
     ) %>%
     gt::tab_style(
@@ -646,7 +646,7 @@ gt_spp_acomp <- function(spp_acomp) {
       locations = list(gt::cells_body(columns = 1))
     ) %>% 
     gt::tab_style(
-      style = gt::cell_fill(color = "#A0968C", alpha = 0.1),
+      style = gt::cell_fill(color = "#7f8684", alpha = 0.1),
       locations = list(gt::cells_column_labels())
     ) %>% 
     gt::tab_style(
@@ -692,7 +692,7 @@ gt_indices <- function(tabla_indices) {
       title = "Índices de diversidad del bosque nativo de preservación en el área de proyecto"
     ) %>% 
     gt::tab_style(
-      style = gt::cell_fill(color = "#A0968C",alpha = 0.1),
+      style = gt::cell_fill(color = "#7f8684",alpha = 0.1),
       locations = list(gt::cells_column_labels())
     ) %>% 
     gt::tab_style(
@@ -724,7 +724,7 @@ gt_frag_matriz <- function(matriz_paisaje) {
       columns = 2:4
     ) %>% 
     gt::tab_style(
-      style = gt::cell_fill(color = "#A0968C",alpha = 0.1),
+      style = gt::cell_fill(color = "#7f8684",alpha = 0.1),
       locations = list(gt::cells_column_spanners(), gt::cells_column_labels())
     ) %>% 
     gt::tab_style(
@@ -767,7 +767,7 @@ gt_frag_param <- function(df) {
       dec_mark = ",",
     ) %>% 
     gt::tab_style(
-      style = gt::cell_fill(color = "#A0968C",alpha = 0.1),
+      style = gt::cell_fill(color = "#7f8684",alpha = 0.1),
       locations = list(gt::cells_column_labels())
     ) %>% 
     gt::tab_style(
@@ -798,7 +798,7 @@ gt_frag_resultados <- function(tabla_eval) {
       drop_trailing_zeros = T
     ) %>% 
     gt::tab_style(
-      style = gt::cell_fill(color = "#A0968C",alpha = 0.1),
+      style = gt::cell_fill(color = "#7f8684",alpha = 0.1),
       locations = list(gt::cells_column_labels())
     ) %>% 
     gt::tab_style(

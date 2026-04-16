@@ -397,7 +397,7 @@ get_inv_fores <- function(BD_fore, BNP_cuenca, bd_lista = TRUE) {
 
 #' @rdname carto_digital
 #' @export
-get_prospeccion <- function(BD_flora, BD_fore, censo, sp) {
+get_prospeccion <- function(BD_flora, BD_fore, censo, sp, BNP_cuenca) {
   valid_df(BD_flora)
   valid_df(BD_fore)
   valid_input(censo, inherit = "sf", names = "Especie", geometry = "POINT")
@@ -414,6 +414,7 @@ get_prospeccion <- function(BD_flora, BD_fore, censo, sp) {
       sf::st_as_sf(coords = c('UTM_E', 'UTM_N'), crs = sf::st_crs(censo)),
     censo %>% dplyr::filter(stringi::stri_detect_regex(Especie, sp, case_insensitive = T))
   ) %>%
+    sf::st_intersection(sf::st_geometry(BNP_cuenca)) %>% 
     dplyr::group_by(geometry) %>%
     dplyr::tally() %>%
     dplyr::mutate(
@@ -729,7 +730,7 @@ get_carto_digital <- function(
   }
   if (!is.null(BD_flora) & !is.null(BD_fore)) {
     prospeccion <- tryCatch(
-      get_prospeccion(BD_flora = BD_flora, BD_fore = BD_fore, censo = censo, sp = sp),
+      get_prospeccion(BD_flora = BD_flora, BD_fore = BD_fore, censo = censo, sp = sp, BNP_cuenca = BNP_cuenca),
       error = function(e) stop("Error en 'get_prospeccion': ", e$message, call. = FALSE)
     )
   }

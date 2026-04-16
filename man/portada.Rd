@@ -13,7 +13,12 @@ wb_portada_PAS150(
   opts = portada_opts()
 )
 
-portada_opts(nom_proj = NULL, logo = NULL, plantilla = "default")
+portada_opts(
+  nom_proj = NULL,
+  etapa_proj = "EIA",
+  logo = NULL,
+  plantilla = "default"
+)
 }
 \arguments{
 \item{wb}{Workbook.}
@@ -24,19 +29,25 @@ portada_opts(nom_proj = NULL, logo = NULL, plantilla = "default")
 
 \item{opts}{Opciones para personalizar una portada. usar [portada_opts()].}
 
-\item{nom_proj}{Nombre del proyecto.}
+\item{nom_proj}{Carácter. Nombre oficial del proyecto que se mostrará en la portada.}
 
-\item{logo}{Ruta del archivo de tipo imagen con el logo del cliente.}
+\item{etapa_proj}{Carácter. Etapa del proceso de evaluación del proyecto. Las opciones permitidas son \code{"EIA"}, \code{"A1"}, \code{"A2"} y \code{"RF"}. Por defecto es \code{"EIA"}.}
 
-\item{plantilla}{Plantilla realizada para proyectos en particular, disponible `KIM753`, `MLP612` y `default`.}
+\item{logo}{Carácter. Ruta al archivo de imagen (ej. PNG, JPG, SVG) que contiene el logo institucional del cliente.}
+
+\item{plantilla}{Carácter. Selección de una configuración predefinida para proyectos específicos. 
+Las opciones disponibles son \code{"default"}, \code{"KIM753"} (Kimal-Lo Aguirre) y \code{"MLP612"} (Minera Los Pelambres).}
 }
 \value{
 Workbook con portada
 
-lista con ajustes de portada
+Una \code{lista} que contiene los parámetros configurados para ser utilizados por \code{wb_portada_PAS150()}.
 }
 \description{
-Portadas de apendices
-
-Ajuste de portada
+Genera una lista de configuración para definir títulos, logos y el tipo de estudio
+que se mostrarán en la portada de los libros de Excel generados para los apéndices.
+}
+\details{
+Al seleccionar una \code{plantilla} específica distinta de \code{"default"}, los valores de \code{nom_proj} y \code{logo} 
+se ajustarán automáticamente a los parámetros predefinidos del proyecto, ignorando los valores proporcionados manualmente.
 }

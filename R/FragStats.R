@@ -44,7 +44,7 @@ FragStats_pre <- function(dir, path_antes, path_despues) {
     dplyr::select(TIPO, ID, Sup_ha)
   sf::write_sf(sf_antes, file.path(dir,"ENTREGA/Vectorial/SHP", basename(path_antes)))
   sf_antes %>% 
-    dplyr::mutate(Description = leafpop::popupTable(sf::st_drop_geometry(.))) %>% 
+    dplyr::mutate(Description = tabla_kml(sf::st_drop_geometry(.))) %>% 
     dplyr::select(TIPO, Description) %>% 
     sf::write_sf(file.path(dir, "ENTREGA/Vectorial/KML", gsub(".shp", ".kml", basename(path_antes))))
   
@@ -61,7 +61,7 @@ FragStats_pre <- function(dir, path_antes, path_despues) {
     dplyr::select(TIPO, ID, Sup_ha)
   sf::write_sf(sf_despues, file.path(dir, "ENTREGA/Vectorial/SHP", basename(path_despues)))
   sf_despues %>% 
-    dplyr::mutate(Description = leafpop::popupTable(sf::st_drop_geometry(.))) %>% 
+    dplyr::mutate(Description = tabla_kml(sf::st_drop_geometry(.))) %>% 
     dplyr::select(TIPO, Description) %>% 
     sf::write_sf(file.path(dir, "ENTREGA/Vectorial/KML", gsub(".shp", ".kml", basename(path_despues))))
   
@@ -124,7 +124,7 @@ FragStats_post <- function(dir, path_antes, path_despues) {
     dplyr::relocate(geometry, .after = dplyr::last_col())
   sf::write_sf(antes_raster_sf, file.path(dir, "ENTREGA/Raster/SHP", basename(path_antes)))
   antes_raster_sf %>% 
-    dplyr::mutate(Description = leafpop::popupTable(sf::st_drop_geometry(.))) %>% 
+    dplyr::mutate(Description = tabla_kml(sf::st_drop_geometry(.))) %>% 
     dplyr::select(PID, Description) %>% 
     sf::write_sf(file.path(dir, "ENTREGA/Raster/KML", gsub(".shp", ".kml", basename(path_antes))))
   
@@ -149,7 +149,7 @@ FragStats_post <- function(dir, path_antes, path_despues) {
     dplyr::relocate(geometry, .after = dplyr::last_col())
   sf::write_sf(despues_raster_sf, file.path(dir, "ENTREGA/Raster/SHP", basename(path_despues)))
   despues_raster_sf %>% 
-    dplyr::mutate(Description = leafpop::popupTable(sf::st_drop_geometry(.))) %>% 
+    dplyr::mutate(Description = tabla_kml(sf::st_drop_geometry(.))) %>% 
     dplyr::select(PID, Description) %>% 
     sf::write_sf(file.path(dir, "ENTREGA/Raster/KML", gsub(".shp", ".kml", basename(path_despues))))
   
