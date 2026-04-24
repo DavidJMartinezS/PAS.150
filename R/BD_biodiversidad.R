@@ -22,6 +22,8 @@ BD_biodiversidad <- function(
 
   # DATOS ----
   BD_indices <- BD_flora %>%
+    dplyr::filter(!stringi::stri_detect_regex(Habito, "hierba|herb", case_insensitive = T)) %>% 
+    dplyr::filter(!stringi::stri_detect_regex(Cob_BB, "-|fp", case_insensitive = T)) %>% 
     dplyr::group_by(Especie) %>%
     dplyr::summarise(n = sum(N_ind, na.rm = T)) %>%
     dplyr::mutate(n = dplyr::if_else(n == 0, 1, n)) %>%

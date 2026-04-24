@@ -33,6 +33,7 @@ Imports:
     plyr,
     purrr,
     R6,
+    readr,
     readxl,
     rlang,
     sf,

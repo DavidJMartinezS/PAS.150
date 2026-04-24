@@ -5,7 +5,10 @@ gt_tipos_forestales <- function(uso_veg, sp) {
   sup_cuenca <- uso_veg$Sup_ha %>% sum()
   TF_BN <- uso_veg %>% 
     sf::st_drop_geometry() %>% 
-    dplyr::filter(F_ley20283 %>% stringi::stri_cmp_equiv('bosque nativo', strength = 1)) %>% 
+    dplyr::filter(
+      !Tipo_for %>% stringi::stri_cmp_equiv('no aplica', strength = 1), 
+      F_ley20283 %>% stringi::stri_cmp_equiv('bosque nativo', strength = 1)
+    ) %>% 
     dplyr::group_by(Tipo_for) %>% 
     dplyr::summarise(Sup_ha_BN = sum(Sup_ha), .groups = 'drop') %>% 
     dplyr::mutate(P_BN = Sup_ha_BN / sup_cuenca)
@@ -44,7 +47,10 @@ gt_tipos_forestales <- function(uso_veg, sp) {
 
   TF_Total <- uso_veg %>% 
     sf::st_drop_geometry() %>% 
-    dplyr::filter(F_ley20283 %>% stringi::stri_cmp_equiv('Bosque nativo', strength = 1)) %>% 
+    dplyr::filter(
+      !Tipo_for %>% stringi::stri_cmp_equiv('no aplica', strength = 1), 
+      F_ley20283 %>% stringi::stri_detect_regex('bosque nativo', case_insensitive = TRUE)
+    ) %>% 
     dplyr::group_by(Tipo_for) %>% 
     dplyr::summarise(Sup_Total = sum(Sup_ha)) %>% 
     dplyr::mutate(P_Total = Sup_Total / sup_cuenca)

@@ -39,9 +39,9 @@ get_obras(obras, cuenca)
 
 get_BNP_cuenca(uso_veg, sp)
 
-get_BNP_intervencion(BNP_cuenca, obras, BNP_inter = NULL)
+get_BNP_intervencion(BNP_cuenca = NULL, obras = NULL, BNP_inter = NULL)
 
-get_BNP_alterar(BNP_alter = NULL, BNP_cuenca, alt_ok = F)
+get_BNP_alterar(BNP_alter = NULL, BNP_cuenca = NULL, alt_ok = F)
 
 get_ECC_alt(BNP_alter, censo, sp)
 

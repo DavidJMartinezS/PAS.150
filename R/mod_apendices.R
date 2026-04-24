@@ -234,10 +234,9 @@ mod_apendices_server <- function(id, rv){
     mod_downfiles_server(
       "down_bd_nha", 
       x = reactive(rv$BD_inv_forestales$BD_Nha), 
-      name_save ="BD_Nha",
+      name_save = "BD_Nha",
       csv = TRUE
     )
-
   })
 }
     

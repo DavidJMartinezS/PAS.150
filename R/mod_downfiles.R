@@ -58,7 +58,7 @@ mod_downfiles_server <- function(id, x, name_save, create_kmz = TRUE, csv = FALS
         if (length(filetype()) > 1) {
           ifelse(is.null(names(name_save)), "Archivos_comprimidos.zip", paste0(names(name_save), ".zip"))
         } else {
-          paste0(as.character(name_save), ifelse(filetype() == "sf", ".zip", ".xlsx"))
+          paste0(as.character(name_save), ifelse(filetype() == "sf", ".zip", ifelse(csv, ".csv", ".xlsx")))
         }
       },
       content = function(file) {

@@ -4,7 +4,7 @@
 \alias{download_files}
 \title{download_files}
 \usage{
-download_files(x, name_save, dir_save)
+download_files(x, name_save, dir_save, create_kmz = FALSE, csv = FALSE)
 }
 \arguments{
 \item{x}{objecto o lista de objetos. admite objetos 'data.frame', 'sf' y 'wbWorkbook'.}
@@ -12,9 +12,13 @@ download_files(x, name_save, dir_save)
 \item{name_save}{vector de caracteres con los nombres de los objetos.}
 
 \item{dir_save}{directorio donde guardar el o los objetos.}
+
+\item{create_kmz}{valor lógico. \code{TRUE} para crear un kmz cuando \code{x} contenga un objeto sf.}
+
+\item{csv}{valor lógico. \code{TRUE} para descargar csv cuando \code{x} sea un data.frame.}
 }
 \value{
-archivos 'xlsx', 'shp' o 'zip'.
+descarga tablas, workbooks y objetos espaciales archivos como 'xlsx', 'csv' o 'zip'.
 }
 \description{
 download_files

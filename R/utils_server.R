@@ -271,11 +271,13 @@ prepare_uso_veg <- function(x) {
 #' @param x objecto o lista de objetos. admite objetos 'data.frame', 'sf' y 'wbWorkbook'.
 #' @param name_save vector de caracteres con los nombres de los objetos.
 #' @param dir_save directorio donde guardar el o los objetos.  
+#' @param create_kmz valor lógico. \code{TRUE} para crear un kmz cuando \code{x} contenga un objeto sf.  
+#' @param csv valor lógico. \code{TRUE} para descargar csv cuando \code{x} sea un data.frame. 
 #'
-#' @returns archivos 'xlsx', 'shp' o 'zip'.
+#' @returns descarga tablas, workbooks y objetos espaciales archivos como 'xlsx', 'csv' o 'zip'.
 #' @name download_files
 #' @export
-download_files <- function(x, name_save, dir_save) {
+download_files <- function(x, name_save, dir_save, create_kmz = FALSE, csv = FALSE) {
   stopifnot(dir.exists(dir_save))
   
   filetype <- x %>%
@@ -296,7 +298,7 @@ download_files <- function(x, name_save, dir_save) {
   file <- file.path(dir_save, ifelse(
     length(filetype) > 1, 
     ifelse(is.null(names(name_save)), "Archivos_comprimidos.zip", paste0(names(name_save), ".zip")),
-    paste0(as.character(name_save), ifelse(filetype == "sf", ".zip", ".xlsx"))
+    paste0(as.character(name_save), ifelse(filetype == "sf", ".zip", ifelse(csv, ".csv", ".xlsx")))
   ))
   
   wd <- getwd()
@@ -312,9 +314,22 @@ download_files <- function(x, name_save, dir_save) {
     .f = function(x, y, z) {
       switch(
         y,
-        sf = sf::write_sf(x, paste0(tools::file_path_sans_ext(z), ".shp")),
+        sf = {
+          sf::write_sf(x, paste0(tools::file_path_sans_ext(z), ".shp"))
+          if(create_kmz) {
+            sf::write_sf(prepare_kml(x = x, basename = z), paste0(tools::file_path_sans_ext(z), ".kml"), delete_dsn = TRUE)
+            zip::zip(zipfile = paste0(tools::file_path_sans_ext(z), ".kmz"), files = paste0(tools::file_path_sans_ext(z), ".kml"))
+            file.remove(paste0(tools::file_path_sans_ext(z), ".kml"))
+          }
+        },
         wb = openxlsx2::wb_save(x, paste0(tools::file_path_sans_ext(z), ".xlsx"), overwrite = T),
-        xlsx = openxlsx2::write_xlsx(x, paste0(tools::file_path_sans_ext(z), ".xlsx"), overwrite = T)
+        xlsx = {
+          if(csv) {
+            readr::write_excel_csv2(x, paste0(tools::file_path_sans_ext(z), ".csv"))
+          } else {
+            openxlsx2::write_xlsx(x, paste0(tools::file_path_sans_ext(z), ".xlsx"))
+          }
+        }
       )
     }
   )
@@ -328,24 +343,30 @@ download_files <- function(x, name_save, dir_save) {
 }
 
 #' @noRd
-prepare_kml <- function(x, basename) {
-  name <- dplyr::case_when(
-    stringi::stri_detect_regex(basename, "Cuenca_de_estudio") ~ "NOM_SSUBC",
-    stringi::stri_detect_regex(basename, "Area_de_proyecto_Ubicación") ~ "NOM_SSUBC",
-    stringi::stri_detect_regex(basename, "Area_de_proyecto_Obras") ~ "Obra",
-    stringi::stri_detect_regex(basename, "BNP_.*_Cuenca") ~ "BNP_ECC",
-    stringi::stri_detect_regex(basename, "BNP_.*_a_") ~ "Obra",
-    stringi::stri_detect_regex(basename, "Censo_.*_a_") ~ "Especie",
-    stringi::stri_detect_regex(basename, "Uso_actual_de_la_tierra") ~ "Subuso",
-    stringi::stri_detect_regex(basename, "Vegetación_en_la_cuenca") ~ "Formacion",
-    stringi::stri_detect_regex(basename, "Estimación") ~ "Obra",
-    stringi::stri_detect_regex(basename, "Caminos_cuenca") ~ "ROL_LABEL",
-    stringi::stri_detect_regex(basename, "Hidrografía_cuenca") ~ "Tipo",
-    stringi::stri_detect_regex(basename, "Curvas_de_Nivel_cuenca") ~ "Elevacion",
-    stringi::stri_detect_regex(basename, "UTM_Inventarios|COT") ~ "Parcela",
-    stringi::stri_detect_regex(basename, "UTM_Registros") ~ "Especie",
-    .default = names(x)[1]
-  ) %>% dplyr::sym()
+prepare_kml <- function(x, basename = NULL) {
+  name_str <- if (is.null(basename)) {
+    names(x)[1]
+  } else {
+    dplyr::case_when(
+      stringi::stri_detect_regex(basename, "Cuenca_de_estudio") ~ "NOM_SSUBC",
+      stringi::stri_detect_regex(basename, "Area_de_proyecto_Ubicación") ~ "NOM_SSUBC",
+      stringi::stri_detect_regex(basename, "Area_de_proyecto_Obras") ~ "Obra",
+      stringi::stri_detect_regex(basename, "BNP_.*_Cuenca") ~ "BNP_ECC",
+      stringi::stri_detect_regex(basename, "BNP_.*_a_") ~ "Obra",
+      stringi::stri_detect_regex(basename, "Censo_.*_a_") ~ "Especie",
+      stringi::stri_detect_regex(basename, "Uso_actual_de_la_tierra") ~ "Subuso",
+      stringi::stri_detect_regex(basename, "Vegetación_en_la_cuenca") ~ "Formacion",
+      stringi::stri_detect_regex(basename, "Estimación") ~ "Obra",
+      stringi::stri_detect_regex(basename, "Caminos_cuenca") ~ "ROL_LABEL",
+      stringi::stri_detect_regex(basename, "Hidrografía_cuenca") ~ "Tipo",
+      stringi::stri_detect_regex(basename, "Curvas_de_Nivel_cuenca") ~ "Elevacion",
+      stringi::stri_detect_regex(basename, "UTM_Inventarios|COT") ~ "Parcela",
+      stringi::stri_detect_regex(basename, "UTM_Registros") ~ "Especie",
+      .default = names(x)[1]
+    )
+  }
+
+  name <- dplyr::sym(name_str)
 
   shp_kml <- x %>% 
     dplyr::mutate(

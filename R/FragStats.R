@@ -18,9 +18,9 @@ FragStats_pre <- function(dir, path_antes, path_despues) {
       dir,
       c(
         "ENTREGA/Vectorial/SHP",
-        "ENTREGA/Vectorial/KML",
+        "ENTREGA/Vectorial/KMZ",
         "ENTREGA/Raster/SHP",
-        "ENTREGA/Raster/KML",
+        "ENTREGA/Raster/KMZ",
         "IMG",
         "RESULTADOS/ANTES",
         "RESULTADOS/DESPUES",
@@ -43,10 +43,13 @@ FragStats_pre <- function(dir, path_antes, path_despues) {
     ) %>% 
     dplyr::select(TIPO, ID, Sup_ha)
   sf::write_sf(sf_antes, file.path(dir,"ENTREGA/Vectorial/SHP", basename(path_antes)))
-  sf_antes %>% 
-    dplyr::mutate(Description = tabla_kml(sf::st_drop_geometry(.))) %>% 
-    dplyr::select(TIPO, Description) %>% 
-    sf::write_sf(file.path(dir, "ENTREGA/Vectorial/KML", gsub(".shp", ".kml", basename(path_antes))))
+  sf_antes %>% prepare_kml() %>% 
+    sf::write_sf(file.path(dir, "ENTREGA/Vectorial/KMZ", gsub(".shp", ".kml", basename(path_antes))))
+  zip::zip(
+    zipfile = file.path(dir, "ENTREGA/Vectorial/KMZ", gsub(".shp", ".kmz", basename(path_antes))), 
+    files = file.path(dir, "ENTREGA/Vectorial/KMZ", gsub(".shp", ".kml", basename(path_antes)))
+  )
+  file.remove(file.path(dir, "ENTREGA/Vectorial/KMZ", gsub(".shp", ".kml", basename(path_antes))))
   
   sf_despues <- sf::read_sf(path_despues) %>% 
     sf::st_zm() %>% 
@@ -60,11 +63,14 @@ FragStats_pre <- function(dir, path_antes, path_despues) {
     ) %>% 
     dplyr::select(TIPO, ID, Sup_ha)
   sf::write_sf(sf_despues, file.path(dir, "ENTREGA/Vectorial/SHP", basename(path_despues)))
-  sf_despues %>% 
-    dplyr::mutate(Description = tabla_kml(sf::st_drop_geometry(.))) %>% 
-    dplyr::select(TIPO, Description) %>% 
-    sf::write_sf(file.path(dir, "ENTREGA/Vectorial/KML", gsub(".shp", ".kml", basename(path_despues))))
-  
+  sf_despues %>% prepare_kml() %>% 
+    sf::write_sf(file.path(dir, "ENTREGA/Vectorial/KMZ", gsub(".shp", ".kml", basename(path_despues))))
+  zip::zip(
+    zipfile = file.path(dir, "ENTREGA/Vectorial/KMZ", gsub(".shp", ".kmz", basename(path_despues))), 
+    files = file.path(dir, "ENTREGA/Vectorial/KMZ", gsub(".shp", ".kml", basename(path_despues)))
+  )
+  file.remove(file.path(dir, "ENTREGA/Vectorial/KMZ", gsub(".shp", ".kml", basename(path_despues))))
+
   resolucion = 3
   dim_to_rast <- function(sf) {
     bbox <- sf::st_bbox(sf)
@@ -123,10 +129,13 @@ FragStats_post <- function(dir, path_antes, path_despues) {
     ) %>% 
     dplyr::relocate(geometry, .after = dplyr::last_col())
   sf::write_sf(antes_raster_sf, file.path(dir, "ENTREGA/Raster/SHP", basename(path_antes)))
-  antes_raster_sf %>% 
-    dplyr::mutate(Description = tabla_kml(sf::st_drop_geometry(.))) %>% 
-    dplyr::select(PID, Description) %>% 
-    sf::write_sf(file.path(dir, "ENTREGA/Raster/KML", gsub(".shp", ".kml", basename(path_antes))))
+  antes_raster_sf %>% prepare_kml() %>% 
+    sf::write_sf(file.path(dir, "ENTREGA/Raster/KMZ", gsub(".shp", ".kml", basename(path_antes))))
+  zip::zip(
+    zipfile = file.path(dir, "ENTREGA/Raster/KMZ", gsub(".shp", ".kmz", basename(path_antes))), 
+    files = file.path(dir, "ENTREGA/Raster/KMZ", gsub(".shp", ".kml", basename(path_antes)))
+  )
+  file.remove(file.path(dir, "ENTREGA/Raster/KMZ", gsub(".shp", ".kml", basename(path_antes))))
   
   despues_raster_id <- list.files(
     file.path(dir, "IMG"),
@@ -148,10 +157,13 @@ FragStats_post <- function(dir, path_antes, path_despues) {
     ) %>% 
     dplyr::relocate(geometry, .after = dplyr::last_col())
   sf::write_sf(despues_raster_sf, file.path(dir, "ENTREGA/Raster/SHP", basename(path_despues)))
-  despues_raster_sf %>% 
-    dplyr::mutate(Description = tabla_kml(sf::st_drop_geometry(.))) %>% 
-    dplyr::select(PID, Description) %>% 
-    sf::write_sf(file.path(dir, "ENTREGA/Raster/KML", gsub(".shp", ".kml", basename(path_despues))))
+  despues_raster_sf %>% prepare_kml() %>% 
+    sf::write_sf(file.path(dir, "ENTREGA/Raster/KMZ", gsub(".shp", ".kml", basename(path_despues))))
+  zip::zip(
+    zipfile = file.path(dir, "ENTREGA/Raster/KMZ", gsub(".shp", ".kmz", basename(path_despues))), 
+    files = file.path(dir, "ENTREGA/Raster/KMZ", gsub(".shp", ".kml", basename(path_despues)))
+  )
+  file.remove(file.path(dir, "ENTREGA/Raster/KMZ", gsub(".shp", ".kml", basename(path_despues))))
   
   wb <- openxlsx2::wb_workbook() %>% 
     openxlsx2::wb_add_worksheet(sheet = "ANTES") %>% 

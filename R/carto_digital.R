@@ -203,14 +203,14 @@ get_BNP_cuenca <- function(uso_veg, sp) {
 
 #' @rdname carto_digital
 #' @export
-get_BNP_intervencion <- function(BNP_cuenca, obras, BNP_inter = NULL) {
+get_BNP_intervencion <- function(BNP_cuenca = NULL, obras = NULL, BNP_inter = NULL) {
   if (!is.null(BNP_inter)) {
     valid_input(BNP_inter, inherit = "sf", names = req_names$BNP_afect, geometry = "POLYGON")
     stopifnot("El shp debe contener algun campo con el nombre de las obras que intervienen" = any(names(BNP_inter) %>% stringi::stri_detect_regex("obra", case_insensitive = T)))
     
     BNP_inter %>% 
       dplyr::mutate(Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)) %>% 
-      dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), Sup_ha) 
+      dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), dplyr::matches("Censado"), Sup_ha) 
   } else {
     valid_input(BNP_cuenca, inherit = "sf", names = req_names$BNP_afect, geometry = "POLYGON")
     valid_input(obras, inherit = "sf", geometry = "POLYGON")
@@ -224,14 +224,13 @@ get_BNP_intervencion <- function(BNP_cuenca, obras, BNP_inter = NULL) {
         Sup_m2 = sf::st_area(geometry) %>% units::set_units(m2) %>% units::drop_units() %>% janitor::round_half_up()
       ) %>% 
       dplyr::arrange(Sup_m2) %>% 
-      dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), Sup_ha) 
+      dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), Sup_ha) 
   }
 }
 
 #' @rdname carto_digital
 #' @export
-get_BNP_alterar <- function(BNP_alter = NULL, BNP_cuenca, alt_ok = F) {
-  valid_input(BNP_cuenca, inherit = "sf", names = req_names$BNP_afect, geometry = "POLYGON")
+get_BNP_alterar <- function(BNP_alter = NULL, BNP_cuenca = NULL, alt_ok = F) {
   valid_input(alt_ok, inherit = "logical")
 
   if (is.null(BNP_alter)) {
@@ -241,9 +240,11 @@ get_BNP_alterar <- function(BNP_alter = NULL, BNP_cuenca, alt_ok = F) {
       valid_input(BNP_alter, names = req_names$BNP_afect, inherit = "sf", geometry = "POLYGON")
       BNP_alter %>% 
         dplyr::mutate(Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)) %>% 
-        dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Censado"), Sup_ha)
+        dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), dplyr::matches("Censado"), Sup_ha)
     } else {
       valid_input(BNP_alter, inherit = "sf", geometry = "POLYGON")
+      valid_input(BNP_cuenca, inherit = "sf", names = req_names$BNP_afect, geometry = "POLYGON")
+
       BNP_alter %>% 
         dplyr::select(dplyr::matches("obra")) %>% 
         sf::st_intersection(BNP_cuenca) %>% 
@@ -253,7 +254,7 @@ get_BNP_alterar <- function(BNP_alter = NULL, BNP_cuenca, alt_ok = F) {
         sf::st_cast("MULTIPOLYGON") %>% 
         sf::st_cast("POLYGON") %>% 
         dplyr::mutate(Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)) %>% 
-        dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Censado"), Sup_ha)
+        dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), dplyr::matches("Censado"), Sup_ha)
     }
   } 
 }
@@ -741,8 +742,8 @@ get_carto_digital <- function(
     "Area_de_proyecto_Ubicación" = ubicacion,
     "Area_de_proyecto_Obras" = obras_cuenca,
     !!sprintf('BNP_%s_Cuenca', sp_code) := BNP_cuenca,
-    !!sprintf('BNP_%s_a_Intervenir', sp_code) := BNP_intervenir,
-    !!sprintf('BNP_%s_a_Alterar', sp_code) := BNP_alterar,
+    !!sprintf('BNP_%s_a_Intervenir', sp_code) := BNP_intervenir %>% dplyr::select(-matches("Censo")),
+    !!sprintf('BNP_%s_a_Alterar', sp_code) := BNP_alterar %>% dplyr::select(-matches("Censo")),
     !!sprintf('Censo_%s_a_Intervenir', sp_code) := ECC_int,
     !!sprintf('Censo_%s_a_Alterar', sp_code) := ECC_alt,
     "Uso_actual_de_la_tierra" = uso_cuenca,
