@@ -757,7 +757,7 @@ get_carto_digital <- function(
     "Curvas_de_Nivel_cuenca" = if (add_CN) curv_niv else NULL,
     "UTM_Inventarios_Flora" = if (!is.null(BD_flora)) inv_flora else NULL,
     "UTM_Inventarios_Forestales" = if (!is.null(BD_fore)) inv_forestal else NULL,
-    "UTM_Registros_Porlieria" = if (!is.null(BD_flora) && !is.null(BD_fore)) prospeccion else NULL
+    !!sprintf("UTM_Registros_%s",sp_code) := if (!is.null(BD_flora) && !is.null(BD_fore)) prospeccion else NULL
   )
   lista_final <- purrr::compact(lista)
   

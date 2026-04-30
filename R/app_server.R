@@ -14,6 +14,7 @@ app_server <- function(input, output, session) {
   )
   rv <- reactiveValues(
     uso_veg = NULL,
+    carto_digital_list = NULL,
     df_sp = df_sp,
     sp = NULL,
     rce = NULL,
@@ -24,7 +25,9 @@ app_server <- function(input, output, session) {
     cuenca = NULL,
     BNP_cuenca = NULL, 
     BNP_inter = NULL,
+    BNP_intervenir = NULL,
     BNP_alter = NULL,
+    BNP_alterar = NULL,
     listo_bnp_alter = NULL,
     BD_flora = NULL,
     listo_bd_flora = NULL,
@@ -59,6 +62,7 @@ app_server <- function(input, output, session) {
   mod_afectacion_server("afectacion", rv = rv)
   mod_biodiversidad_server("biodiversidad", rv = rv)
   mod_fragmentacion_server("fragmentacion", rv = rv)
+  mod_extras_server("extras", rv = rv)
 
   observeEvent(input$link_github, {
     browseURL("https://github.com/DavidJMartinezS")

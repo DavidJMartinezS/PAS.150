@@ -389,3 +389,91 @@ tabla_kml <- function(fila) {
     "</table>"
   )
 }
+
+#' @noRd
+create_kmz <- function(x) {
+  read_sf(x) %>% prepare_kml() %>% 
+    sf::write_sf(file.path(directorio(), paste0(tools::file_path_sans_ext(x), ".kml")))
+  zip::zip(
+    zipfile = file.path(directorio, paste0(tools::file_path_sans_ext(x), ".kmz")), 
+    files = file.path(directorio, paste0(tools::file_path_sans_ext(x), ".kml"))
+  )
+  file.remove(file.path(directorio, paste0(tools::file_path_sans_ext(x), ".kml")))
+
+}
+# kmz_usoveg <- function(shp, dirsave = NULL) {
+#   if(!file.exists(shp) && tools::file_ext(shp) == "shp") stop("")
+#   if(!is.null(dirsave) && !dir.exists(dirsave)) {
+#     stop("")
+#   }
+#   tabla_kml <- function(fila) {
+#     # Extraer nombres de columnas (excepto geometría y la propia descripción)
+#     columnas <- setdiff(names(fila), c("geometry", "geom", "Name"))
+    
+#     # Crear filas de la tabla
+#     filas_html <- lapply(columnas, function(col) {
+#       paste0("<tr><td bgcolor='#EEEEEE'><b>", col, "</b></td><td>", fila[[col]], "</td></tr>")
+#     })
+    
+#     paste0("<table border='1' style='border-collapse: collapse; width: 100%; font-family: Arial;'>",
+#           paste(filas_html, collapse = ""),
+#           "</table>")
+#   }
+#   name <- dplyr::case_when(
+#     stringi::stri_detect_regex(basename(shp), "Uso_actual_de_la_tierra") ~ "Subuso",
+#     stringi::stri_detect_regex(basename(shp), "Vegetación_en_la_cuenca") ~ "Formacion"
+#   ) %>% dplyr::sym()
+#   file <- dplyr::case_when(
+#     stringi::stri_detect_regex(basename(shp), "Uso_actual_de_la_tierra") ~ "Uso",
+#     stringi::stri_detect_regex(basename(shp), "Vegetación_en_la_cuenca") ~ "Formacion"
+#   ) %>% dplyr::sym()
+
+#   df_sf <- sf::read_sf(shp) %>% sf::st_transform(4326)
+#   skml <- reticulate::import("simplekml")
+#   kml <- skml$Kml()
+#   files <- unique(df_sf %>% dplyr::pull(!!file))
+
+#   for (u in files) {
+#     folder <- kml$newfolder(name = as.character(u))
+#     sub_df <- df_sf %>% dplyr::filter(!!file == u)
+    
+#     for (i in 1:nrow(sub_df)) {
+#       fila_i <- sub_df[i,]
+#       # Extraer coordenadas del anillo exterior
+#       coords <- sf::st_coordinates(fila_i)
+#       # Nos aseguramos de extraer solo X e Y de la primera parte del polígono
+#       coords_mat <- coords[coords[,"L1"] == 1, 1:2]
+      
+#       # CONVERSIÓN CRUCIAL: 
+#       # Convertimos la matriz en una lista de listas. 
+#       # Esto es lo que reticulate traduce a Python como "List of Lists",
+#       # que es exactamente lo que espera simplekml.
+#       coords_list <- split(coords_mat, seq(nrow(coords_mat)))
+#       names(coords_list) <- NULL # Quitamos los nombres de la lista para que sea anónima
+      
+#       # Crear el polígono
+#       pol <- folder$newpolygon(name = as.character(sf::st_drop_geometry(sub_df[i, as.character(name)])))
+
+#       # Asignar coordenadas 
+#       pol$outerboundaryis <- coords_list
+
+#       # Descripción HTML
+#       pol$description <- tabla_kml(fila_i)
+      
+#       # Estilos (Borde rojo, relleno transparente)
+#       pol$style$linestyle$color <- "ff0000ff" 
+#       pol$style$linestyle$width <- 1
+#       pol$style$polystyle$color <- "00ffffff" 
+#       pol$style$labelstyle$scale <- 0
+#     }
+#   }
+
+#   if (is.null(dirsave)) {
+#     kml$savekmz(paste0(tools::file_path_sans_ext(shp), ".kmz"))
+#     print(paste0("poligono guardado en ", sQuote(dirname(tools::file_path_as_absolute(shp)))))
+#   } else {
+#     kml$savekmz(file.path(normalizePath(dirsave), paste0(tools::file_path_sans_ext(basename(shp)), ".kmz")))
+#     print(paste0("poligono guardado en ", sQuote(tools::file_path_as_absolute(dirsave))))
+#   }
+# }
+

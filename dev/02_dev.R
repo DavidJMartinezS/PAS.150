@@ -49,6 +49,12 @@ usethis::use_package('plotly')
 usethis::use_package('readxl', )
 usethis::use_package('shinyFiles')
 usethis::use_package('leafpop')
+usethis::use_package("reticulate", type = "Suggests")
+# In your package code, use `rlang::is_installed("reticulate")` or `rlang::check_installed("reticulate")` to test if reticulate is installed.
+# Then directly refer to functions with `reticulate::fun()`.
+usethis::use_package("SupHA", type = "Suggests")
+remotes::install_github("DavidJMartinezS/SupHA")
+usethis::use_dev_package("SupHA", remote = "DavidJMartinezS/SupHA")
 
 tabla_guia_fragmentacion <- read_xlsx("inst/app/www/tabla_guia_fragmentacion.xlsx") %>% tibble::as_tibble()
 usethis::use_data(tabla_guia_fragmentacion)
@@ -60,21 +66,23 @@ attachment::att_amend_desc()
 
 ## Add modules ----
 ## Create a module infrastructure in R/
-golem::add_module(name = "read_sf") # Name of the module
-golem::add_module(name = "downfiles") # Name of the module
-golem::add_module(name = "input") # Name of the module
-golem::add_module(name = "check") # Name of the module
-golem::add_module(name = "check_bd") # Name of the module
-golem::add_module(name = "info_cuenca") # Name of the module
-golem::add_module(name = "basic_input") # Name of the module
-golem::add_module(name = "parcelas") # Name of the module
-golem::add_module(name = "bases_carto") # Name of the module
-golem::add_module(name = "get_down_carto") # Name of the module
-golem::add_module(name = "apendices") # Name of the module
-golem::add_module(name = "uso_suelo") # Name of the module
-golem::add_module(name = "vegetacion") # Name of the module
-golem::add_module(name = "fragstats") # Name of the module
-golem::add_module(name = "importante") # Name of the module
+golem::add_module(name = "read_sf")
+golem::add_module(name = "downfiles")
+golem::add_module(name = "input")
+golem::add_module(name = "check")
+golem::add_module(name = "check_bd")
+golem::add_module(name = "info_cuenca")
+golem::add_module(name = "basic_input")
+golem::add_module(name = "parcelas")
+golem::add_module(name = "bases_carto")
+golem::add_module(name = "get_down_carto")
+golem::add_module(name = "apendices")
+golem::add_module(name = "uso_suelo")
+golem::add_module(name = "vegetacion")
+golem::add_module(name = "fragstats")
+golem::add_module(name = "importante")
+golem::add_module(name = "ext_capas_carto")
+golem::add_module(name = "ext_supha_kmz")
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*

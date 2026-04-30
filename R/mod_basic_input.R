@@ -165,8 +165,8 @@ mod_basic_input_server <- function(id, rv){
         rv[["cuenca"]] <- get_cuenca(rv$uso_veg)
         rv[["BNP_cuenca"]] <- get_BNP_cuenca(uso_veg = rv$uso_veg, sp = input$sp)
       } else {
-        rv$cuenca <- NULL
-        rv$BNP_cuenca <- NULL
+        rv[["cuenca"]] <- NULL
+        rv[["BNP_cuenca"]] <- NULL
       }
     })
 
@@ -221,6 +221,11 @@ mod_basic_input_server <- function(id, rv){
             animation = T
           )
         }
+      } 
+      if(isTruthy(rv$BNP_cuenca) && isTruthy(rv$obras)) {
+        rv[["BNP_intervenir"]] <- get_BNP_intervencion(BNP_cuenca = rv$BNP_cuenca, obras = rv$obras, BNP_inter = rv$BNP_inter)
+      } else {
+        rv[["BNP_intervenir"]] <- NULL
       }
     })
 
@@ -251,6 +256,11 @@ mod_basic_input_server <- function(id, rv){
             animation = T
           )
         }
+      }
+      if(isTruthy(rv$BNP_cuenca) && isTruthy(rv$BNP_alter)) {
+        rv[["BNP_alterar"]] <- get_BNP_alterar(BNP_alter = rv$BNP_alter, BNP_cuenca = rv$BNP_cuenca, alt_ok = rv$listo_bnp_alter)
+      } else {
+        rv[["BNP_alterar"]] <- NULL
       }
     })
   })

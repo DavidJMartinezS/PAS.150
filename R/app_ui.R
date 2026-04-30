@@ -83,6 +83,11 @@ app_ui <- function(request) {
         icon = icon("layer-group"),
         mod_fragmentacion_ui("fragmentacion")
       ),
+      bslib::nav_panel(
+        title = "Extras",
+        icon = icon("circle-plus"),
+        mod_extras_ui("extras")
+      ),
       bslib::nav_menu(
         title = "Autor",
         align = "right",

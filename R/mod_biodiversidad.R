@@ -69,22 +69,22 @@ mod_biodiversidad_server <- function(id, rv){
     ns <- session$ns
 
     output$gt_spp_acomp <- gt::render_gt({
-      req(rv$BD_biodiversidad)
+      validate(need(rv$BD_biodiversidad, "Requiere haber generardo la BD de Biodiversidad"))
       gt_spp_acomp(rv$BD_biodiversidad$spp_acomp)
     })
 
     output$vb_n_parc <- renderText({
-      req(rv$BD_biodiversidad)
+      validate(need(rv$BD_biodiversidad, "Requiere haber generardo la BD de Biodiversidad"))
       rv$BD_biodiversidad$localizacion %>% nrow()
     })
 
     output$vb_riqueza <- renderText({
-      req(rv$BD_biodiversidad)
+      validate(need(rv$BD_biodiversidad, "Requiere haber generardo la BD de Biodiversidad"))
       rv$BD_biodiversidad$composicion %>% nrow()
     })
 
     output$plt_habito <- plotly::renderPlotly({
-      req(rv$BD_biodiversidad)
+      validate(need(rv$BD_biodiversidad, "Requiere haber generardo la BD de Biodiversidad"))
       habito <- rv$BD_biodiversidad$composicion %>%
         dplyr::count(Habito)
       paleta_habito <- ggthemes::ggthemes_data[["tableau"]][["color-palettes"]][["regular"]]$`Miller Stone` %>% dplyr::slice(1:nrow(habito)) %>% .$value
@@ -101,7 +101,7 @@ mod_biodiversidad_server <- function(id, rv){
     })
 
     output$plt_origen <- plotly::renderPlotly({
-      req(rv$BD_biodiversidad)
+      validate(need(rv$BD_biodiversidad, "Requiere haber generardo la BD de Biodiversidad"))
       origen <- rv$BD_biodiversidad$composicion %>%
         dplyr::count(Origen) 
       paleta_origen <- ggthemes::ggthemes_data[["tableau"]][["color-palettes"]][["regular"]]$`Nuriel Stone` %>% dplyr::slice(1:nrow(origen)) %>% .$value
@@ -118,13 +118,13 @@ mod_biodiversidad_server <- function(id, rv){
     })
 
     output$gt_indices <- gt::render_gt({
-      req(rv$BD_biodiversidad)
+      validate(need(rv$BD_biodiversidad, "Requiere haber generardo la BD de Biodiversidad"))
       gt_indices(rv$BD_biodiversidad$tabla_indices)
     })
 
     output$leaf_flora <- leaflet::renderLeaflet({
       req(c(rv$BNP_cuenca, rv$obras, rv$cuenca, rv$sp))
-      req(rv$BD_biodiversidad)
+      validate(need(rv$BD_biodiversidad, "Requiere haber generardo la BD de Biodiversidad"))
 
       leaflet::leaflet() %>%
         leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron, group = "CartoDB.Positron") %>%

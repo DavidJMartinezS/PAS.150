@@ -56,12 +56,14 @@ mod_vegetacion_server <- function(id, rv){
     ns <- session$ns
     
     output$vb_sup_bnp <- renderText({
+      validate(need(rv$BNP_cuenca, "Requiere haber cargado capa de uso y vegetación de la cuenca"))
       rv$BNP_cuenca$Sup_ha %>% sum() %>% 
         format(decimal.mark = ",", big.mark = ".") %>% 
         paste0(" ha ", ((rv$BNP_cuenca$Sup_ha %>% sum()) / (rv$uso_veg$Sup_ha %>% sum()) * 100) %>% janitor::round_half_up(2) %>% paste0("(",.," %)"))
     })
 
     output$vb_sup_fx <- renderText({
+      validate(need(rv$BNP_cuenca, "Requiere haber cargado capa de uso y vegetación de la cuenca"))
       rv$uso_veg %>%
         dplyr::filter(stringi::stri_detect_regex(F_ley20283, "xero", case_insensitive = T)) %>%
         dplyr::pull(Sup_ha) %>%
@@ -80,11 +82,13 @@ mod_vegetacion_server <- function(id, rv){
     })
     
     output$gt_tf <- gt::render_gt({
+      validate(need(rv$BNP_cuenca, "Requiere haber cargado capa de uso y vegetación de la cuenca correctamente"))
       req(c(rv$uso_veg, rv$sp))
       gt_tipos_forestales(uso_veg = rv$uso_veg, sp = rv$sp)
     })
     
     output$leaf_bnp <- leaflet::renderLeaflet({
+      validate(need(rv$BNP_cuenca, "Requiere haber cargado capa de uso y vegetación de la cuenca correctamente"))
       req(c(rv$uso_veg, rv$BNP_cuenca, rv$cuenca))
 
       rv$uso_veg %>%
