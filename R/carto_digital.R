@@ -34,10 +34,16 @@ get_cuenca <- function(uso_veg) {
     if (uso_veg$Nom_ssubc %>% unique() %>% length() == 1 & uso_veg$Nom_ssubc %>% unique() %in% cuencas$NOM_SSUBC) {
       unique(uso_veg$Nom_ssubc)
     } else {
-      uso_veg %>% sf::st_join(cuencas %>% dplyr::select(NOM_SSUBC), largest = T) %>% dplyr::pull(NOM_SSUBC) %>% unique()
+      uso_veg %>% 
+        dplyr::summarise(geometry = sf::st_union(sf::st_geometry(.))) %>% 
+        sf::st_join(cuencas %>% dplyr::select(NOM_SSUBC), largest = T) %>% 
+        dplyr::pull(NOM_SSUBC)
     } 
   } else {
-    uso_veg %>% sf::st_join(cuencas %>% dplyr::select(NOM_SSUBC), largest = T) %>% dplyr::pull(NOM_SSUBC) %>% unique()
+    uso_veg %>% 
+      dplyr::summarise(geometry = sf::st_union(sf::st_geometry(.))) %>% 
+      sf::st_join(cuencas %>% dplyr::select(NOM_SSUBC), largest = T) %>% 
+      dplyr::pull(NOM_SSUBC)
   }
 
   cuenca <- cuencas[uso_veg, ] %>% dplyr::filter(NOM_SSUBC == nom_ssubc)
@@ -246,7 +252,7 @@ get_BNP_alterar <- function(BNP_alter = NULL, BNP_cuenca = NULL, alt_ok = F) {
       valid_input(BNP_cuenca, inherit = "sf", names = req_names$BNP_afect, geometry = "POLYGON")
 
       BNP_alter %>% 
-        dplyr::select(dplyr::matches("obra")) %>% 
+        dplyr::select(dplyr::matches("obra"), dplyr::matches("Tipo")) %>% 
         sf::st_intersection(BNP_cuenca) %>% 
         sf::st_collection_extract("POLYGON") %>% 
         sf::st_make_valid() %>% 
@@ -283,7 +289,7 @@ get_ECC_alt <- function(BNP_alter, censo, sp) {
       UTM_E = sf::st_coordinates(geometry)[, 1] %>% as.integer(),
       UTM_N = sf::st_coordinates(geometry)[, 2] %>% as.integer()
     ) %>% 
-    dplyr::select(Especie, Afectacion, dplyr::matches("obra"), UTM_E, UTM_N)
+    dplyr::select(Especie, Afectacion, dplyr::contains("obra"), dplyr::matches("Tipo"), UTM_E, UTM_N)
 }
 
 #' @rdname carto_digital
@@ -322,7 +328,7 @@ get_ECC_int <- function(censo, sp, BNP_inter, BNP_alter = NULL, upto5m = T) {
       UTM_E = sf::st_coordinates(geometry)[, 1] %>% as.integer(),
       UTM_N = sf::st_coordinates(geometry)[, 2] %>% as.integer()
     ) %>% 
-    dplyr::select(Especie, Afectacion, dplyr::matches("Obra"), UTM_E, UTM_N)
+    dplyr::select(Especie, Afectacion, dplyr::contains("Obra"), dplyr::matches("Tipo"), UTM_E, UTM_N)
 
   return(ecc_int)
 }
@@ -446,7 +452,7 @@ get_BNP_alt_sin_censo <- function(BNP_alter, densidad) {
               Ind_alter = janitor::round_half_up(Densidad * Sup_ha)
             ) %>% 
             dplyr::mutate_at("Ind_alter", ~ifelse(. == 0, 1, .)) %>% 
-            dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), Afectacion, Densidad, Ind_alter, Sup_ha)) 
+            dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), Afectacion, Densidad, Ind_alter, Sup_ha)) 
         }} 
       if(!is.null(est_alter)) return(est_inter) else return(invisible())
     } else {
@@ -477,7 +483,7 @@ get_BNP_int_sin_censo <- function(BNP_inter, densidad) {
             Ind_inter = janitor::round_half_up(Densidad * Sup_ha)
           ) %>% 
           dplyr::mutate_at("Ind_inter", ~ifelse(. == 0, 1, .)) %>% 
-          dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), Afectacion, Densidad, Ind_inter, Sup_ha)
+          dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), Afectacion, Densidad, Ind_inter, Sup_ha)
         }} 
       if(!is.null(est_inter)) return(est_inter) else return(invisible())
     } else {

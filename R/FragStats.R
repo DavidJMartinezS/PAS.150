@@ -49,7 +49,7 @@ FragStats_pre <- function(dir, path_antes, path_despues) {
     zipfile = file.path(dir, "ENTREGA/Vectorial/KMZ", gsub(".shp", ".kmz", basename(path_antes))), 
     files = file.path(dir, "ENTREGA/Vectorial/KMZ", gsub(".shp", ".kml", basename(path_antes)))
   )
-  file.remove(file.path(dir, "ENTREGA/Vectorial/KMZ", gsub(".shp", ".kml", basename(path_antes))))
+  # file.remove(file.path(dir, "ENTREGA/Vectorial/KMZ", gsub(".shp", ".kml", basename(path_antes))))
   
   sf_despues <- sf::read_sf(path_despues) %>% 
     sf::st_zm() %>% 
@@ -69,7 +69,8 @@ FragStats_pre <- function(dir, path_antes, path_despues) {
     zipfile = file.path(dir, "ENTREGA/Vectorial/KMZ", gsub(".shp", ".kmz", basename(path_despues))), 
     files = file.path(dir, "ENTREGA/Vectorial/KMZ", gsub(".shp", ".kml", basename(path_despues)))
   )
-  file.remove(file.path(dir, "ENTREGA/Vectorial/KMZ", gsub(".shp", ".kml", basename(path_despues))))
+
+  file.remove(list.files(dir, pattern = ".kml$", recursive = T))
 
   resolucion = 3
   dim_to_rast <- function(sf) {

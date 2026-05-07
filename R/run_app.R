@@ -54,6 +54,9 @@ run_app <- function(
   uiPattern = "/",
   ...
 ) {
+  # Configurar el locale para el manejo de caracteres especiales (ñ, tildes)
+  Sys.setlocale("LC_ALL", "es_ES.UTF-8")
+
   with_golem_options(
     app = shinyApp(
       ui = app_ui,

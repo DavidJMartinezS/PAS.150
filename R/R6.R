@@ -39,6 +39,7 @@ sf <- R6::R6Class(
         }
         shp <- shp %>%
           sf::st_zm() %>%
+          sf::st_set_geometry("geometry") %>%
           sf::st_make_valid() %>% 
           sf::st_collection_extract(geom_type) %>% 
           sf::st_transform(get_utm_epsg(.)) %>% 

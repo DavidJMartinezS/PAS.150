@@ -152,7 +152,7 @@ mod_fragstats_server <- function(id, rv){
     
     directorio <- reactive({
       if(all(c("root", "path") %in% names(input$directory))){
-        selected_path <- do.call(file.path, c(roots[input$directory$root], input$directory$path))
+        selected_path <- do.call(file.path, c(roots[input$directory$root], input$directory$path)) %>% tools::file_path_as_absolute()
       } else {
         selected_path <- nullfile()
       }

@@ -149,12 +149,12 @@ mod_fragmentacion_server <- function(id, rv){
        if(input$switch_sf_frag) rv$uso_frag else rv$uso_veg
     })
 
-    observeEvent(rv$uso_veg, {
+    observeEvent(sf_uso(), {
       shinyWidgets::updatePickerInput(
         session = session,
         inputId = "select_subusos",
         label = "Seleccionar subusos que no sean de vegetación (incluir terrenos agrícolas)", 
-        choices = sort(unique(rv$uso_veg$Subuso))
+        choices = sort(unique(sf_uso() %>% .$Subuso))
       )
     })
 
