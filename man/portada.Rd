@@ -31,7 +31,7 @@ portada_opts(
 
 \item{nom_proj}{Carácter. Nombre oficial del proyecto que se mostrará en la portada.}
 
-\item{etapa_proj}{Carácter. Etapa del proceso de evaluación del proyecto. Las opciones permitidas son \code{"EIA"}, \code{"A1"}, \code{"A2"} y \code{"RF"}. Por defecto es \code{"EIA"}.}
+\item{etapa_proj}{Carácter. Etapa del proceso de evaluación del proyecto. Las opciones permitidas son \code{"EIA"}, \code{"Ad"}, \code{"AdComp"} y \code{"RF"}. Por defecto es \code{"EIA"}.}
 
 \item{logo}{Carácter. Ruta al archivo de imagen (ej. PNG, JPG, SVG) que contiene el logo institucional del cliente.}
 

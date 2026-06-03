@@ -5,18 +5,18 @@
 #' @import shiny
 #' @noRd
 app_server <- function(input, output, session) {
-  
   options(
     # shiny.fullstacktrace = T,
     # shiny.trace = T,
     shiny.maxRequestSize = 4000 * 1024^2,
     timeout = 600
   )
+  
   rv <- reactiveValues(
     uso_veg = NULL,
     carto_digital_list = NULL,
     df_sp = df_sp,
-    sp = NULL,
+    sp = "Porlieria chilensis",
     rce = NULL,
     tipo_rep = NULL,
     obras = NULL, 

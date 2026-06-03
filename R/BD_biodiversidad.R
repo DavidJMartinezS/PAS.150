@@ -22,10 +22,10 @@ BD_biodiversidad <- function(
 
   # DATOS ----
   BD_indices <- BD_flora %>%
-    dplyr::filter(!stringi::stri_detect_regex(Habito, "hierba|herb", case_insensitive = T)) %>% 
-    dplyr::filter(!stringi::stri_detect_regex(Cob_BB, "-|fp", case_insensitive = T)) %>% 
+    dplyr::filter(!stringi::stri_detect_regex(Habito, "hierba|herb", case_insensitive = TRUE)) %>% 
+    dplyr::filter(!stringi::stri_detect_regex(Cob_BB, "-|fp", case_insensitive = TRUE)) %>% 
     dplyr::group_by(Especie) %>%
-    dplyr::summarise(n = sum(N_ind, na.rm = T)) %>%
+    dplyr::summarise(n = sum(N_ind, na.rm = TRUE)) %>%
     dplyr::mutate(n = dplyr::if_else(n == 0, 1, n)) %>%
     dplyr::mutate(
       p = n / sum(n),
@@ -60,7 +60,7 @@ BD_biodiversidad <- function(
   ## Presentación ----
   table.fun <- function(x) {
     x %>%
-      stringi::stri_split_regex(pattern = '\n', simplify = T) %>%
+      stringi::stri_split_regex(pattern = '\n', simplify = TRUE) %>%
       t() %>%
       stringi::stri_trim_both() %>%
       tibble::as_tibble() %>%
@@ -70,7 +70,7 @@ BD_biodiversidad <- function(
       suppressWarnings()
   }
   wb <- wb %>%
-    openxlsx2::wb_add_worksheet("Presentación", grid_lines = F) %>%
+    openxlsx2::wb_add_worksheet("Presentación", grid_lines = FALSE) %>%
     openxlsx2::wb_set_col_widths(cols = 1:2, widths = c(18, 60)) %>%
     openxlsx2::wb_page_setup(paper_size = 1)
 
@@ -84,7 +84,7 @@ BD_biodiversidad <- function(
       x = desc_general,
       start_col = 1,
       start_row = 1,
-      col_names = F
+      col_names = FALSE
     )
   for (i in 1:2) {
     wb <- wb %>%
@@ -106,7 +106,7 @@ BD_biodiversidad <- function(
       x = desc_h1,
       start_col = 1,
       start_row = nrow(desc_general) + 2,
-      col_names = F
+      col_names = FALSE
     )
   desc_h2 <- c(
     'Localización UTM: Corresponde a la localización de cada una de las parcelas de inventario florístico levantado en cada una de las unidades de bosque nativo de preservación'
@@ -117,7 +117,7 @@ BD_biodiversidad <- function(
       x = desc_h2,
       start_col = 1,
       start_row = nrow(desc_general) + 2 + nrow(desc_h1) + 1,
-      col_names = F
+      col_names = FALSE
     )
   desc_h3 <- c(
     "Catálogo florístico: Corresponde a un resumen de la base de datos de flora, donde se muestra para cada una de las especie, el hábito, origen, categoría de conservación y decretos que la sustentan."
@@ -133,7 +133,7 @@ BD_biodiversidad <- function(
         1 +
         nrow(desc_h2) +
         1,
-      col_names = F
+      col_names = FALSE
     )
   desc_h4 <- c(
     "Índices de Biodiversidad: Esta pestaña muestra el calculo de los índices de Simpson y Shannon-Weaver, calculados a partir de la proporción de cada especie en los BNP dentro del área de proyecto.
@@ -155,7 +155,7 @@ BD_biodiversidad <- function(
         1 +
         nrow(desc_h3) +
         1,
-      col_names = F
+      col_names = FALSE
     )
   desc_h5 <- c(
     "Frecuencia Sp. Acompañantes: Por último, se presenta cada una de las especies presentes en la subsubcuenca de estudio, junto su frecuencia absoluta (n) y relativa (%)."
@@ -175,7 +175,7 @@ BD_biodiversidad <- function(
         1 +
         nrow(desc_h4) +
         1,
-      col_names = F
+      col_names = FALSE
     )
 
   dim_1 <- c(
@@ -224,13 +224,13 @@ BD_biodiversidad <- function(
       horizontal = "center",
       vertical = "center"
     ) %>%
-    openxlsx2::wb_add_font(dims = dim_1, bold = T, underline = "single", size = 12) %>%
+    openxlsx2::wb_add_font(dims = dim_1, bold = TRUE, underline = "single", size = 12) %>%
     openxlsx2::wb_add_fill(
       dims = dim_1 %>% paste(dim_2, sep = ";"),
       color = openxlsx2::wb_color(hex = "#D9D9D9")
     ) %>%
     openxlsx2::wb_add_cell_style(dims = dim_3, vertical = "center") %>%
-    openxlsx2::wb_add_font(dims = dim_3, bold = T) %>%
+    openxlsx2::wb_add_font(dims = dim_3, bold = TRUE) %>%
     openxlsx2::wb_add_cell_style(
       dims = openxlsx2::wb_dims(rows = 1:40, cols = 1:2),
       wrap_text = "1"
@@ -243,7 +243,7 @@ BD_biodiversidad <- function(
       x = BD_flora,
       table_name = "BD_flora",
       table_style = DT_style,
-      first_column = T
+      first_column = TRUE
     ) %>%
     openxlsx2::wb_set_col_widths(cols = 1:ncol(BD_flora), widths = "auto") %>%
     openxlsx2::wb_set_col_widths(cols = 5:6, widths = 9)
@@ -259,7 +259,7 @@ BD_biodiversidad <- function(
       x = localizacion,
       table_name = "localizacion",
       table_style = DT_style,
-      first_column = T
+      first_column = TRUE
     ) %>%
     openxlsx2::wb_set_col_widths(cols = 1, widths = "auto") %>%
     openxlsx2::wb_set_col_widths(cols = 2:3, widths = 12)
@@ -274,7 +274,7 @@ BD_biodiversidad <- function(
       x = composicion,
       table_name = "composicion",
       table_style = DT_style,
-      first_column = T
+      first_column = TRUE
     ) %>%
     openxlsx2::wb_add_font(
       dims = openxlsx2::wb_dims(
@@ -282,15 +282,15 @@ BD_biodiversidad <- function(
         select = "data",
         cols = "Especie"
       ),
-      italic = T
+      italic = TRUE
     ) %>%
     openxlsx2::wb_set_col_widths(cols = 1:ncol(composicion), widths = "auto")
 
   ## Indices de Biodiversidad ----
   row_i <- 4
   rows_filtered <- BD_wb %>% 
-    dplyr::filter(!stringi::stri_detect_regex(Habito, "hierba|herb", case_insensitive = T)) %>% 
-    dplyr::filter(!stringi::stri_detect_regex(Cob_BB, "-|fp", case_insensitive = T)) %>% 
+    dplyr::filter(!stringi::stri_detect_regex(Habito, "hierba|herb", case_insensitive = TRUE)) %>% 
+    dplyr::filter(!stringi::stri_detect_regex(Cob_BB, "-|fp", case_insensitive = TRUE)) %>% 
     dplyr::pull(Especie) %>% unique() %>% length()
   wb <- wb %>%
     openxlsx2::wb_add_worksheet("Indices de Biodiversidad") %>%
@@ -302,12 +302,12 @@ BD_biodiversidad <- function(
       rows = "Especie",
       data = "N_ind",
       params = list(
-        apply_font_formats = T,
+        apply_font_formats = TRUE,
         col_grand_totals = FALSE,
         table_style = PT_style,
         choose = c(
-          Habito = '!stringi::stri_detect_regex(x, "hierba|herb", case_insensitive = T)',
-          Cob_BB = '!stringi::stri_detect_regex(x, "-|fp", case_insensitive = T)'
+          Habito = '!stringi::stri_detect_regex(x, "hierba|herb", case_insensitive = TRUE)',
+          Cob_BB = '!stringi::stri_detect_regex(x, "-|fp", case_insensitive = TRUE)'
         )
       )
     ) %>%
@@ -317,8 +317,8 @@ BD_biodiversidad <- function(
         row_i + 1,
         row_i + length(unique(BD_wb$Especie))
       ),
-      italic = T,
-      bold = F
+      italic = TRUE,
+      bold = FALSE
     ) %>%
     openxlsx2::wb_add_data(
       x = c("p", "LN(p)", "p * LN(p)"),
@@ -326,7 +326,7 @@ BD_biodiversidad <- function(
     ) %>%
     openxlsx2::wb_add_font(
       dims = sprintf("C%s:E%s", row_i, row_i),
-      bold = T,
+      bold = TRUE,
       color = openxlsx2::wb_color("white")
     ) %>%
     openxlsx2::wb_add_fill(
@@ -346,15 +346,15 @@ BD_biodiversidad <- function(
     ) %>% 
     openxlsx2::wb_add_formula(
       x = sprintf("MMULT(B5:B%s, 1/B%s)", row_i + rows_filtered, row_i + rows_filtered + 1),
-      dims = openxlsx2::wb_dims(rows = 1:rows_filtered, from_row = 5, from_col = 3), array = T, cm = T
+      dims = openxlsx2::wb_dims(rows = 1:rows_filtered, from_row = 5, from_col = 3), array = TRUE, cm = TRUE
     ) %>% 
     openxlsx2::wb_add_formula(
       x = sprintf("LN(C5:C%s)", row_i + rows_filtered),
-      dims = openxlsx2::wb_dims(rows = 1:rows_filtered, from_row = 5, from_col = 4), array = T, cm = T
+      dims = openxlsx2::wb_dims(rows = 1:rows_filtered, from_row = 5, from_col = 4), array = TRUE, cm = TRUE
     ) %>% 
     openxlsx2::wb_add_formula(
       x = sprintf("C5:C%s * D5:D%s", row_i + rows_filtered, row_i + rows_filtered),
-      dims = openxlsx2::wb_dims(rows = 1:rows_filtered, from_row = 5, from_col = 5), array = T, cm = T
+      dims = openxlsx2::wb_dims(rows = 1:rows_filtered, from_row = 5, from_col = 5), array = TRUE, cm = TRUE
     )
 
   tabla_indices <- tibble::tibble(
@@ -391,11 +391,11 @@ BD_biodiversidad <- function(
       x = tabla_indices,
       start_col = "G",
       start_row = row_i,
-      with_filter = F
+      with_filter = FALSE
     ) %>%
     openxlsx2::wb_add_font(
       dims = sprintf("G%s:H%s", row_i, row_i),
-      bold = T,
+      bold = TRUE,
       color = wb_color("white")
     ) %>%
     openxlsx2::wb_add_fill(
@@ -456,7 +456,7 @@ BD_biodiversidad <- function(
     ) %>%
     openxlsx2::wb_add_font(
       dims = sprintf("G%s", row_i + 11),
-      bold = T,
+      bold = TRUE,
       color = wb_color("white")
     ) %>%
     openxlsx2::wb_add_fill(
@@ -469,13 +469,13 @@ BD_biodiversidad <- function(
     ) %>%
     openxlsx2::wb_merge_cells(
       dims = sprintf("G%s:J%s", row_i + 11, row_i + 11),
-      solve = T
+      solve = TRUE
     ) %>%
     openxlsx2::wb_add_data(
       x = tabla_eq,
       start_col = "G",
       start_row = row_i + 12,
-      col_names = F
+      col_names = FALSE
     ) %>%
     openxlsx2::wb_add_border(
       dims = openxlsx2::wb_dims(x = tabla_eq, from_row = row_i + 11, from_col = "G"),
@@ -492,7 +492,7 @@ BD_biodiversidad <- function(
     dplyr::mutate(n = 1)
   frecuencias <- BD_flora %>%
     dplyr::count(Parcela, Especie) %>%
-    dplyr::count(Especie, sort = T) %>%
+    dplyr::count(Especie, sort = TRUE) %>%
     dplyr::mutate(Frec = n / nrow(localizacion)) %>%
     dplyr::mutate(
       Frecuencia = "frecuencias[[#This Row], [n]]/ROWS(localizacion[])"
@@ -510,8 +510,8 @@ BD_biodiversidad <- function(
     openxlsx2::wb_add_data_table(
       x = tabla_frec,
       table_style = DT_style,
-      first_column = T,
-      with_filter = F
+      first_column = TRUE,
+      with_filter = FALSE
     )
   frac_wb <- openxlsx2::wb_data(wb, sheet = "Frecuencia Sp. Acompañantes")
 
@@ -533,8 +533,8 @@ BD_biodiversidad <- function(
       dims = "H1",
       table_name = "frecuencias",
       table_style = DT_style,
-      first_column = T,
-      with_filter = F
+      first_column = TRUE,
+      with_filter = FALSE
     ) %>%
     openxlsx2::wb_set_col_widths(cols = c(1, 2, 5, 8), widths = "auto") %>%
     openxlsx2::wb_set_col_widths(cols = c(3, 9), widths = 5) %>%
@@ -542,15 +542,15 @@ BD_biodiversidad <- function(
       dims = openxlsx2::wb_dims(x = frecuencias, from_col = "H", cols = 3),
       numfmt = "0%"
     ) %>%
-    openxlsx2::wb_add_font(dims = openxlsx2::wb_dims(x = tabla_frec, cols = 2), italic = T) %>%
+    openxlsx2::wb_add_font(dims = openxlsx2::wb_dims(x = tabla_frec, cols = 2), italic = TRUE) %>%
     openxlsx2::wb_add_font(
       dims = openxlsx2::wb_dims(x = frecuencias, cols = 1, from_col = "E"),
-      italic = T
+      italic = TRUE
     ) %>%
     openxlsx2::wb_add_font(
       dims = openxlsx2::wb_dims(x = frecuencias, cols = 1, from_col = "H"),
-      italic = T,
-      bold = F
+      italic = TRUE,
+      bold = FALSE
     ) %>%
     openxlsx2::wb_add_fill(
       dims = openxlsx2::wb_dims(

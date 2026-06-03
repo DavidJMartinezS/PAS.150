@@ -10,63 +10,114 @@
 mod_ext_supha_kmz_ui <- function(id) {
   ns <- NS(id)
   bslib::card(
-  bslib::card_header("Crear KMZ"),
-  tags$head(
-    tags$style(".multi-wrapper {height: 500px;}"), 
-    tags$style(".multi-wrapper .non-selected-wrapper, .multi-wrapper .selected-wrapper {height: 100%;}")
-  ),
-  tags$div(
-    class = "d-flex align-items-start gap-3 mb-1",
-    shinyFiles::shinyDirButton(
-      ns("dir_carto"),
-      label = "Directorio",
-      title = "Seleccionar directorio",
-      multiple = FALSE,
-      icon = icon("folder"),
-      viewtype = "detail",
-      class = "btn-sm",
-      style = "padding: 7px 10px; background-color: #f5fa8cff; border-radius: 10px;"
+    bslib::card_header("Crear KMZ"),
+    tags$div(
+      class = "d-flex align-items-start gap-3 mb-1",
+      shinyFiles::shinyDirButton(
+        ns("dir_carto"),
+        label = "Directorio",
+        title = "Seleccionar directorio",
+        multiple = FALSE,
+        icon = icon("folder"),
+        viewtype = "detail",
+        class = "btn-sm",
+        style = "padding: 7px 10px; background-color: #f5fa8cff; border-radius: 10px;"
+      ),
+      verbatimTextOutput(outputId = ns("dir_selected"), placeholder = T) %>% 
+        tagAppendAttributes(style = "margin-bottom: 0; flex-grow: 1; padding: 5px 10px; font-size: 0.85rem;")
     ),
-    verbatimTextOutput(outputId = ns("dir_selected"), placeholder = T) %>% 
-      tagAppendAttributes(style = "margin-bottom: 0; flex-grow: 1; padding: 5px 10px; font-size: 0.85rem;")
-  ),
-  checkboxInput(ns("recursive"), "Recursivo", value = F),
-  tags$div(
-    actionButton(inputId = ns("all"), label = "Selecionar todo", class = "btn-sm"),
-    actionButton(inputId = ns("none"), label = "Deseleccionar todo", class = "btn-sm"),
-  ),
-  tags$div(
-    style = "height: 550px",
-    shinyWidgets::multiInput(
-      inputId = ns("capas"), 
-      label = "Seleccionar capas:",
-      choices = as.character(0),
-      selected = as.character(0),
-      width = "100%",
-      options = list(
-        enable_search = FALSE,
-        non_selected_header = "Elegir entre:",
-        selected_header = "Seleccionadas:"
+    tags$div(
+      style = "display: flex; align-items: start; gap: 25px;",
+      # class = "d-flex align-items-start",
+      checkboxInput(ns("recursive"), "Recursivo", value = FALSE, width = "100px"),
+      tags$div(
+        id = "inline",
+        radioButtons(
+          inputId = ns("filetype"), 
+          label = "Extensión:", 
+          choices = c(".shp", "todos"), 
+          selected = ".shp", 
+          inline = TRUE
+        )
+      )
+    ),
+    tags$div(
+      actionButton(inputId = ns("all"), label = "Selecionar todo", class = "btn-sm"),
+      actionButton(inputId = ns("none"), label = "Deseleccionar todo", class = "btn-sm"),
+    ),
+    tags$div(
+      style = "height: 550px",
+      shinyWidgets::multiInput(
+        inputId = ns("capas"), 
+        label = "Seleccionar capas:",
+        choices = as.character(0),
+        selected = as.character(0),
+        width = "100%",
+        options = list(
+          enable_search = FALSE,
+          non_selected_header = "Elegir entre:",
+          selected_header = "Seleccionadas:"
+        )
+      )
+    ),
+    tags$div(
+      style = "display: flex; align-items: flex-end; gap: 15px;",
+      textInput(
+        inputId = ns("presufijo"), 
+        label = "Prefijo o sufijo", 
+        placeholder = "Ingrese texto...",
+        width = "150px"
+      ),
+      shinyWidgets::pickerInput(
+        inputId = ns("sep"),
+        label = "Separador:",
+        choices = c(
+          'Sin sep.' = "", 
+          'Espacio' = " ", 
+          '"-"' = "-", 
+          '"_"' = "_",
+          '" - "' = " - " 
+        ),
+        selected = "_",
+        width = "100px",
+        options = shinyWidgets::pickerOptions(
+          container = "body",
+          style = "btn-outline-primary"
+        )
+      ),
+      tags$div(
+        style = "margin-bottom: 15px;gap: 25px;",
+        actionButton(
+          inputId = ns("add_prefijo"), 
+          label = "Añadir prefijo", 
+          icon = icon("angle-left"), 
+          class = "btn-outline-info"
+        ),
+        actionButton(
+          inputId = ns("add_sufijo"), 
+          label = "Añadir sufijo", 
+          icon = icon("angle-right"), 
+          class = "btn-outline-info"
+        )
+      )
+    ),
+    tags$div(
+      id = "flex",
+      actionButton(
+        inputId = ns("format_sup_ha"), 
+        label = 'Formatear "Sup_ha"', 
+        icon = icon("draw-polygon"), 
+        class = "btn-outline-info"
+      ),
+      tags$div(style = "margin-left: 25px;"),
+      actionButton(
+        inputId = ns("create_kmz"),
+        label = "Generar KMZ",
+        icon = icon("layer-group"),
+        class = "btn-outline-info"
       )
     )
-  ),
-  tags$div(
-    id = "flex",
-    actionButton(
-      inputId = ns("trans_sup_ha"), 
-      label = 'Formatear "Sup_ha"', 
-      icon = icon("draw-polygon"), 
-      class = "btn-outline-info"
-    ),
-    tags$div(style = "margin-left: 25px;"),
-    actionButton(
-      inputId = ns("create_kmz"),
-      label = "Generar KMZ",
-      icon = icon("layer-group"),
-      class = "btn-outline-info"
-    )
   )
-)
 }
     
 #' ext_supha_kmz Server Functions
@@ -75,11 +126,21 @@ mod_ext_supha_kmz_ui <- function(id) {
 mod_ext_supha_kmz_server <- function(id, rv){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
-    capas <- reactiveVal(0)
-    is_config <- reactiveVal(SupHA::setup_arcpy_env())
+    rv_ext <- reactiveValues(
+      capas_dir = NULL
+    )
 
     # Directorio ----
-    roots <- c(wd = path.expand("~"))
+    roots <- c(
+      "Documentos" = path.expand("~"),
+      "OneDrive_personal" = Sys.getenv("OneDriveConsumer"),
+      "OneDrive_empresarial" = Sys.getenv("OneDriveCommercial"),
+      "Escritorio" = Sys.getenv("USERPROFILE") %>% file.path("Desktop")
+    ) %>% 
+      c(., get_volumes()) %>% 
+      .[nchar(.) > 0] %>%
+      .[purrr::map_lgl(., dir.exists)]
+
     shinyFiles::shinyDirChoose(
       input,
       id = "dir_carto",
@@ -91,7 +152,7 @@ mod_ext_supha_kmz_server <- function(id, rv){
       allowDirCreate = TRUE
     )
     
-    directorio <- reactive({
+    dir_carto <- reactive({
       if(all(c("root", "path") %in% names(input$dir_carto))){
         selected_path <- do.call(file.path, c(roots[input$dir_carto$root], input$dir_carto$path)) %>% tools::file_path_as_absolute()
       } else {
@@ -101,111 +162,116 @@ mod_ext_supha_kmz_server <- function(id, rv){
     })
 
     output$dir_selected <- renderPrint({
-      req(directorio())
-      if (dir.exists(directorio())) {
-        directorio()
+      req(dir_carto())
+      if (dir.exists(dir_carto())) {
+        tools::file_path_as_absolute(dir_carto())
       } else {
         "Directorio no seleccionado"
       }
     })
     
-    # multiinput ----
+    # Multiinput ----
     observeEvent(eventExpr = {
-      directorio()
+      dir_carto()
       input$recursive
+      input$filetype
     }, handlerExpr = {
-      capas_dir <- list.files(directorio(), pattern = ".shp$", full.names = F, recursive = input$recursive)
-      capas(capas_dir)
+      pattern <- if (input$filetype == ".shp") "\\.shp$" else NULL
+      rv_ext$capas_dir <- list.files(dir_carto(), pattern = pattern, full.names = F, recursive = input$recursive)
       shinyWidgets::updateMultiInput(
         session = session, 
         inputId = "capas", 
-        choices = capas()
+        choices = rv_ext$capas_dir
       )
     })
     observeEvent(input$all, {
-      shinyWidgets::updateMultiInput(session, "capas", selected = capas())
+      shinyWidgets::updateMultiInput(session, "capas", selected = rv_ext$capas_dir)
     })
     observeEvent(input$none, {
       shinyWidgets::updateMultiInput(session, "capas", selected = NA_character_)
     })
     
-    # Format Sup_ha ----
     observe({
-      if(isTruthy(directorio())) shinyjs::enable("trans_sup_ha") else shinyjs::disable("trans_sup_ha")
+      if(isTruthy(dir_carto()) && isTruthy(input$capas)) {
+        shinyjs::enable("format_sup_ha") 
+        shinyjs::enable("create_kmz") 
+      } else {
+        shinyjs::disable("format_sup_ha")
+        shinyjs::disable("create_kmz")
+      }
     }) 
-    observeEvent(input$trans_sup_ha, {
-      # Determinar estado actual para la UI
-      config_ok <- is_config()
-      status_icon <- if(config_ok) icon("check-circle", class = "text-success") else icon("times-circle", class = "text-danger")
-      status_label <- if(config_ok) " Entorno configurado" else " Entorno no configurado"
 
-      showModal(modalDialog(
-        title = "Configuración de Formateo Sup_ha",
-        tags$p("Esta función formatea la precisión del campo ", tags$code("Sup_ha"), " a dos decimales."),
-        tags$div(
-          class = "alert alert-warning mb-3",
-          icon("exclamation-triangle"), 
-          " Requiere tener instalado ", tags$b("ArcGIS Pro"), " en el equipo."
-        ),
-        tags$div(
-          class = "mb-3",
-          tags$b("Estado: "),
-          tags$span(id = ns("status_text"), status_icon, status_label)
-        ),
-        hr(),
-        textInput(
-          ns("python_exe"), 
-          "Ruta del ejecutable Python de ArcGIS Pro:", 
-          value = "C:/Program Files/ArcGIS/Pro/bin/Python/envs/arcgispro-py3/python.exe"
-        ),
-        actionButton(ns("setup_env"), "Configurar Entorno", class = "btn-info btn-sm", icon = icon("gears")),
-        footer = tagList(
-          modalButton("Cancelar"),
-          actionButton(ns("run_format"), "Ejecutar Formateo", class = "btn-success", icon = icon("play")) %>% 
-            tagAppendAttributes(disabled = if(config_ok) NULL else NA)
-        ),
-        size = "m",
-        easyClose = TRUE
-      ))
+    # Prefijos y sufijos ----
+    observe({
+      condition <- (input$filetype == "todos" && isTruthy(input$capas) && nzchar(input$presufijo))
+      if (condition) {
+        shinyjs::enable("add_prefijo")
+        shinyjs::enable("add_sufijo")
+      } else {
+        shinyjs::disable("add_prefijo")
+        shinyjs::disable("add_sufijo")
+      }
     })
 
-    # Configurar el entorno de ArcPy
-    observeEvent(input$setup_env, {
+    observeEvent(input$add_prefijo, {
+      req(input$capas, input$presufijo, dir_carto())
       tryCatch({
-        SupHA::setup_arcpy_env(python_path = input$python_exe)
-        is_config(TRUE)
-        shinyjs::enable("run_format")
-        shinyjs::html("status_text", as.character(tagList(icon("check-circle", class = "text-success"), " Entorno configurado")))
-        shinybusy::notify_success("Entorno configurado correctamente.")
+        paths <- file.path(dir_carto(), input$capas)
+        purrr::walk(paths, agregar_prefijo, prefijo = input$presufijo, sep = input$sep)
+        
+        # pattern <- if (input$filetype == ".shp") "\\.shp$" else NULL
+        # rv_ext$capas_dir <- list.files(dir_carto(), pattern = pattern, full.names = F, recursive = input$recursive)
+        # shinyWidgets::updateMultiInput(session, "capas", choices = rv_ext$capas_dir, selected = character(0))
+        
+        shinybusy::notify_success("Prefijo añadido con éxito", position = "right-bottom")
       }, error = function(e) {
-        shinyalert::shinyalert(
-          title = "Error de Configuración",
-          text = e$message,
-          type = "error"
-        )
+        shinyalert::shinyalert("Error", as.character(e$message), type = "error")
       })
     })
 
-    # Ejecutar la función después de configurar
-    observeEvent(input$run_format, {
-      req(input$capas)
-      removeModal()
+    observeEvent(input$add_sufijo, {
+      req(input$capas, input$presufijo, dir_carto())
+      tryCatch({
+        paths <- file.path(dir_carto(), input$capas)
+        purrr::walk(paths, agregar_sufijo, sufijo = input$presufijo, sep = input$sep)
         
+        # pattern <- if (input$filetype == ".shp") "\\.shp$" else NULL
+        # rv_ext$capas_dir <- list.files(dir_carto(), pattern = pattern, full.names = F, recursive = input$recursive)
+        # shinyWidgets::updateMultiInput(session, "capas", choices = rv_ext$capas_dir, selected = character(0))
+        
+        shinybusy::notify_success("Sufijo añadido con éxito", position = "right-bottom")
+      }, error = function(e) {
+        shinyalert::shinyalert("Error", as.character(e$message), type = "error")
+      })
+    })
+
+    updateTextInput(session, "presufijo", value = "")
+
+    # Format Sup_ha ----
+    observeEvent(input$format_sup_ha, {
       shinybusy::show_modal_spinner(
         spin = "flower",
         color = "#6FB58F",
         text = tags$div(
           tags$br(),
           tags$p(
-            "Formateando precision del campo Sup_ha a 2 decimales"
+            "Formateando precision del campo Sup_ha a 2 decimales... Espere un momento..."
           )
         )
       )
+      on.exit({
+        shinybusy::remove_modal_spinner()
+      }, add = TRUE)
       
       tryCatch({
         input$capas %>% 
-          file.path(directorio(), .) %>% 
-          purrr::map(SupHA::st_trans_sup_ha)
+          file.path(dir_carto(), .) %>% 
+          purrr::map(function(x) {
+            tryCatch(format_sup_ha(x), error = function(e) {
+              message("Error al formatear '", basename(x), "': ", e$message)
+              NULL
+            })
+          })
         
         shinybusy::remove_modal_spinner()
         shinybusy::notify_success("Proceso completado con éxito.", timeout = 3000, position = "right-bottom")
@@ -219,9 +285,6 @@ mod_ext_supha_kmz_server <- function(id, rv){
     })
 
     # crear kmz ----
-    observe({
-      if(isTruthy(directorio())) shinyjs::enable("create_kmz") else shinyjs::disable("create_kmz")
-    }) 
     observeEvent(input$create_kmz, {
       shinybusy::show_modal_spinner(
         spin = "flower",
@@ -239,14 +302,15 @@ mod_ext_supha_kmz_server <- function(id, rv){
 
       tryCatch({
         input$capas %>% 
-          purrr::map(function(x){
-            sf::read_sf(file.path(directorio(), x)) %>% prepare_kml(basename = tools::file_path_sans_ext(basename(x))) %>% 
-              sf::write_sf(file.path(directorio(), paste0(tools::file_path_sans_ext(x), ".kml")))
-            zip::zip(
-              zipfile = file.path(directorio(), paste0(tools::file_path_sans_ext(x), ".kmz")), 
-              files = file.path(directorio(), paste0(tools::file_path_sans_ext(x), ".kml"))
-            )
-            file.remove(file.path(directorio(), paste0(tools::file_path_sans_ext(x), ".kml")))
+          file.path(dir_carto(), .) %>% 
+          purrr::map(function(x) {
+            tryCatch({
+              asign_name_folder_kmz(shp = x) %>% 
+                do.call("shp2kmz", .)
+            }, error = function(e) {
+              message("Error al generar KMZ para '", basename(x), "': ", e$message)
+              NULL 
+            })
           })
       }, error = function(e) {
         shinyalert::shinyalert(

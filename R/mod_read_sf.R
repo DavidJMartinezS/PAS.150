@@ -38,7 +38,7 @@ mod_read_sf_server <- function(id, rv, i, fx = NULL, path = F, geometry_type = "
     ns <- session$ns
     output$sf_print <- renderPrint({input$sf_file})
     observeEvent(input$sf_file, {
-      shp <- sf$new(sf_file = input$sf_file, fx = fx, path = path, geometry_type = geometry_type)
+      shp <- ReadSf$new(sf_file = input$sf_file, fx = fx, path = path, geometry_type = geometry_type)
       if(shp$validate_sf()){
         session$sendCustomMessage("upload_msg", tools::file_path_sans_ext(input$sf_file$name[1]))
         rv[[i]] <- shp$leer_sf(...)

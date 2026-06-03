@@ -297,7 +297,6 @@ get_ECC_alt <- function(BNP_alter, censo, sp) {
 get_ECC_int <- function(censo, sp, BNP_inter, BNP_alter = NULL, upto5m = T) {
   valid_input(censo, inherit = "sf", names = "Especie", geometry = "POINT")
   valid_input(sp, inherit = "character")
-  valid_input(BNP_inter, inherit = c("sf"), names = req_names$BNP_afect, geometry = "POLYGON")
   valid_input(upto5m, inherit = "logical")
 
   codes <- censo %>% 
@@ -434,27 +433,34 @@ get_prospeccion <- function(BD_flora, BD_fore, censo, sp, BNP_cuenca) {
 
 #' @rdname carto_digital
 #' @export
-get_BNP_alt_sin_censo <- function(BNP_alter, densidad) {
+get_BNP_alt_sin_censo <- function(BNP_alter, densidad = NULL) {
   if(!is.null(BNP_alter)) {
     valid_input(BNP_alter, inherit = "sf", names = req_names$BNP_afect, geometry = "POLYGON")
-    
+    if(is.null(densidad) & !"Densidad" %in% names(BNP_alter)) {
+      stop("Debe ingresar una densidad en el argumento 'densidad' de la función o bien añadir el campo 'Densidad' al BNP a alterar.", call. = FALSE)
+    }
+    if(!is.null(densidad)) valid_input(densidad, inherit = c("numeric", "integer"))
+    if ("Densidad" %in% names(BNP_alter) && !is.numeric(BNP_alter$Densidad)) {
+      stop("El campo 'Densidad' del BNP a alterar debe ser de tipo numérico.", call. = FALSE)
+    }
+
     if("Censado" %in% names(BNP_alter)){
       est_alter <- BNP_alter %>% 
         dplyr::filter(!Censado %>% stringi::stri_detect_regex("si", case_insensitive = T)) %>% 
         {if (nrow(.) == 0) {
           NULL
         } else {
-          return(.[] %>% 
+          .[] %>% 
+            {if(!"Densidad" %in% names(.[])) mutate(., Densidad = densidad) else .[]} %>% 
             dplyr::mutate(
               Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2),
-              Densidad = densidad,
               Afectacion = "Alteración del hábitat",
               Ind_alter = janitor::round_half_up(Densidad * Sup_ha)
             ) %>% 
             dplyr::mutate_at("Ind_alter", ~ifelse(. == 0, 1, .)) %>% 
-            dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), Afectacion, Densidad, Ind_alter, Sup_ha)) 
+            dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), Afectacion, Densidad, Ind_alter, Sup_ha)
         }} 
-      if(!is.null(est_alter)) return(est_inter) else return(invisible())
+      if(!is.null(est_alter)) return(est_alter) else return(invisible())
     } else {
       return(invisible())
     }
@@ -465,9 +471,16 @@ get_BNP_alt_sin_censo <- function(BNP_alter, densidad) {
 
 #' @rdname carto_digital
 #' @export
-get_BNP_int_sin_censo <- function(BNP_inter, densidad) {
+get_BNP_int_sin_censo <- function(BNP_inter, densidad = NULL) {
   if(!is.null(BNP_inter)) {
     valid_input(BNP_inter, inherit = "sf", names = req_names$BNP_afect, geometry = "POLYGON")
+    if(is.null(densidad) & !"Densidad" %in% names(BNP_inter)) {
+      stop("Debe ingresar una densidad en el argumento 'densidad' de la función o bien añadir el campo 'Densidad' al BNP a intervenir", call. = FALSE)
+    }
+    if(!is.null(densidad)) valid_input(densidad, inherit = c("numeric", "integer"))
+    if ("Densidad" %in% names(BNP_inter) && !is.numeric(BNP_inter$Densidad)) {
+      stop("El campo 'Densidad' del BNP a intervenir debe ser de tipo numérico.", call. = FALSE)
+    }
     
     if("Censado" %in% names(BNP_inter)){
       est_inter <- BNP_inter %>% 
@@ -476,9 +489,9 @@ get_BNP_int_sin_censo <- function(BNP_inter, densidad) {
           NULL
         } else {
           .[] %>% 
+            {if(!"Densidad" %in% names(.[])) mutate(., Densidad = densidad) else .[]} %>% 
             dplyr::mutate(
             Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2),
-            Densidad = densidad,
             Afectacion = "Eliminación",
             Ind_inter = janitor::round_half_up(Densidad * Sup_ha)
           ) %>% 
@@ -699,14 +712,23 @@ get_carto_digital <- function(
     error = function(e) stop("Error en 'get_BNP_despues': ", e$message, call. = FALSE)
   )
 
-  BNP_alt_sin_censo <- tryCatch(
-    get_BNP_alt_sin_censo(BNP_alter = BNP_alterar, densidad = densidad),
-    error = function(e) stop("Error en 'get_BNP_alt_sin_censo': ", e$message, call. = FALSE)
-  )
-  BNP_int_sin_censo <- tryCatch(
-    get_BNP_int_sin_censo(BNP_inter = BNP_intervenir, densidad = densidad),
-    error = function(e) stop("Error en 'get_BNP_int_sin_censo': ", e$message, call. = FALSE)
-  )
+  if ("Censado" %in% names(BNP_alterar)) {
+    BNP_alt_sin_censo <- tryCatch(
+      get_BNP_alt_sin_censo(BNP_alter = BNP_alterar, densidad = densidad),
+      error = function(e) stop("Error en 'get_BNP_alt_sin_censo': ", e$message, call. = FALSE)
+    )
+  } else {
+    BNP_alt_sin_censo <- NULL
+  }
+
+  if ("Censado" %in% names(BNP_intervenir)) {
+    BNP_int_sin_censo <- tryCatch(
+      get_BNP_int_sin_censo(BNP_inter = BNP_intervenir, densidad = densidad),
+      error = function(e) stop("Error en 'get_BNP_int_sin_censo': ", e$message, call. = FALSE)
+    )
+  } else {
+    BNP_int_sin_censo <- NULL
+  }
 
   if (add_cam) {
     caminos <- tryCatch(get_caminos(cuenca = cuenca), error = function(e) stop("Error en 'get_caminos': ", e$message, call. = FALSE))
@@ -748,8 +770,8 @@ get_carto_digital <- function(
     "Area_de_proyecto_Ubicación" = ubicacion,
     "Area_de_proyecto_Obras" = obras_cuenca,
     !!sprintf('BNP_%s_Cuenca', sp_code) := BNP_cuenca,
-    !!sprintf('BNP_%s_a_Intervenir', sp_code) := BNP_intervenir %>% dplyr::select(-matches("Censo")),
-    !!sprintf('BNP_%s_a_Alterar', sp_code) := BNP_alterar %>% dplyr::select(-matches("Censo")),
+    !!sprintf('BNP_%s_a_Intervenir', sp_code) := BNP_intervenir %>% {if(is.null(.[])) . else {dplyr::select(.[],-matches("Censado"))}},
+    !!sprintf('BNP_%s_a_Alterar', sp_code) := BNP_alterar %>% {if(is.null(.[])) . else {dplyr::select(.[],-matches("Censado"))}},
     !!sprintf('Censo_%s_a_Intervenir', sp_code) := ECC_int,
     !!sprintf('Censo_%s_a_Alterar', sp_code) := ECC_alt,
     "Uso_actual_de_la_tierra" = uso_cuenca,

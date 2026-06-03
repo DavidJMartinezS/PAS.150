@@ -1,17 +1,28 @@
- #flex {
+#flex {
   display:flex;
-}
-#inline label {
-  display: table-cell;
-  text-align: center;
-  vertical-align: middle;
 }
 #inline .form-group {
   display: table-row;
 }
+#inline label.control-label {
+  display: table-cell;
+  vertical-align: middle;
+  padding-right: 15px;
+}
+#inline .shiny-options-group {
+  display: table-cell;
+  vertical-align: middle;
+}
+#inline .radio-inline {
+  margin-right: 10px !important;
+  /* margin-top: 0px !important; */
+  display: inline-block;
+}
+
 .bslib-value-box .value-box-value {
   font-size: 20px;
 }
+
 /* .dropdown {
   z-index:1 !important;
 } */
@@ -180,7 +191,7 @@ table.dataTable tbody tr.selected {
 /* Para zoom a las tablas*/
 .container_zoom {
   overflow: auto; 
-  border: 1px solid #ddd;
+  border-style: none !important;
   cursor: default;
   background: white;
   flex: 1 1 auto;
@@ -192,4 +203,14 @@ table.dataTable tbody tr.selected {
   display: table;
   margin: 0 auto;
   transition: transform 0.1s ease-out;
+  border-style: none !important;
+}
+
+/* multiInput wrapper */
+.multi-wrapper {
+  height: 500px;
+}
+.multi-wrapper .non-selected-wrapper,
+.multi-wrapper .selected-wrapper {
+  height: 100%;
 }

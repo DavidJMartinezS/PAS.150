@@ -12,7 +12,7 @@ BD_fragmentacion(
   RCE,
   Tipo_rep,
   subusos_noveg,
-  alteracion = T,
+  alteracion = TRUE,
   spp_acomp = NULL,
   prop = NULL,
   estadisticos = NULL,

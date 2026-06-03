@@ -190,8 +190,52 @@ dir_save <- getwd() # o bien ingresar la ruta del directorio donde desea guardar
 download_files(
   x = carto_digital, # Objeto 
   name_save = list(Cartografia_digital = names(carto_digital)), # lista con los nombres de cada capa. Se sugiere no cambiar esto del código
-  dir_save = dir_save
+  dir_save = dir_save, # directorio donde guardar
+  create_kmz = TRUE # TRUE para generar KMZ
 )
+```
+
+Si descomprime la carpeta tiene las opciones de: \* Editar el nombre
+añadiendole un prefijo o sufijo a los archivos, por ejemplo:
+
+- Formatear precision de decimales. Aqui algunos ejemplos:
+
+``` r
+# Si bien al descargar la cartografía digital las capas ya vienen con 2 decimales, la función sirve para formatear cualquier capa descargada en R donde el campo de superficie queda con una precision de 15 decimales por default. O bien, se puede definir el formato a un mayor o menor numero de decimales
+
+# Formatear el campo 'Sup_ha' de una capa a 2 decimales
+format_sup_ha(
+  shp = "ruta/al/archivo.shp", 
+  field_sup = "Sup_ha", # 'Sup_ha' por default.
+  precision = 2 # 2 decimales por default
+) 
+
+# Formatear el campo 'Sup_ha' de una capa a 3 decimales
+format_sup_ha(shp = "ruta/al/archivo.shp", precision = 3) 
+
+# Formatear el campo 'Sup_ha' de una varias capa 
+list.files(path = "ruta/directorio/Cartografia_digital/", pattern = "shp$", full.names = T) %>% 
+  purrr::map(format_sup_ha)
+```
+
+- Crear KMZ de las capas, por ejemplo:
+
+``` r
+# Crear KMZ para una capa
+shp2kmz(
+  shp = "ruta/al/archivo.shp", 
+  name = NULL,   # Definir campo para el nombre. Si es NULL (default) se utilizará el primer campo. 
+  folder = NULL, # Campo por el cual se desea agrupar por carpeta. Si es NULL (default) no se agrupara por carpeta
+  dirsave = NULL # Ruta del directorio donde guardar el KMZ. Si es NULL (defaul) el archivo se guardara en la ruta del archivo '.shp'
+) 
+
+# Definir argumentos y crear KMZ de la cartografía digital 
+asign_name_folder_kmz(shp = "ruta/cartografia digital/Area_de_proyecto_Obras.shp") %>% do.call("shp2kmz", .) # Ejemplo para un archivo
+
+list.files(path = "ruta/directorio/Cartografia_digital/", pattern = "shp$", full.names = T) %>% # Ejemplo para toda la cartografía digital
+  purrr::map(function(x) {
+    asign_name_folder_kmz(shp = x) %>% do.call("shp2kmz", .)
+  })
 ```
 
 ### Apéndices
@@ -208,6 +252,7 @@ configurar una portada:
 # Configurar datos de portadas
 portada_opts(
   nom_proj = NULL, # Nombre del proyecto
+  etapa_proj = c("EIA", "Ad", "AdComp", "RF"), # Seleccionar una opción. "EIA" por default.
   logo = NULL, # Ruta con el logo del cliente
   plantilla = c("default", "KIM753", "MLP612") # Seleccionar una opción. "default" por default.
 )
@@ -215,11 +260,17 @@ portada_opts(plantilla = "default")
 # $nom_proj
 # [1] "INGRESE NOMBRE DEL PROYECTO"
 
+# $etapa_proj
+# [1] "EVALUACIÓN DE IMPACTO AMBIENTAL"
+
 # $logo
 # [1] "C:/Users/dmartinez/Documents/R/PAS.150/inst/app/www/logo_default.png"
-portada_opts(plantilla = "KIM753")
+portada_opts(plantilla = "KIM753", etapa_proj = "RF")
 # $nom_proj
 # [1] "LÍNEA DE TRANSMISIÓN ELÉCTRICA HVDC KIMAL - LO AGUIRRE"
+
+# $etapa_proj
+# [1] "RESOLUCIÓN FUNDADA"
 
 # $logo
 # [1] "C:/Users/dmartinez/Documents/R/PAS.150/inst/app/www/logo_conexion.png"
@@ -230,18 +281,21 @@ portada_opts(
 # $nom_proj
 # [1] "Proyecto nuevo"
 
+# $etapa_proj
+# [1] "EVALUACIÓN DE IMPACTO AMBIENTAL"
+
 # $logo
 # [1] "C:/ruta/al/archivo/logo_cliente.png."
 
 # Previsualizar portada
 library(openxlsx2)
 nom_ssubc <- "" # Nombre de la subsubcuenca. Se puede obtener igual con la función get_cuenca(uso_veg)$NOM_SSUBC
-wb_workbook(theme = "Integral") |>
+wb_workbook(theme = "Integral") %>% 
     wb_portada_PAS150(
       apendice = c("inventarios", "biodiversidad", "fragmentacion"), # Seleccionar una opción
       nom_ssubc = nom_ssubc,
       opts = portada_opts()
-    ) |>
+    ) %>% 
       wb_open()
 ```
 
@@ -275,11 +329,18 @@ BD_inv_forestales <- BD_inventarios(
   portada_opts = portada_opts()
 )
 
-# Guardar
+# Guardar apéndice de inventarios forestales
 download_files(
-  x = BD_inventarios, 
+  x = BD_inv_forestales$wb, 
   name_save = sprintf("BD Inventarios forestales BNP %s", especie), # Ingresar nombre que desee para el archivo xlsx
   dir_save = dir_save
+)
+# Guardar csv de la BD Nha
+download_files(
+  x = BD_inv_forestales$BD_Nha, 
+  name_save = "BD_Nha", # Ingresar nombre que desee para el archivo csv
+  dir_save = dir_save,
+  csv = TRUE
 )
 
 # Estadísticos
@@ -311,8 +372,8 @@ el modelo.
 ``` r
 dir <- "" # Ingresar ruta del directorio donde dejar los resultados del Fragstats 
 if (!dir.exists(dir)) dir.create(dir, recursive = T) # Crea el directorio si es que no existe
-path_antes = "" # Ingresar ruta del archivo .shp del BNP antes del proyecto
-path_despues = "" # Ingresar ruta del archivo .shp del BNP despues del proyecto. Es decir, sin la superficie a intervenir y alterar
+path_antes = "ruta/al/bnp_antes.shp" # Ingresar ruta del archivo .shp del BNP antes del proyecto
+path_despues = "ruta/al/bnp_despues.shp" # Ingresar ruta del archivo .shp del BNP despues del proyecto. Es decir, sin la superficie a intervenir y alterar
 
 FragStats_pre(dir = dir, path_antes = path_antes, path_despues = path_despues)
 ```
@@ -348,8 +409,10 @@ BD_fragmentacion <- BD_fragmentacion(
   sf_obras = obras,
   path_frag = "", # Ingresar ruta del archivo .xlsx con los resultados del FragStats
   ECC = especie,
+  RCE = c("VU", "EN", "CR"), # Ingresar clasificación RCE de la especie
+  Tipo_rep = c("monoica", "dioica"), # Ingresar tipo de reproducción de la especie
   subusos_noveg = c(""), # vector con la lista de subusos que no corresponden a vegetación. Ej, Áreas industriales, ríos, minería, etc
-  alteracion = T, 
+  alteracion = TRUE, # valor lógico. TRUE si hay alteración de hábitat
   spp_acomp = BD_biodiversidad$spp_acomp, # default NULL
   prop = BD_inv_forestales$prop, # default NULL
   estadisticos = estadisticos, # default NULL
@@ -376,13 +439,13 @@ BNP_intervenir <- get_BNP_intervencion(BNP_cuenca = BNP_cuenca, obras = obras, B
 gt_ecc_inter(
   ecc_inter = get_ECC_int(censo = censo, sp = especie, BNP_inter = BNP_intervenir, BNP_alter = BNP_alter, upto5m = upto5m), 
   BNP_int_sin_censo = get_BNP_int_sin_censo(BNP_inter = BNP_inter, densidad = densidad), 
-  col_obras = c("Obra", "Nom_obra") # Nombre de los campos con las obras que desea agrupar el censo 
+  col_obras = c("Obra") # Nombre de los campos con las obras que desea agrupar el censo 
 )
 BNP_alterar <- get_BNP_alterar(BNP_alter = BNP_alter, BNP_cuenca = BNP_cuenca, alt_ok = alt_ok)
 gt_ecc_alter(
   ecc_alter = get_ECC_alt(BNP_alter = BNP_alterar, censo = censo, sp = especie), 
   BNP_alt_sin_pto = get_BNP_alt_sin_censo(BNP_alter = BNP_alter, densidad = densidad), 
-  col_obras = c("Obra", "Nom_obra")
+  col_obras = c("Obra")
 )
 gt_sup_inter(obras = obras, BNP_inter = BNP_intervenir, BNP_alterar = BNP_alterar, col_obras = c("Obra", "Nom_obra"))
 gt_indices(tabla_indices = BD_biodiversidad$tabla_indices)

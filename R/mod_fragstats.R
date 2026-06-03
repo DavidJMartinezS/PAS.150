@@ -69,7 +69,7 @@ mod_fragstats_ui <- function(id) {
             ),
             tags$div(style = "margin-right:25px"),
             shinyFiles::shinyDirButton(
-              ns("directory"),
+              ns("dir_frag"),
               label = "Directorio",
               title = "Seleccionar directorio",
               multiple = FALSE,
@@ -138,10 +138,19 @@ mod_fragstats_server <- function(id, rv){
     )
     
     # Directorio ----
-    roots <- c(wd = path.expand("~"))
+    roots <- c(
+      "Documentos" = path.expand("~"),
+      "OneDrive_personal" = Sys.getenv("OneDriveConsumer"),
+      "OneDrive_empresarial" = Sys.getenv("OneDriveCommercial"),
+      "Escritorio" = Sys.getenv("USERPROFILE") %>% file.path("Desktop")
+    ) %>% 
+      c(., get_volumes()) %>% 
+      .[nchar(.) > 0] %>%
+      .[purrr::map_lgl(., dir.exists)]
+
     shinyFiles::shinyDirChoose(
       input,
-      id = "directory",
+      id = "dir_frag",
       roots = roots,
       updateFreq = 0,
       session,
@@ -150,9 +159,9 @@ mod_fragstats_server <- function(id, rv){
       allowDirCreate = TRUE
     )
     
-    directorio <- reactive({
-      if(all(c("root", "path") %in% names(input$directory))){
-        selected_path <- do.call(file.path, c(roots[input$directory$root], input$directory$path)) %>% tools::file_path_as_absolute()
+    dir_frag <- reactive({
+      if(all(c("root", "path") %in% names(input$dir_frag))){
+        selected_path <- do.call(file.path, c(roots[input$dir_frag$root], input$dir_frag$path)) %>% tools::file_path_as_absolute()
       } else {
         selected_path <- nullfile()
       }
@@ -161,8 +170,8 @@ mod_fragstats_server <- function(id, rv){
     
     output$dir_tree <- renderPrint({
       refresh_tree()
-      if (dir.exists(directorio())) {
-        fs::dir_tree(path = tools::file_path_as_absolute(directorio()))
+      if (dir.exists(dir_frag())) {
+        fs::dir_tree(path = tools::file_path_as_absolute(dir_frag()))
       } else {
         "Directorio no seleccionado"
       }
@@ -170,7 +179,7 @@ mod_fragstats_server <- function(id, rv){
     
     # BNP_antes ----
     observeEvent(input$BNP_antes, {
-      shp <- sf_path$new(sf_file = input$BNP_antes)
+      shp <- ReadSfPath$new(sf_file = input$BNP_antes)
       if(shp$validate_sf()){
         rv[["BNP_antes"]] <- shp$path_shp
       } else {
@@ -182,7 +191,7 @@ mod_fragstats_server <- function(id, rv){
     
     # BNP despues ----
     observeEvent(input$BNP_despues, {
-      shp <- sf_path$new(sf_file = input$BNP_despues)
+      shp <- ReadSfPath$new(sf_file = input$BNP_despues)
       if(shp$validate_sf()){
         rv[["BNP_despues"]] <- shp$path_shp
       } else {
@@ -195,7 +204,7 @@ mod_fragstats_server <- function(id, rv){
     # Fragstats process ----
     observe({
       if(all(c(
-        isTruthy(dir.exists(directorio())), 
+        isTruthy(dir.exists(dir_frag())), 
         isTruthy(rv$BNP_antes), 
         isTruthy(rv$BNP_despues)
       ))) {
@@ -218,7 +227,7 @@ mod_fragstats_server <- function(id, rv){
       }, add = TRUE)
 
       tryCatch({
-        FragStats_pre(dir = directorio(), path_antes = rv$BNP_antes, path_despues = rv$BNP_despues)
+        FragStats_pre(dir = dir_frag(), path_antes = rv$BNP_antes, path_despues = rv$BNP_despues)
         refresh_tree(refresh_tree() + 1)
       }, error = function(e) {
         shinyalert::shinyalert(
@@ -236,7 +245,7 @@ mod_fragstats_server <- function(id, rv){
 
     observe({
       if(all(c(
-        isTruthy(directorio()), 
+        isTruthy(dir_frag()), 
         isTruthy(rv$BNP_antes), 
         isTruthy(rv$BNP_despues)
       ))) {
@@ -259,7 +268,7 @@ mod_fragstats_server <- function(id, rv){
       }, add = TRUE)
 
       tryCatch({
-        FragStats_post(dir = directorio(), path_antes = rv$BNP_antes, path_despues = rv$BNP_despues)
+        FragStats_post(dir = dir_frag(), path_antes = rv$BNP_antes, path_despues = rv$BNP_despues)
         refresh_tree(refresh_tree() + 1)
       }, error = function(e) {
         shinyalert::shinyalert(

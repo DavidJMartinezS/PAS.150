@@ -32,8 +32,9 @@ mod_check_server <- function(id, rv){
     output$check_1 <- DT::renderDT({
       req(rv$uso_veg)
       DT::datatable(
-        sf::st_drop_geometry(rv$uso_veg) %>% 
-          dplyr::select(req_names$uso_veg, dplyr::starts_with("ECC"), dplyr::matches("Sup_ha")) %>% 
+        rv$uso_veg %>% 
+          sf::st_drop_geometry() %>% 
+          dplyr::select(dplyr::any_of(req_names$uso_veg), dplyr::starts_with("ECC"), dplyr::matches("Sup_ha")) %>% 
           dplyr::mutate_if(is.character, as.factor),
         class = "cell-border stripe nowrap",
         filter = "top",

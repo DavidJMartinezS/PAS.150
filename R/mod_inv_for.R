@@ -104,7 +104,7 @@ mod_inv_for_server <- function(id, rv){
           fillOpacity = 0.8,
           group = "BNP",
           weight = 2,
-          color = "snow",
+          color = "snow"
         ) %>%
         leaflet::addCircles(
           data = rv$BD_inv_forestales$BD_Nha %>% 

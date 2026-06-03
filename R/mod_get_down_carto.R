@@ -99,11 +99,16 @@ mod_get_down_carto_server <- function(id, rv){
       }
     })
     
-    carto_names <- reactive({list(Cartografia_digital = names(rv$carto_digital))})
+    # carto_names <- reactive({list(Cartografia_digital = names(rv$carto_digital))})
+    # mod_downfiles_server(
+    #   id = "down_carto", 
+    #   x = reactive(rv$carto_digital), 
+    #   name_save = carto_names()
+    # )
     mod_downfiles_server(
-      id = "down_carto", 
-      x = reactive(rv$carto_digital), 
-      name_save = carto_names()
+      id = "down_carto",
+      x = reactive(rv$carto_digital),
+      name_save = list(Cartografia_digital = names(rv$carto_digital))
     )
 
   })

@@ -30,7 +30,7 @@ mod_downfiles_ui <- function(
 #' downfiles Server Functions
 #'
 #' @noRd 
-mod_downfiles_server <- function(id, x, name_save, create_kmz = TRUE, csv = FALSE){
+mod_downfiles_server <- function(id, x, name_save, create_kmz = FALSE, csv = FALSE){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
 
@@ -77,10 +77,9 @@ mod_downfiles_server <- function(id, x, name_save, create_kmz = TRUE, csv = FALS
               y,
               sf = {
                 sf::write_sf(x, paste0(tools::file_path_sans_ext(z), ".shp"))
+                format_sup_ha(paste0(tools::file_path_sans_ext(z), ".shp"))
                 if(create_kmz) {
-                  sf::write_sf(prepare_kml(x = x, basename = z), paste0(tools::file_path_sans_ext(z), ".kml"), delete_dsn = TRUE)
-                  zip::zip(zipfile = paste0(tools::file_path_sans_ext(z), ".kmz"), files = paste0(tools::file_path_sans_ext(z), ".kml"))
-                  file.remove(paste0(tools::file_path_sans_ext(z), ".kml"))
+                  asign_name_folder_kmz(paste0(tools::file_path_sans_ext(z), ".shp")) %>% do.call("shp2kmz", .)
                 }
               },
               wb = openxlsx2::wb_save(x, paste0(tools::file_path_sans_ext(z), ".xlsx"), overwrite = T),

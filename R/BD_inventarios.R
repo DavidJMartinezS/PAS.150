@@ -24,7 +24,7 @@ BD_inventarios <- function(
   clase_corte <- BD_fore %>%
     dplyr::pull(DAP) %>%
     na.omit() %>%
-    stats::quantile(c(.99), na.rm = T) %>%
+    stats::quantile(c(.99), na.rm = TRUE) %>%
     plyr::round_any(., accuracy = 10, f = ceiling)
 
   clase_max <- BD_fore %>%
@@ -40,8 +40,8 @@ BD_inventarios <- function(
       Clase = cut(
         DAP,
         c(seq(0, clase_corte, 10), if (clase_corte != clase_max) clase_max),
-        include.lowest = F,
-        right = F
+        include.lowest = FALSE,
+        right = FALSE
       ) %>%
         forcats::fct_na_value_to_level(""),
       Marca_clase = purrr::map_dbl(Clase, function(x){
@@ -56,7 +56,7 @@ BD_inventarios <- function(
 
   BD_Nha <- BD %>%
     dplyr::group_by(Parcela, Sup_parcela, UTM_E, UTM_N, Especie) %>%
-    dplyr::summarise(n = sum(N_ind, na.rm = T)) %>%
+    dplyr::summarise(n = sum(N_ind, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(n = (n * 10000 / Sup_parcela)) %>%
     tidyr::pivot_wider(names_from = Especie, values_from = n) %>%
@@ -69,7 +69,7 @@ BD_inventarios <- function(
   n_estado <- BD %>%
     dplyr::filter(
       Especie == sp, 
-      stringi::stri_detect_regex(Estado, "adulto|brinzal|regenera", case_insensitive = T)
+      stringi::stri_detect_regex(Estado, "adulto|brinzal|regenera", case_insensitive = TRUE)
     ) %>%
     dplyr::pull(Estado) %>%
     unique() %>%
@@ -79,7 +79,7 @@ BD_inventarios <- function(
   n_par_sp <- BD %>%
     dplyr::filter(
       Especie == sp, 
-      stringi::stri_detect_regex(Estado, "adulto|brinzal|regenera", case_insensitive = T)
+      stringi::stri_detect_regex(Estado, "adulto|brinzal|regenera", case_insensitive = TRUE)
     ) %>%
     dplyr::pull(Parcela) %>%
     unique() %>%
@@ -96,7 +96,7 @@ BD_inventarios <- function(
 
   frec_rel <- BD %>%
     dplyr::group_by(Especie, Parcela) %>%
-    dplyr::summarise(n = sum(N_ind, na.rm = T)) %>%
+    dplyr::summarise(n = sum(N_ind, na.rm = TRUE)) %>%
     dplyr::group_by(Especie) %>%
     dplyr::count(name = 'Count') %>%
     dplyr::ungroup() %>%
@@ -110,8 +110,8 @@ BD_inventarios <- function(
     dplyr::group_by(Especie) %>%
     dplyr::summarise(
       Nha = (sum(N_ind) * janitor::round_half_up(FE, 3)) %>% janitor::round_half_up(0),
-      Gha = (sum(G, na.rm = T) * janitor::round_half_up(FE, 3)) %>% janitor::round_half_up(3),
-      H = mean(Altura, na.rm = T) %>% janitor::round_half_up(1)
+      Gha = (sum(G, na.rm = TRUE) * janitor::round_half_up(FE, 3)) %>% janitor::round_half_up(3),
+      H = mean(Altura, na.rm = TRUE) %>% janitor::round_half_up(1)
     ) %>%
     dplyr::mutate(
       Densidad_relativa = (Nha / sum(Nha) * 100) %>% janitor::round_half_up(1),
@@ -129,10 +129,10 @@ BD_inventarios <- function(
   prop <- BD %>%
     dplyr::filter(
       Especie == sp, 
-      stringi::stri_detect_regex(Estado, "adulto|brinzal|regenera", case_insensitive = T)
+      stringi::stri_detect_regex(Estado, "adulto|brinzal|regenera", case_insensitive = TRUE)
     ) %>%
     dplyr::group_by(Parcela, Sup_parcela, UTM_E, UTM_N, Estado) %>%
-    dplyr::summarise(n = sum(Nha, na.rm = T)) %>%
+    dplyr::summarise(n = sum(Nha, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
     # dplyr::mutate(nha = (n * 10000 / Sup_parcela)) %>%
     tidyr::pivot_wider(names_from = Estado, values_from = n) %>%
@@ -181,7 +181,7 @@ BD_inventarios <- function(
   # Presentacion ----
   table.fun <- function(x) {
     x %>%
-      stringi::stri_split_regex(pattern = '\n', simplify = T) %>%
+      stringi::stri_split_regex(pattern = '\n', simplify = TRUE) %>%
       t() %>%
       stringi::stri_trim_both() %>%
       tibble::as_tibble() %>%
@@ -191,7 +191,7 @@ BD_inventarios <- function(
       suppressWarnings()
   }
   wb <- wb %>%
-    openxlsx2::wb_add_worksheet("Presentación", grid_lines = F) %>%
+    openxlsx2::wb_add_worksheet("Presentación", grid_lines = FALSE) %>%
     openxlsx2::wb_set_col_widths(cols = 1:2, widths = c(18, 60)) %>%
     openxlsx2::wb_page_setup(paper_size = 1)
 
@@ -206,7 +206,7 @@ BD_inventarios <- function(
     tibble::as_tibble_col()
   wb <- wb %>%
     openxlsx2::wb_add_data(
-      x = desc_general, start_col = 1, start_row = 1, col_names = F
+      x = desc_general, start_col = 1, start_row = 1, col_names = FALSE
     )
   for (i in 1:2) {
     wb <- wb %>% openxlsx2::wb_merge_cells(dims = openxlsx2::wb_dims(cols = 1:2, rows = i))
@@ -222,7 +222,7 @@ Cod_ssubc:	Código de la DGA para la subsubcuenca."
     table.fun()
   wb <- wb %>%
     openxlsx2::wb_add_data(
-      x = desc_h1, start_col = 1, col_names = F,
+      x = desc_h1, start_col = 1, col_names = FALSE,
       start_row = nrow(desc_general) + 2
     )
   desc_h2 <- c(
@@ -234,7 +234,7 @@ Frec_rel: Frecuencia relativa. Calculada como Frec_abs / suma total(Count) * 100
     table.fun()
   wb <- wb %>%
     openxlsx2::wb_add_data(
-      x = desc_h2, start_col = 1, col_names = F,
+      x = desc_h2, start_col = 1, col_names = FALSE,
       start_row = nrow(desc_general) + 2 + nrow(desc_h1) + 1,
     )
   desc_h3 <- c(
@@ -246,7 +246,7 @@ IVI: Valor de importancia."
     table.fun()
   wb <- wb %>%
     openxlsx2::wb_add_data(
-      x = desc_h3, start_col = 1, col_names = F,
+      x = desc_h3, start_col = 1, col_names = FALSE,
       start_row = nrow(desc_general) + 2 +
         nrow(desc_h1) + 1 + nrow(desc_h2) + 1
     )
@@ -256,7 +256,7 @@ IVI: Valor de importancia."
     table.fun()
   wb <- wb %>%
     openxlsx2::wb_add_data(
-      x = desc_h4, start_col = 1, col_names = F,
+      x = desc_h4, start_col = 1, col_names = FALSE,
       start_row = nrow(desc_general) + 2 +
         nrow(desc_h1) + 1 + nrow(desc_h2) + 1 +
         nrow(desc_h3) + 1
@@ -267,7 +267,7 @@ IVI: Valor de importancia."
     table.fun()
   wb <- wb %>%
     openxlsx2::wb_add_data(
-      x = desc_h5, start_col = 1, col_names = F,
+      x = desc_h5, start_col = 1, col_names = FALSE,
       start_row = nrow(desc_general) + 2 +
         nrow(desc_h1) + 1 + nrow(desc_h2) + 1 +
         nrow(desc_h3) + 1 + nrow(desc_h4) + 1
@@ -278,7 +278,7 @@ IVI: Valor de importancia."
     table.fun()
   wb <- wb %>%
     openxlsx2::wb_add_data(
-      x = desc_h6, start_col = 1, col_names = F,
+      x = desc_h6, start_col = 1, col_names = FALSE,
       start_row = nrow(desc_general) + 2 + 
         nrow(desc_h1) + 1 + nrow(desc_h2) + 1 + 
         nrow(desc_h3) + 1 + nrow(desc_h4) + 1 + nrow(desc_h5) + 1
@@ -311,13 +311,13 @@ IVI: Valor de importancia."
       horizontal = "center",
       vertical = "center"
     ) %>%
-    openxlsx2::wb_add_font(dims = dim_1, bold = T, underline = "single", size = 12) %>%
+    openxlsx2::wb_add_font(dims = dim_1, bold = TRUE, underline = "single", size = 12) %>%
     openxlsx2::wb_add_fill(
       dims = dim_1 %>% paste(dim_2, sep = ";"),
       color = openxlsx2::wb_color(hex = "#D9D9D9")
     ) %>%
     openxlsx2::wb_add_cell_style(dims = dim_3, vertical = "center") %>%
-    openxlsx2::wb_add_font(dims = dim_3, bold = T) %>%
+    openxlsx2::wb_add_font(dims = dim_3, bold = TRUE) %>%
     openxlsx2::wb_add_cell_style(dims = openxlsx2::wb_dims(rows = 1:40, cols = 1:2), wrap_text = "1")
 
   # BD inv ----
@@ -325,7 +325,7 @@ IVI: Valor de importancia."
     openxlsx2::wb_add_worksheet("BD_Inv.For") %>%
     openxlsx2::wb_add_data_table(
       x = BD,
-      first_column = T,
+      first_column = TRUE,
       table_style = DT_style,
       table_name = "BD",
       na.strings = ""
@@ -375,7 +375,7 @@ IVI: Valor de importancia."
         openxlsx2::int2col(n_par + 3),
         n_spp + 2
       ),
-      array = T
+      array = TRUE
     ) %>%
     openxlsx2::wb_add_data(x = "Frec_rel", dims = sprintf("%s2", openxlsx2::int2col(n_par + 4))) %>%
     openxlsx2::wb_add_formula(
@@ -394,11 +394,11 @@ IVI: Valor de importancia."
         openxlsx2::int2col(n_par + 4),
         n_spp + 2
       ),
-      array = T
+      array = TRUE
     ) %>%
     openxlsx2::wb_add_font(
       dims = sprintf("%s2:%s2", openxlsx2::int2col(n_par + 2), openxlsx2::int2col(n_par + 4)),
-      bold = T,
+      bold = TRUE,
       color = openxlsx2::wb_color("white")
     ) %>%
     openxlsx2::wb_add_fill(
@@ -432,7 +432,7 @@ IVI: Valor de importancia."
     openxlsx2::wb_add_worksheet("Tabla IVI") %>%
     # Factor de expansión
     openxlsx2::wb_add_data(x = "Factor de expansión", dims = "A1") %>%
-    openxlsx2::wb_add_font(dims = "A1", bold = T) %>%
+    openxlsx2::wb_add_font(dims = "A1", bold = TRUE) %>%
     openxlsx2::wb_add_formula(
       x = sprintf(
         "10000/SUM(BD_Nha!%s)",
@@ -455,14 +455,14 @@ IVI: Valor de importancia."
         "Promedio de Altura"
       ))),
       dims = "A3",
-      col_names = F
+      col_names = FALSE
     ) %>%
     # Especies
     openxlsx2::wb_add_formula(
       x = "_xlfn.UNIQUE(BD[Especie])",
       dims = "A4",
-      array = T,
-      cm = T
+      array = TRUE,
+      cm = TRUE
     ) %>%
     openxlsx2::wb_add_data(x = "Total general", dims = sprintf("A%s", n_spp + 4)) %>% 
     # Suma N_ind
@@ -472,7 +472,7 @@ IVI: Valor de importancia."
         openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4)
       ),
       dims = openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4, from_col = 2),
-      array = T,
+      array = TRUE,
       cm = TRUE
     ) %>%
     openxlsx2::wb_add_formula(
@@ -490,7 +490,7 @@ IVI: Valor de importancia."
         openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4)
       ),
       dims = openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4, from_col = 3),
-      array = T,
+      array = TRUE,
       cm = TRUE
     ) %>%
     openxlsx2::wb_add_formula(
@@ -508,7 +508,7 @@ IVI: Valor de importancia."
         openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4)
       ),
       dims = openxlsx2::wb_dims(rows = 1:n_spp, from_row = 4, from_col = 4),
-      array = T,
+      array = TRUE,
       cm = TRUE
     ) %>%
     openxlsx2::wb_add_formula(
@@ -524,7 +524,7 @@ IVI: Valor de importancia."
     openxlsx2::wb_add_formula(
       x = sprintf("ROUND(MMULT(B4:B%s,B1),0)", n_spp + 4),
       dims = sprintf("E4:E%s", n_spp + 4),
-      array = T,
+      array = TRUE,
       cm = TRUE
     ) %>%
     # GHA
@@ -532,7 +532,7 @@ IVI: Valor de importancia."
     openxlsx2::wb_add_formula(
       x = sprintf("ROUND(MMULT(C4:C%s,B1),3)", n_spp + 3),
       dims = sprintf("F4:F%s", n_spp + 3),
-      array = T,
+      array = TRUE,
       cm = TRUE
     ) %>%
     openxlsx2::wb_add_formula(
@@ -547,7 +547,7 @@ IVI: Valor de importancia."
         n_spp + 3, n_spp + 4
       ),
       dims = sprintf("G4:G%s", n_spp + 3),
-      array = T,
+      array = TRUE,
       cm = TRUE
     ) %>%
     # Dominancia relativa
@@ -558,7 +558,7 @@ IVI: Valor de importancia."
         n_spp + 3, n_spp + 4
       ),
       dims = sprintf("H4:H%s", n_spp + 3),
-      array = T,
+      array = TRUE,
       cm = TRUE
     ) %>%
     # Frecuencia relativa
@@ -570,7 +570,7 @@ IVI: Valor de importancia."
         n_spp + 2, n_par + 4
       ),
       dims = sprintf("I4:I%s", n_spp + 3),
-      array = T,
+      array = TRUE,
       cm = TRUE
     ) %>%
     openxlsx2::wb_add_data(x = "IVI", dims = "J3") %>%
@@ -597,7 +597,7 @@ IVI: Valor de importancia."
   # Formato de encabezado y totales
   for (i in c(3, n_spp + 4)) {
     wb <- wb %>%
-      openxlsx2::wb_add_font(dims = sprintf("A%s:J%s", i, i), bold = T) %>%
+      openxlsx2::wb_add_font(dims = sprintf("A%s:J%s", i, i), bold = TRUE) %>%
       openxlsx2::wb_add_border(
         dims = sprintf("A%s:J%s", i, i),
         left_border = NULL,
@@ -610,7 +610,7 @@ IVI: Valor de importancia."
     openxlsx2::wb_add_worksheet("BD_Nha") %>%
     openxlsx2::wb_add_data_table(
       x = BD_Nha,
-      first_column = T,
+      first_column = TRUE,
       table_style = DT_style,
       table_name = "BD_Nha"
     ) %>%
@@ -638,7 +638,7 @@ IVI: Valor de importancia."
         numfmt = c(formatCode = c("#,##0")),
         choose = c(
           Especie = sprintf("x == '%s'", sp),
-          Estado = 'purrr::map_lgl(stringi::stri_detect_regex(x, "adulto|brinzal|regenera", case_insensitive = T), shiny::isTruthy)'
+          Estado = 'purrr::map_lgl(stringi::stri_detect_regex(x, "adulto|brinzal|regenera", case_insensitive = TRUE), shiny::isTruthy)'
         )
       )
     ) 
@@ -654,7 +654,7 @@ IVI: Valor de importancia."
       ) %>%
       openxlsx2::wb_add_font(
         dims = openxlsx2::wb_dims(rows = 4, cols = n_estado + i + 1),
-        bold = T,
+        bold = TRUE,
         color = openxlsx2::wb_color("white")
       ) %>%
       openxlsx2::wb_add_fill(
@@ -690,7 +690,7 @@ IVI: Valor de importancia."
       ) %>%
       openxlsx2::wb_add_font(
         dims = sprintf("%s%s", openxlsx2::int2col(i), n_par_sp + 5),
-        bold = T
+        bold = TRUE
       ) %>%
       openxlsx2::wb_add_border(
         dims = sprintf("%s%s", openxlsx2::int2col(i), n_par_sp + 5),
@@ -720,7 +720,7 @@ IVI: Valor de importancia."
       x = info_prop,
       start_col = n_estado * 2 + 4,
       start_row = n_estado + 7,
-      col_names = F,
+      col_names = FALSE,
       na.strings = ""
     ) %>%
     openxlsx2::wb_add_formula(
@@ -741,7 +741,7 @@ IVI: Valor de importancia."
         openxlsx2::int2col(n_estado * 2 + 4),
         n_estado + 9
       ),
-      bold = T
+      bold = TRUE
     ) %>%
     openxlsx2::wb_add_border(
       dims = openxlsx2::wb_dims(
@@ -788,7 +788,7 @@ IVI: Valor de importancia."
         from_row = 3,
         from_col = n_estado * 2 + 4
       ),
-      bold = T,
+      bold = TRUE,
       color = openxlsx2::wb_color("white")
     ) %>%
     openxlsx2::wb_add_font(
@@ -798,7 +798,7 @@ IVI: Valor de importancia."
         from_row = 3,
         from_col = n_estado * 2 + 4
       ),
-      bold = T
+      bold = TRUE
     ) %>%
     openxlsx2::wb_add_fill(
       dims = openxlsx2::wb_dims(
@@ -821,7 +821,7 @@ IVI: Valor de importancia."
     ) %>%
     openxlsx2::wb_merge_cells(
       dims = openxlsx2::wb_dims(rows = 3, cols = 1:4, from_col = n_estado * 2 + 4),
-      solve = T
+      solve = TRUE
     ) %>%
     openxlsx2::wb_add_formula(
       x = sprintf("TRANSPOSE(B4:%s4)", openxlsx2::int2col(n_estado + 1)),
@@ -831,8 +831,8 @@ IVI: Valor de importancia."
         from_col = n_estado * 2 + 4,
         from_row = 5
       ),
-      array = T,
-      cm = T
+      array = TRUE,
+      cm = TRUE
     ) %>%
    openxlsx2::wb_add_formula(
       x = sprintf(
@@ -848,8 +848,8 @@ IVI: Valor de importancia."
         from_col = n_estado * 2 + 5,
         from_row = 5
       ),
-      array = T,
-      cm = T
+      array = TRUE,
+      cm = TRUE
     ) %>%
     openxlsx2::wb_add_formula(
       x = sprintf(
@@ -866,8 +866,8 @@ IVI: Valor de importancia."
         from_col = n_estado * 2 + 6,
         from_row = 5
       ),
-      array = T,
-      cm = T
+      array = TRUE,
+      cm = TRUE
     ) %>%
     openxlsx2::wb_add_formula(
       x = sprintf(
@@ -884,8 +884,8 @@ IVI: Valor de importancia."
         from_col = n_estado * 2 + 7,
         from_row = 5
       ),
-      array = T,
-      cm = T
+      array = TRUE,
+      cm = TRUE
     ) %>%
     openxlsx2::wb_add_numfmt(
       dims = openxlsx2::wb_dims(
@@ -959,9 +959,9 @@ IVI: Valor de importancia."
   names(estadisticos) <- c("Parámetros", "Conjunto de especies arbóreas", sp)
   wb <- wb %>%
     openxlsx2::wb_add_worksheet("Estadígrafos") %>%
-    openxlsx2::wb_add_data(x = df_sup, dims = "A1", col_names = F) %>%
+    openxlsx2::wb_add_data(x = df_sup, dims = "A1", col_names = FALSE) %>%
     openxlsx2::wb_add_numfmt(dims = "B2", numfmt = "#,##0.00") %>%
-    openxlsx2::wb_add_font(dims = "A1:A2", bold = T) %>%
+    openxlsx2::wb_add_font(dims = "A1:A2", bold = TRUE) %>%
     openxlsx2::wb_add_border(
       dims = "A1:B2",
       inner_hcolor = openxlsx2::wb_color(hex = "#BEC6B7"),
@@ -969,13 +969,13 @@ IVI: Valor de importancia."
     ) %>%
     # tabla estadisticos
     openxlsx2::wb_add_data(x = "Estadígrafos muestreo de Nha", dims = "A4") %>%
-    openxlsx2::wb_add_font(dims = "A4", bold = T, color = openxlsx2::wb_color("white")) %>%
+    openxlsx2::wb_add_font(dims = "A4", bold = TRUE, color = openxlsx2::wb_color("white")) %>%
     openxlsx2::wb_add_fill(dims = "A4", color = title_color) %>%
     openxlsx2::wb_add_cell_style(dims = "A4", horizontal = "center") %>%
-    openxlsx2::wb_merge_cells(dims = "A4:C4", solve = T) %>%
+    openxlsx2::wb_merge_cells(dims = "A4:C4", solve = TRUE) %>%
     openxlsx2::wb_add_data(x = estadisticos, start_col = 1, start_row = 5) %>%
-    openxlsx2::wb_add_font(dims = "C5", italic = T) %>%
-    openxlsx2::wb_add_font(dims = "A5:C5", bold = T) %>%
+    openxlsx2::wb_add_font(dims = "C5", italic = TRUE) %>%
+    openxlsx2::wb_add_font(dims = "A5:C5", bold = TRUE) %>%
     openxlsx2::wb_add_fill(dims = "A5:C5", color = header_color) %>%
     openxlsx2::wb_add_cell_style(dims = "A5;B5:C13", horizontal = "center") %>%
     openxlsx2::wb_add_border(
@@ -990,14 +990,14 @@ IVI: Valor de importancia."
         openxlsx2::fmt_txt(
           "Densidad, error e intervalos de confianza por estado de desarrollo de "
         ),
-        openxlsx2::fmt_txt(sp, italic = T, color = openxlsx2::wb_color("white"))
+        openxlsx2::fmt_txt(sp, italic = TRUE, color = openxlsx2::wb_color("white"))
       ),
       dims = "E4"
     ) %>%
-    openxlsx2::wb_add_font(dims = "E4", bold = T, color = openxlsx2::wb_color("white")) %>%
+    openxlsx2::wb_add_font(dims = "E4", bold = TRUE, color = openxlsx2::wb_color("white")) %>%
     openxlsx2::wb_add_fill(dims = "E4", color = title_color) %>%
     openxlsx2::wb_add_cell_style(dims = "E4", horizontal = "center") %>%
-    openxlsx2::wb_merge_cells(dims = "E4:K4", solve = T) %>%
+    openxlsx2::wb_merge_cells(dims = "E4:K4", solve = TRUE) %>%
     openxlsx2::wb_add_data(
       x = rep(NA, 7) %>%
         t() %>%
@@ -1019,10 +1019,10 @@ IVI: Valor de importancia."
       start_row = 5
     ) %>%
     openxlsx2::wb_set_col_widths(cols = 5:11, widths = c(22, 19, 11, 11, 14, 14, 16)) %>%
-    openxlsx2::wb_add_font(dims = "E5:K6", bold = T) %>%
+    openxlsx2::wb_add_font(dims = "E5:K6", bold = TRUE) %>%
     openxlsx2::wb_add_fill(dims = "E5:K6", color = header_color) %>%
-    openxlsx2::wb_add_cell_style(dims = "E5:K6", horizontal = "center", wrap_text = T) %>%
-    openxlsx2::wb_merge_cells(dims = "I5:J5", solve = T)
+    openxlsx2::wb_add_cell_style(dims = "E5:K6", horizontal = "center", wrap_text = TRUE) %>%
+    openxlsx2::wb_merge_cells(dims = "I5:J5", solve = TRUE)
 
   df_est_prop <- tibble::tibble(
     x1 = c(sp, prop_2$Estado),
@@ -1078,7 +1078,7 @@ IVI: Valor de importancia."
 
   for (i in LETTERS[c(5:8, 11)]) {
     wb <- wb %>%
-      openxlsx2::wb_merge_cells(dims = sprintf("%s5:%s6", i, i), solve = T)
+      openxlsx2::wb_merge_cells(dims = sprintf("%s5:%s6", i, i), solve = TRUE)
   }
 
   wb <- wb %>%
@@ -1086,14 +1086,14 @@ IVI: Valor de importancia."
       x = df_est_prop,
       start_col = 5,
       start_row = 7,
-      col_names = F
+      col_names = FALSE
     ) %>%
     openxlsx2::wb_add_cell_style(
       dims = "H7",
       vertical = "center",
       horizontal = "center"
     ) %>%
-    openxlsx2::wb_merge_cells(dims = sprintf("H7:H%s", n_estado + 7), solve = T) %>%
+    openxlsx2::wb_merge_cells(dims = sprintf("H7:H%s", n_estado + 7), solve = TRUE) %>%
     openxlsx2::wb_add_border(
       dims = sprintf("E4:K%s", n_estado + 7),
       inner_hcolor = openxlsx2::wb_color(hex = "#BEC6B7"),

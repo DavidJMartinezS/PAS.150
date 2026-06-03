@@ -9,7 +9,7 @@
 check_bd_flora <- function(x) {
   valid_df(x)
   shiny <- shiny::isRunning()
-  ok <- T
+  ok <- TRUE
 
   # Verificar que estén los campos mínimos ----
   if (!all(req_names$BD_flora %in% names(x))) {
@@ -25,7 +25,7 @@ check_bd_flora <- function(x) {
         "Faltan: ", paste(setdiff(req_names$BD_flora, names(x)) %>% shQuote(), collapse = ", "), "\n"
       )
     }
-    ok <- F
+    ok <- FALSE
   }
 
   # Verificar coberturas Braun Blanquet ----
@@ -70,7 +70,7 @@ check_bd_flora <- function(x) {
           ), "\n"
         )
       }
-      ok <- F
+      ok <- FALSE
     }
   }
 
@@ -114,7 +114,7 @@ check_bd_flora <- function(x) {
           sep = "\n"
         )
       }
-      ok <- F
+      ok <- FALSE
     }
   }
 
@@ -162,7 +162,7 @@ check_bd_flora <- function(x) {
           ),"\n"
         )
       }
-      ok <- F
+      ok <- FALSE
     }
 
     ## Verificar Parcelas repetidas ----
@@ -211,7 +211,7 @@ check_bd_flora <- function(x) {
           ),"\n"
         )
       }
-      ok <- F
+      ok <- FALSE
     }
 
     ## Verificar coordenadas repetidas ----
@@ -261,7 +261,7 @@ check_bd_flora <- function(x) {
           sep = "\n"
         )
       }
-      ok <- F
+      ok <- FALSE
     }
 
     ## Especies repetidas por parcela ----
@@ -310,7 +310,7 @@ check_bd_flora <- function(x) {
             ),"\n"
           )
         }
-        ok <- F
+        ok <- FALSE
       }
     }
   } %>% suppressWarnings() %>% suppressMessages()
@@ -355,7 +355,7 @@ check_bd_flora <- function(x) {
           sep = "\n"
         )
       }
-      ok <- F
+      ok <- FALSE
     }
   }
 
@@ -375,7 +375,7 @@ check_bd_flora <- function(x) {
 check_bd_fore <- function(x) {
   valid_df(x)
   shiny <- shiny::isRunning()
-  ok <- T
+  ok <- TRUE
 
   # Verificar que estén los campos mínimos ----
   if (!all(req_names$BD_fore %in% names(x))) {
@@ -391,7 +391,7 @@ check_bd_fore <- function(x) {
         "Faltan: ", paste(setdiff(req_names$BD_fore, names(x)) %>% shQuote(), collapse = ", "), "\n"
       )
     }
-    ok <- F
+    ok <- FALSE
   }
 
   # Verificar especies mal escritas ----
@@ -434,7 +434,7 @@ check_bd_fore <- function(x) {
           sep = "\n"
         )
       }
-      ok <- F
+      ok <- FALSE
     }
   }
 
@@ -482,7 +482,7 @@ check_bd_fore <- function(x) {
           ),"\n"
         )
       }
-      ok <- F
+      ok <- FALSE
     }
 
     ## Verificar Parcelas repetidas ----
@@ -531,7 +531,7 @@ check_bd_fore <- function(x) {
           ),"\n"
         )
       }
-      ok <- F
+      ok <- FALSE
     }
 
     ## Verificar coordenadas repetidas ----
@@ -581,7 +581,7 @@ check_bd_fore <- function(x) {
           sep = "\n"
         )
       }
-      ok <- F
+      ok <- FALSE
     }
   }
 
@@ -613,7 +613,7 @@ check_bd_fore <- function(x) {
           ), "\n"
         )
       }
-      ok <- F
+      ok <- FALSE
     }
   }
 

@@ -26,11 +26,43 @@ get_utm_epsg <- function(sf){
   return(epsg_code)
 }
 
+#' Agrupar geometrías por proximidad espacial
+#'
+#' Esta función agrupa las geometrías de un objeto `sf` que se encuentran dentro de una
+#' distancia umbral especificada. Utiliza componentes conectados en un grafo de adyacencia.
+#'
+#' @param sf Objeto de clase `sf` o `sfc`.
+#' @param distance Valor numérico. Distancia máxima en metros para considerar dos elementos como conectados.
+#'
+#' @return Un vector de enteros indicando el ID del grupo (membership) para cada geometría.
+#' @export
+#' @examples
+#' \dontrun{
+#'   sf_obj <- sf::read_sf("ruta/al/archivo.shp")
+#'   # Agrupar geometrías que distan menos de 50 metros entre sí
+#'   sf_obj$group <- group_by_distance(sf_obj, distance = 50)
+#'   # Agrupar geometrias en base a una agrupación de atributos
+#'   variables <- c("Grupo_1", "Grupo_2")
+#'   sf_obj %>% 
+#'    dplyr::group_by(!!dplyr::syms(variables)) %>% 
+#'    dplyr::mutate(group = group_by_distance(geometry, distance = 50))
+#' }
+group_by_distance <- function(sf, distance){
+  if (!inherits(sf, c("sf", "sfc"))) stop("El argumento 'sf' debe ser un objeto de clase 'sf' o 'sfc'.")
+  if (!is.numeric(distance) || length(distance) != 1) stop("El argumento 'distance' debe ser un valor numérico único.")
+
+  dist_matrix = sf::st_distance(sf, by_element = FALSE)
+  class(dist_matrix) = NULL
+  connected = dist_matrix <= distance
+  g = igraph::graph_from_adjacency_matrix(connected)
+  return(igraph::components(g)$membership)
+}
+
 #' @noRd
 check_input <- function(x, rv = NULL, names_req, id_reset = NULL, geometry = "POLYGON"){
-  ok <- T
+  ok <- TRUE
   x <- if(is.null(rv)) x else rv[[x]]
-  reset <- F
+  reset <- FALSE
   if (inherits(x, "sf")) {
     if (!all(any(grepl(geometry, sf::st_geometry_type(x))))) {
       shinybusy::report_failure(
@@ -38,9 +70,9 @@ check_input <- function(x, rv = NULL, names_req, id_reset = NULL, geometry = "PO
         text = sprintf("Ingresar shapefile de tipo %s", geometry)
       )
       if (!is.null(id_reset)) {
-        reset <- T
+        reset <- TRUE
       }
-      ok <- F
+      ok <- FALSE
     }
   }
   if(!all(names_req %in% names(sf::st_drop_geometry(x)))) {
@@ -53,9 +85,9 @@ check_input <- function(x, rv = NULL, names_req, id_reset = NULL, geometry = "PO
       )
     )
     if (!is.null(id_reset)) {
-      reset <- T
+      reset <- TRUE
     }
-    ok <- F
+    ok <- FALSE
   }
 
   if (ok) {
@@ -229,10 +261,11 @@ bind_events <- function(
 
 #' Preparar y estandarizar datos de Uso y Vegetación
 #'
-#' @param x Objeto sf con la cartografía de uso.
+#' @param x Objeto sf con la cartografía de uso y vegetacion de la cuenca. Tambien util para darle formato a las capas de BNP en la cuenca y de intervenir y alterar.
 #'
 #' @return Objeto sf con columnas renombradas y superficie calculada.
 prepare_uso_veg <- function(x) {
+  valid_input(x, inherit = "sf", geometry = "POLYGON")
   x %>%
     dplyr::rename_all(~ ifelse(
       . == "geometry", ., 
@@ -316,10 +349,9 @@ download_files <- function(x, name_save, dir_save, create_kmz = FALSE, csv = FAL
         y,
         sf = {
           sf::write_sf(x, paste0(tools::file_path_sans_ext(z), ".shp"))
+          format_sup_ha(paste0(tools::file_path_sans_ext(z), ".shp"))
           if(create_kmz) {
-            sf::write_sf(prepare_kml(x = x, basename = z), paste0(tools::file_path_sans_ext(z), ".kml"), delete_dsn = TRUE)
-            zip::zip(zipfile = paste0(tools::file_path_sans_ext(z), ".kmz"), files = paste0(tools::file_path_sans_ext(z), ".kml"))
-            file.remove(paste0(tools::file_path_sans_ext(z), ".kml"))
+            asign_name_folder_kmz(paste0(tools::file_path_sans_ext(z), ".shp")) %>% do.call("shp2kmz", .)
           }
         },
         wb = openxlsx2::wb_save(x, paste0(tools::file_path_sans_ext(z), ".xlsx"), overwrite = T),
@@ -342,138 +374,213 @@ download_files <- function(x, name_save, dir_save, create_kmz = FALSE, csv = FAL
   setwd(wd)
 }
 
-#' @noRd
-prepare_kml <- function(x, basename = NULL) {
-  name_str <- if (is.null(basename)) {
-    names(x)[1]
-  } else {
-    dplyr::case_when(
-      stringi::stri_detect_regex(basename, "Cuenca_de_estudio") ~ "NOM_SSUBC",
-      stringi::stri_detect_regex(basename, "Area_de_proyecto_Ubicación") ~ "NOM_SSUBC",
-      stringi::stri_detect_regex(basename, "Area_de_proyecto_Obras") ~ "Obra",
-      stringi::stri_detect_regex(basename, "BNP_.*_Cuenca") ~ "BNP_ECC",
-      stringi::stri_detect_regex(basename, "BNP_.*_a_") ~ "Obra",
-      stringi::stri_detect_regex(basename, "Censo_.*_a_") ~ "Especie",
-      stringi::stri_detect_regex(basename, "Uso_actual_de_la_tierra") ~ "Subuso",
-      stringi::stri_detect_regex(basename, "Vegetación_en_la_cuenca") ~ "Formacion",
-      stringi::stri_detect_regex(basename, "Estimación") ~ "Obra",
-      stringi::stri_detect_regex(basename, "Caminos_cuenca") ~ "ROL_LABEL",
-      stringi::stri_detect_regex(basename, "Hidrografía_cuenca") ~ "Tipo",
-      stringi::stri_detect_regex(basename, "Curvas_de_Nivel_cuenca") ~ "Elevacion",
-      stringi::stri_detect_regex(basename, "UTM_Inventarios|COT") ~ "Parcela",
-      stringi::stri_detect_regex(basename, "UTM_Registros") ~ "Especie",
-      .default = names(x)[1]
+#' Crear tabla HTML con los atributos de un data.frame
+#'
+#' Genera un vector de strings HTML, donde cada elemento corresponde a una
+#' tabla con los atributos de cada fila del data.frame de entrada. Es útil
+#' para crear popups en mapas de \code{leaflet} a partir de objetos \code{sf}.
+#'
+#' @param fila Un \code{data.frame} o \code{tibble} con los atributos a mostrar.
+#'   Las columnas llamadas \code{"geometry"}, \code{"geom"} y \code{"Name"} son
+#'   excluidas automáticamente. Se recomienda usar \code{sf::st_drop_geometry()}
+#'   antes de llamar a esta función si el objeto es de clase \code{sf}.
+#'
+#' @return Un vector de caracteres de largo \code{nrow(fila)}, donde cada
+#'   elemento es una tabla HTML con los atributos de la fila correspondiente.
+#'
+#' @examples
+#' \dontrun{
+#' # Uso dentro de mutate para crear popups en leaflet
+#' objeto_sf <- sf::read_sf("ruta/al/archivo.shp")
+#' # Mostrar todos los atributos
+#' objeto_sf %>% 
+#'   sf::st_transform(4326) %>% 
+#'   dplyr::mutate(popup = tabla_popup(.))
+#' # Seleccionar los atributos que mostrar en la tabla html
+#' objeto_sf %>% 
+#'   sf::st_transform(4326) %>% 
+#'   dplyr::mutate(
+#'     # Ejemplos de como poder seleccionar columnas
+#'     popup = tabla_popup(., cols = c(1:4)), # ej 1. Seleccionar primeras 4 columnas  
+#'     popup = tabla_popup(., cols = c("Obra", "Nom_obra", "Sup_ha")), # ej 2. Declarar nombres de los campos
+#'     popup = tabla_popup(., cols = dplyr::contains("Obra")), # ej 3. Seleccionar campos que contienen la palabra 'Obra'
+#'     popup = tabla_popup(., cols = c(1:2, dplyr::starts_with("Obra"), "Sup_ha")), # ej 4. Combinar formas
+#'   )
+#' }
+#'
+#' @export
+tabla_popup <- function(fila, cols = dplyr::everything()) {
+  if (nrow(fila) == 0) {
+    stop(
+      "El argumento 'fila' no contiene filas.",
+      call. = FALSE
     )
   }
-
-  name <- dplyr::sym(name_str)
-
-  shp_kml <- x %>% 
-    dplyr::mutate(
-      Name = !!name,
-      Description = tabla_kml(sf::st_drop_geometry(.)) 
-    ) %>% 
-    dplyr::select(Name, Description)
-  return(shp_kml)
-}
-
-#' @noRd
-tabla_kml <- function(fila) {
-  columnas <- setdiff(names(fila), c("geometry", "geom", "Name"))
-  filas_html <- lapply(columnas, function(col) {
-    paste0("<tr><td bgcolor='#EEEEEE'><b>", col, "</b></td><td>", fila[[col]], "</td></tr>")
+  if (ncol(fila) == 0) {
+    stop(
+      "El argumento 'fila' no contiene columnas.",
+      call. = FALSE
+    )
+  }
+  columnas <- names(sf::st_drop_geometry(fila) %>% dplyr::select(cols))
+  
+  purrr::pmap_chr(sf::st_drop_geometry(fila[columnas]), function(...) {
+    vals <- list(...)
+    filas_html <- mapply(function(col, val) {
+      paste0("<tr><td bgcolor='#EEEEEE'><b>", col, "</b></td><td>", val, "</td></tr>")
+    }, columnas, vals, SIMPLIFY = FALSE)
+    
+    paste0(
+      "<table border='1' style='border-collapse: collapse; width: 100%; font-family: Arial;'>",
+      paste(filas_html, collapse = ""),
+      "</table>"
+    )
   })
-  paste0(
-    "<table border='1' style='border-collapse: collapse; width: 100%; font-family: Arial;'>",
-    paste(filas_html, collapse = ""),
-    "</table>"
-  )
 }
 
 #' @noRd
-create_kmz <- function(x) {
-  read_sf(x) %>% prepare_kml() %>% 
-    sf::write_sf(file.path(directorio(), paste0(tools::file_path_sans_ext(x), ".kml")))
-  zip::zip(
-    zipfile = file.path(directorio, paste0(tools::file_path_sans_ext(x), ".kmz")), 
-    files = file.path(directorio, paste0(tools::file_path_sans_ext(x), ".kml"))
-  )
-  file.remove(file.path(directorio, paste0(tools::file_path_sans_ext(x), ".kml")))
-
+get_volumes <- function(exclude = NULL) {
+  osSystem <- Sys.info()["sysname"]
+  if (osSystem == "Darwin") {
+    volumes <- list.dirs("/Volumes")
+    names(volumes) <- basename(volumes)
+  } else if (osSystem == "Linux") {
+    volumes <- c(Computer = "/")
+    if (isTRUE(dir_exists("/media"))) {
+      media <- list.dirs("/media")
+      names(media) <- basename(media)
+      volumes <- c(volumes, media)
+    }
+  } else if (osSystem == "Windows") {
+    wmic <- paste0(Sys.getenv("SystemRoot"), "\\System32\\Wbem\\WMIC.exe")
+    if (!file.exists(wmic)) {
+      volumes_info <- system2(
+        "powershell",
+        "$dvr=[System.IO.DriveInfo]::GetDrives();Write-Output $dvr.length $dvr.name $dvr.VolumeLabel;",
+        stdout = TRUE
+      )
+      num = as.integer(volumes_info[1])
+      if (num == 0) {
+        return(NULL)
+      }
+      mat <- matrix(volumes_info[-1], nrow = num, ncol = 2)
+      mat[, 1] <- gsub(":\\\\$", ":/", mat[, 1])
+      sel <- mat[, 2] == ""
+      mat[sel, 2] <- mat[sel, 1]
+      volumes <- mat[, 1]
+      volNames <- mat[, 2]
+      volNames <- paste0(volNames, " (", gsub(":/$", ":", volumes), ")")
+    } else {
+      volumes <- system(
+        paste(wmic, "logicaldisk get Caption"),
+        intern = TRUE,
+        ignore.stderr = TRUE
+      )
+      volumes <- sub(" *\\r$", "", volumes)
+      keep <- !tolower(volumes) %in% c("caption", "")
+      volumes <- volumes[keep]
+      volNames <- system(
+        paste(wmic, "/FAILFAST:1000 logicaldisk get VolumeName"),
+        intern = TRUE,
+        ignore.stderr = TRUE
+      )
+      volNames <- sub(" *\\r$", "", volNames)
+      volNames <- volNames[keep]
+      volNames <- paste0(volNames, ifelse(volNames == "", "", " "))
+      volNames <- paste0(volNames, "(", volumes, ")")
+    }
+    names(volumes) <- volNames
+    volumes <- gsub(":$", ":/", volumes)
+  } else {
+    stop("unsupported OS")
+  }
+  if (!is.null(exclude)) {
+    volumes <- volumes[!names(volumes) %in% exclude]
+  }
+  return(volumes)
 }
-# kmz_usoveg <- function(shp, dirsave = NULL) {
-#   if(!file.exists(shp) && tools::file_ext(shp) == "shp") stop("")
-#   if(!is.null(dirsave) && !dir.exists(dirsave)) {
-#     stop("")
-#   }
-#   tabla_kml <- function(fila) {
-#     # Extraer nombres de columnas (excepto geometría y la propia descripción)
-#     columnas <- setdiff(names(fila), c("geometry", "geom", "Name"))
-    
-#     # Crear filas de la tabla
-#     filas_html <- lapply(columnas, function(col) {
-#       paste0("<tr><td bgcolor='#EEEEEE'><b>", col, "</b></td><td>", fila[[col]], "</td></tr>")
-#     })
-    
-#     paste0("<table border='1' style='border-collapse: collapse; width: 100%; font-family: Arial;'>",
-#           paste(filas_html, collapse = ""),
-#           "</table>")
-#   }
-#   name <- dplyr::case_when(
-#     stringi::stri_detect_regex(basename(shp), "Uso_actual_de_la_tierra") ~ "Subuso",
-#     stringi::stri_detect_regex(basename(shp), "Vegetación_en_la_cuenca") ~ "Formacion"
-#   ) %>% dplyr::sym()
-#   file <- dplyr::case_when(
-#     stringi::stri_detect_regex(basename(shp), "Uso_actual_de_la_tierra") ~ "Uso",
-#     stringi::stri_detect_regex(basename(shp), "Vegetación_en_la_cuenca") ~ "Formacion"
-#   ) %>% dplyr::sym()
 
-#   df_sf <- sf::read_sf(shp) %>% sf::st_transform(4326)
-#   skml <- reticulate::import("simplekml")
-#   kml <- skml$Kml()
-#   files <- unique(df_sf %>% dplyr::pull(!!file))
+#' @noRd
+path_ext <- function(x) {
+  pos <- regexpr("(\\.shp)?\\.[[:alnum:]]+$", x)
+  ifelse(pos > -1L, substring(x, pos + 1L), "")
+}
 
-#   for (u in files) {
-#     folder <- kml$newfolder(name = as.character(u))
-#     sub_df <- df_sf %>% dplyr::filter(!!file == u)
-    
-#     for (i in 1:nrow(sub_df)) {
-#       fila_i <- sub_df[i,]
-#       # Extraer coordenadas del anillo exterior
-#       coords <- sf::st_coordinates(fila_i)
-#       # Nos aseguramos de extraer solo X e Y de la primera parte del polígono
-#       coords_mat <- coords[coords[,"L1"] == 1, 1:2]
-      
-#       # CONVERSIÓN CRUCIAL: 
-#       # Convertimos la matriz en una lista de listas. 
-#       # Esto es lo que reticulate traduce a Python como "List of Lists",
-#       # que es exactamente lo que espera simplekml.
-#       coords_list <- split(coords_mat, seq(nrow(coords_mat)))
-#       names(coords_list) <- NULL # Quitamos los nombres de la lista para que sea anónima
-      
-#       # Crear el polígono
-#       pol <- folder$newpolygon(name = as.character(sf::st_drop_geometry(sub_df[i, as.character(name)])))
+#' @noRd
+path_sans_ext <- function(x) {
+  sub("(\\.shp)?\\.[[:alnum:]]+$", "", x)
+}
 
-#       # Asignar coordenadas 
-#       pol$outerboundaryis <- coords_list
+#' Agregar un prefijo al nombre de un archivo
+#'
+#' @param path Caracter. Ruta completa o relativa al archivo que se desea renombrar.
+#' @param prefijo Caracter. Texto que se antepondrá al nombre base del archivo.
+#'
+#' @return invisible(logical) TRUE si el archivo fue renombrado con éxito, FALSE si falló o no existe.
+#' @noRd
+agregar_prefijo <- function(path, prefijo, sep = "_") {
+  if (!file.exists(path)) {
+    warning("La ruta ingresada no existe: ", path)
+    return(invisible(FALSE))
+  }
 
-#       # Descripción HTML
-#       pol$description <- tabla_kml(fila_i)
-      
-#       # Estilos (Borde rojo, relleno transparente)
-#       pol$style$linestyle$color <- "ff0000ff" 
-#       pol$style$linestyle$width <- 1
-#       pol$style$polystyle$color <- "00ffffff" 
-#       pol$style$labelstyle$scale <- 0
-#     }
-#   }
+  if (!is.character(prefijo) || length(prefijo) != 1 || is.na(prefijo)) {
+    stop("El prefijo debe ser un caracter (string) válido de longitud 1.")
+  }
 
-#   if (is.null(dirsave)) {
-#     kml$savekmz(paste0(tools::file_path_sans_ext(shp), ".kmz"))
-#     print(paste0("poligono guardado en ", sQuote(dirname(tools::file_path_as_absolute(shp)))))
-#   } else {
-#     kml$savekmz(file.path(normalizePath(dirsave), paste0(tools::file_path_sans_ext(basename(shp)), ".kmz")))
-#     print(paste0("poligono guardado en ", sQuote(tools::file_path_as_absolute(dirsave))))
-#   }
-# }
+  if (!is.character(sep) || length(sep) != 1 || is.na(sep)) {
+    stop("El separador 'sep' debe ser un valor numérico de longitud 1.")
+  }
 
+  dir_part  <- dirname(path)
+  filename  <- basename(path)  
+  
+  ext  <- path_ext(filename)
+  base <- path_sans_ext(filename)
+  
+  if (nzchar(ext)) {
+    new_name <- glue::glue("{prefijo}{sep}{base}.{ext}")
+  } else {
+    new_name <- glue::glue("{prefijo}{sep}{base}")
+  }
+  
+  res <- file.rename(from = path, to = file.path(dir_part, new_name))
+  return(invisible(res))
+}
+
+#' Agregar un sufijo al nombre de un archivo
+#'
+#' @param path Caracter. Ruta completa o relativa al archivo que se desea renombrar.
+#' @param sufijo Caracter. Texto que se añadirá al final del nombre base del archivo.
+#'
+#' @return invisible(logical) TRUE si el archivo fue renombrado con éxito, FALSE si falló o no existe.
+#' @noRd
+agregar_sufijo <- function(path, sufijo, sep = "_") {
+  if (!file.exists(path)) {
+    warning("La ruta ingresada no existe: ", path)
+    return(invisible(FALSE))
+  }
+
+  if (!is.character(sufijo) || length(sufijo) != 1 || is.na(sufijo)) {
+    stop("El sufijo debe ser un caracter (string) válido de longitud 1.")
+  }
+
+  if (!is.character(sep) || length(sep) != 1 || is.na(sep)) {
+    stop("El separador 'sep' debe ser un valor numérico de longitud 1.")
+  }
+
+  dir_part  <- dirname(path)
+  filename  <- basename(path)  
+  
+  ext  <- path_ext(filename)
+  base <- path_sans_ext(filename)
+  
+  if (nzchar(ext)) {
+    new_name <- glue::glue("{base}{sep}{sufijo}.{ext}")
+  } else {
+    new_name <- glue::glue("{base}{sep}{sufijo}")
+  }
+  
+  res <- file.rename(from = path, to = file.path(dir_part, new_name))
+  return(invisible(res))
+}

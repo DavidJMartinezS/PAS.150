@@ -7,7 +7,7 @@
 prepare_uso_veg(x)
 }
 \arguments{
-\item{x}{Objeto sf con la cartografía de uso.}
+\item{x}{Objeto sf con la cartografía de uso y vegetacion de la cuenca. Tambien util para darle formato a las capas de BNP en la cuenca y de intervenir y alterar.}
 }
 \value{
 Objeto sf con columnas renombradas y superficie calculada.

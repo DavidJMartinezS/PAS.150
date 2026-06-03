@@ -13,7 +13,7 @@ mod_parcelas_ui <- function(id) {
     fileInput(
       inputId = ns("bd_flora"),
       label = "Parcelas de inventario florístico",
-      accept = c(".xlsx"),
+      accept = c(".xls", ".xlsx", ".csv", ".csv2", ".txt"),
       buttonLabel = "Seleccionar",
       placeholder = "Archivo no seleccionado"
     ),
@@ -36,7 +36,7 @@ mod_parcelas_ui <- function(id) {
     fileInput(
       inputId = ns("bd_fore"),
       label = "Ingrese parcelas de inventario forestal",
-      accept = c(".xlsx"),
+      accept = c(".xls", ".xlsx", ".csv", ".csv2", ".txt"),
       buttonLabel = "Seleccionar",
       placeholder = "Archivo no seleccionado"
     ),

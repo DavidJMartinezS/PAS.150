@@ -9,10 +9,52 @@
 #' @importFrom shiny NS tagList 
 mod_ext_capas_carto_ui <- function(id) {
   ns <- NS(id)
+
+  capas_ids <- c(
+    "cuenca", "ubic", "obras", "bnp_c", "bnp_i", "bnp_a",
+    "censo_i", "censo_a", "uso", "veg", "frag_a", "frag_d",
+    "est_a", "est_i", "caminos", "hidro", "curvas",
+    "inv_fl", "inv_fo", "registros"
+  )
+  capas_labels <- c(
+    "Cuenca de estudio", "Area de proyecto ubicacion", "Area de proyecto obras",
+    "BNP de la Cuenca", "BNP a intervenir", "BNP a alterar",
+    "Censo a intervenir", "Censo a alterar",
+    "Uso actual de la tierra", "Vegetacion en la cuenca",
+    "BNP fragmentacion Antes", "BNP fragmentacion Despues",
+    "Estimacion del BNP a alterar", "Estimacion del BNP a intervenir",
+    "Caminos de la cuenca", "Hidrografia de la cuenca",
+    "Curvas de nivel de la cuenca", "Parcelas de inventarios floristicos",
+    "Parcelas de inventarios forestales", "Registros de la especie"
+  )
+ 
+  # UI estatica: los botones nacen disabled y el servidor los controla con shinyjs.
+  # Al no estar dentro de renderUI, el DOM nunca se destruye/recrea,
+  # por lo que shinyjs::enable() persiste correctamente.
+  filas <- purrr::map2(capas_ids, capas_labels, function(cid, clabel) {
+    tags$tr(
+      tags$td(clabel),
+      tags$td(
+        class = "d-flex justify-content-center align-items-center gap-2",
+        shinyjs::disabled(
+          actionButton(ns(paste0("btn_run_", cid)), label = "Crear", class = "btn-sm btn-outline-primary")
+        ),
+        mod_downfiles_ui(ns(paste0("btn_dl_", cid)), class = "btn-sm btn-success"),
+        shinyjs::disabled(
+          actionButton(ns(paste0("btn_see_", cid)), label = "", icon = shiny::icon("eye"), class = "btn-outline-info btn-sm")
+        )
+      )
+    )
+  })
+ 
   bslib::card(
-    bslib::card_header("Crear capas de la Cartografía Digital"),
+    bslib::card_header("Crear capas de la Cartografia Digital"),
     full_screen = TRUE,
-    uiOutput(ns("tabla_carto_ui"))
+    tags$table(
+      class = "table table-sm table-hover align-middle",
+      tags$thead(tags$tr(tags$th("Capa"), tags$th("Acciones", class = "text-center"))),
+      tags$tbody(filas)
+    )
   )
 }
     
@@ -75,148 +117,98 @@ mod_ext_capas_carto_server <- function(id, rv){
       )
     )
 
-    # render tabla
-    output$tabla_carto_ui <- renderUI({
-      # n <- nrow(capas_meta)
-      # mid <- ceiling(n / 2)
-
-      make_table <- function(df) {
-        tags$table(
-          class = "table table-sm table-hover align-middle",
-          tags$thead(tags$tr(tags$th("Capa"), tags$th("Acciones", class="text-center"))),
-          tags$tbody(
-            purrr::pmap(df, function(id, label, req, ...) {
-              tags$tr(
-                tags$td(
-                  bslib::tooltip(
-                    trigger = list(
-                      label,
-                      bsicons::bs_icon("info-circle", class = "text-info ms-1", style = "cursor: help;")
-                    ),
-                    paste("Requiere:", paste(req, collapse = ", "))
-                  )
-                ),
-                tags$td(
-                  class = "d-flex justify-content-center align-items-center gap-2",
-                  actionButton(
-                    ns(paste0("btn_run_", id)), 
-                    label = "Crear", 
-                    class = "btn-sm btn-outline-primary"
-                  ) %>% tagAppendAttributes(disabled = NA),
-                  mod_downfiles_ui(ns(paste0("btn_dl_", id)), class = "btn-sm btn-success"),
-                  actionButton(
-                    ns(paste0("btn_see_", id)), 
-                    label = "", 
-                    icon = shiny::icon("eye"), 
-                    class = "btn-outline-info btn-sm"
-                  ) %>% tagAppendAttributes(disabled = NA)
-                )
-              )
-            })
-          )
-        )
-      }
-
-      make_table(capas_meta)
-    })
-
-    # Manejar todos los eventos
+    # Por cada capa: habilitar btn_run por requisitos, registrar mod_downfiles_server
+    # una sola vez, y manejar generacion + modal.
     purrr::pwalk(capas_meta, function(id, label, key_pattern, fun, args, req) {
+ 
+      # 1. Habilitar/deshabilitar btn_run segun requisitos
       observe({
         req_met <- purrr::every(req, ~ shiny::isTruthy(rv[[.x]]))
-        if (req_met) {
-          shinyjs::enable(paste0("btn_run_", id))
-        } else {
-          shinyjs::disable(paste0("btn_run_", id))
-        }
+        if (req_met) shinyjs::enable(paste0("btn_run_", id)) else shinyjs::disable(paste0("btn_run_", id))
       })
-
+ 
+      # 2. reactiveVal por capa como flag de generacion exitosa.
+      #    Solo cambia en observeEvent del btn_run. No depende de rv$sp
+      #    ni de ningun otro valor externo, por lo que nunca se invalida
+      #    espontaneamente y el boton de descarga permanece habilitado.
+      capa_generada <- reactiveVal(NULL)
+ 
+      # 3. Funcion pura para calcular la clave (usa isolate, no crea dependencia)
+      get_target_key <- function() {
+        sp_code <- if (!is.null(isolate(rv$sp))) stringi::stri_extract_first_words(isolate(rv$sp)) else ""
+        if (grepl("%s", key_pattern)) sprintf(key_pattern, sp_code) else key_pattern
+      }
+ 
+      # 4. mod_downfiles_server registrado UNA SOLA VEZ.
+      #    x() apunta a capa_generada(), que solo tiene valor tras exito.
+      #    name_save es un valor estatico calculado al registrar el modulo.
+      mod_downfiles_server(
+        id        = paste0("btn_dl_", id),
+        x         = reactive(capa_generada()),
+        name_save = get_target_key(),
+        create_kmz = TRUE
+      ) 
+ 
+      # 5. Generar la capa al presionar "Crear"
       observeEvent(input[[paste0("btn_run_", id)]], {
         call_args <- purrr::map(args, ~ rv[[.x]])
-
-        withProgress(message = paste('Generando', label), {
-          # Calculamos la clave de destino en la lista de cartografía
-          sp_code <- if(!is.null(rv$sp)) stringi::stri_extract_first_words(rv$sp) else ""
-          target_key <- if(grepl("%s", key_pattern)) sprintf(key_pattern, sp_code) else key_pattern
-          
+        withProgress(message = paste("Generando", label), {
           res <- try(do.call(fun, call_args), silent = TRUE)
-          
           if (!inherits(res, "try-error")) {
-            if(is.null(rv$carto_digital_list)) rv$carto_digital_list <- list()
+            target_key <- get_target_key()
+            if (is.null(rv$carto_digital_list)) rv$carto_digital_list <- list()
             rv$carto_digital_list[[target_key]] <- res
-            shinyjs::enable(paste0("btn_see_", id))
+            capa_generada(res)
+            shinyjs::enable(paste0("btn_see_", id))   # habilita btn_see directamente
           }
         })
-        mod_downfiles_server(
-          id = paste0("btn_dl_", id), 
-          x = reactive(rv$carto_digital_list[[target_key]]), 
-          name_save = target_key, 
-          create_kmz = TRUE
-        )
       })
-
-      # modal visualizacion
+ 
+      # 6. Modal de visualizacion
       observeEvent(input[[paste0("btn_see_", id)]], {
-        # Calculamos la clave de destino para buscar en la lista
-        sp_code <- if(!is.null(rv$sp)) stringi::stri_extract_first_words(rv$sp) else ""
-        target_key <- if(grepl("%s", key_pattern)) sprintf(key_pattern, sp_code) else key_pattern
-        
-        layer_data <- rv$carto_digital_list[[target_key]]
-        
+        layer_data <- capa_generada()
         if (is.null(layer_data)) {
-          showNotification(paste("La capa", label, "no ha sido generada aún."), type = "warning")
+          showNotification(paste("La capa", label, "no ha sido generada aun."), type = "warning")
           return()
         }
-        
-        # Actualizamos el valor reactivo y abrimos el modal
         viewing_layer(list(data = layer_data, label = label))
-        
         showModal(modalDialog(
-          title = paste("Vista previa:", label),
+          title     = paste("Vista previa:", label),
           leaflet::leafletOutput(ns("modal_map"), height = "600px"),
-          size = "xl",
+          size      = "xl",
           easyClose = TRUE,
-          footer = modalButton("Cerrar")
+          footer    = modalButton("Cerrar")
         ))
       })
-
+ 
     })
-
-    # leaflet modal
+ 
+    # Leaflet modal
     output$modal_map <- leaflet::renderLeaflet({
       req(viewing_layer())
       dat <- viewing_layer()$data
-      
-      # Transformación a WGS84 y remoción de geometrías vacías
-      dat_4326 <- dat %>% 
-        sf::st_transform(4326) %>% 
-        dplyr::filter(!sf::st_is_empty(.))
-      
+ 
+      dat_4326 <- dat %>%
+        sf::st_transform(4326) %>%
+        dplyr::filter(!sf::st_is_empty(.)) %>%
+        dplyr::mutate(popup = tabla_popup(sf::st_drop_geometry(.)))
+ 
       map <- leaflet::leaflet(dat_4326) %>%
         leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron, group = "CartoDB.Positron") %>%
-        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "Esri.WorldImagery") %>%
+        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery,  group = "Esri.WorldImagery") %>%
         leaflet::addLayersControl(
           baseGroups = c("CartoDB.Positron", "Esri.WorldImagery"),
-          options = leaflet::layersControlOptions(collapsed = FALSE)
+          options    = leaflet::layersControlOptions(collapsed = FALSE)
         )
-
+ 
       geom_type <- as.character(sf::st_geometry_type(dat_4326, by_geometry = FALSE))
-      
+ 
       if (any(grepl("POINT", geom_type))) {
-        map <- map %>% leaflet::addCircleMarkers(
-          color = "#920000", radius = 6, stroke = TRUE, fillOpacity = 0.8,
-          popup = leafpop::popupTable(sf::st_drop_geometry(dat_4326))
-        )
+        map <- map %>% leaflet::addCircleMarkers(color = "#920000", radius = 6, stroke = TRUE, fillOpacity = 0.8, popup = ~popup)
       } else if (any(grepl("LINESTRING", geom_type))) {
-        map <- map %>% leaflet::addPolylines(
-          color = "#00A087FF", weight = 3,
-          popup = leafpop::popupTable(sf::st_drop_geometry(dat_4326))
-        )
+        map <- map %>% leaflet::addPolylines(color = "#00A087FF", weight = 3, popup = ~popup)
       } else {
-        map <- map %>% leaflet::addPolygons(
-          fillColor = "#84BD00FF", fillOpacity = 0.5, color = "black", weight = 1,
-          popup = leafpop::popupTable(sf::st_drop_geometry(dat_4326))
-        )
+        map <- map %>% leaflet::addPolygons(fillColor = "#84BD00FF", fillOpacity = 0.5, color = "black", weight = 1, popup = ~popup)
       }
       map
     })

@@ -163,7 +163,7 @@ mod_explore_bd_server <- function(id, rv){
           position = "bottomright",
           options = leaflet::scaleBarOptions(imperial = FALSE)
         ) %>%
-        {if(isTruthy(rv$in_bnp_obras)) {
+        {if(isTruthy(rv$in_bnp_obra)) {
           leaflet::addLegend(.,
             title = "Legend",
             colors = c("#f1c40f","#84BD00FF","lightred","#000000","#00A087FF"),

@@ -206,7 +206,7 @@ mod_fragmentacion_server <- function(id, rv){
         )
       }, error = function(e) {
         shinyalert::shinyalert(
-          title = "Error al generar la el Apéndice de Fragmentación!",
+          title = "Error al generar el Apéndice de Fragmentación!",
           text = as.character(e$message),
           html = TRUE,
           type = "error",

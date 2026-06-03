@@ -57,9 +57,9 @@ get_inv_fores(BD_fore, BNP_cuenca, bd_lista = TRUE)
 
 get_prospeccion(BD_flora, BD_fore, censo, sp, BNP_cuenca)
 
-get_BNP_alt_sin_censo(BNP_alter, densidad)
+get_BNP_alt_sin_censo(BNP_alter, densidad = NULL)
 
-get_BNP_int_sin_censo(BNP_inter, densidad)
+get_BNP_int_sin_censo(BNP_inter, densidad = NULL)
 
 get_BNP_antes(BNP_cuenca)
 

@@ -107,7 +107,7 @@ wb_portada_PAS150 <- function(
 #' que se mostrarán en la portada de los libros de Excel generados para los apéndices.
 #'
 #' @param nom_proj Carácter. Nombre oficial del proyecto que se mostrará en la portada.
-#' @param etapa_proj Carácter. Etapa del proceso de evaluación del proyecto. Las opciones permitidas son \code{"EIA"}, \code{"A1"}, \code{"A2"} y \code{"RF"}. Por defecto es \code{"EIA"}.
+#' @param etapa_proj Carácter. Etapa del proceso de evaluación del proyecto. Las opciones permitidas son \code{"EIA"}, \code{"Ad"}, \code{"AdComp"} y \code{"RF"}. Por defecto es \code{"EIA"}.
 #' @param logo Carácter. Ruta al archivo de imagen (ej. PNG, JPG, SVG) que contiene el logo institucional del cliente.
 #' @param plantilla Carácter. Selección de una configuración predefinida para proyectos específicos. 
 #'   Las opciones disponibles son \code{"default"}, \code{"KIM753"} (Kimal-Lo Aguirre) y \code{"MLP612"} (Minera Los Pelambres).

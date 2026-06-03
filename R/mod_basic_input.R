@@ -50,7 +50,8 @@ mod_basic_input_server <- function(id, rv){
       rv = rv, 
       parent_input = input
     )
-
+    
+    # Metadatos especie objetivo ----
     prev_sp <- reactiveVal("Porlieria chilensis")
 
     observeEvent(rv$df_sp, {
@@ -118,7 +119,7 @@ mod_basic_input_server <- function(id, rv){
       removeModal()
     })
 
-    # Actualizar metadatos reactivosde la especie
+    # Actualizar metadatos reactivosde la especie ----
     observeEvent(input$sp, {
       req(input$sp)
       # Si es una especie válida (no la opción de agregar)
@@ -133,12 +134,17 @@ mod_basic_input_server <- function(id, rv){
       }
     })
 
-    # Afectacion
+    # Afectacion ----
     observe({
       if ("Censado" %in% names(rv$BNP_inter) || "Censado" %in% names(rv$BNP_alter)) {
         output$densidad_ui <- renderUI({
+          densidad_inicial <- if (isTruthy(rv$densidad_bd)) rv$densidad_bd else 0
           tags$div(
-            numericInput(ns("densidad"), label = "Densidad para estimación (ind/ha)", value = 0)
+            numericInput(
+              ns("densidad"),
+              label = "Densidad para estimación (ind/ha)",
+              value = densidad_inicial
+            )
           )
         })
       } else {
@@ -147,27 +153,67 @@ mod_basic_input_server <- function(id, rv){
     })
 
     observeEvent(rv$densidad_bd, {
+      req(rv$densidad_bd)
       updateNumericInput(session = session, inputId = "densidad", value = rv$densidad_bd)
     })
 
     # Uso_veg ----
     mod_read_sf_server("uso_veg", rv = rv, i = "uso_veg", fx = prepare_uso_veg)
     
-    observeEvent(rv$uso_veg, {
-      req(rv$uso_veg)
-      ok <- check_input(
-        rv= rv,
-        x = "uso_veg",
-        names_req = req_names$uso_veg,
-        id_reset = "uso_veg-sf_file"
-      )
-      if (isTruthy(rv$uso_veg) && ok) {
-        rv[["cuenca"]] <- get_cuenca(rv$uso_veg)
-        rv[["BNP_cuenca"]] <- get_BNP_cuenca(uso_veg = rv$uso_veg, sp = input$sp)
-      } else {
-        rv[["cuenca"]] <- NULL
-        rv[["BNP_cuenca"]] <- NULL
+    observeEvent(rv$uso_veg, ignoreNULL = FALSE, {
+      if (!isTruthy(rv$uso_veg)) {
+        rv$cuenca     <- NULL
+        rv$BNP_cuenca <- NULL
+        return()
       }
+
+      # Verificar CRS proyectado
+      if (isTRUE(sf::st_is_longlat(rv$uso_veg))) {
+        rv$cuenca <- NULL
+        return()
+      }
+
+      ok <- check_input(
+        rv        = rv,
+        x         = "uso_veg",
+        names_req = req_names$uso_veg,
+        id_reset  = "uso_veg-sf_file"
+      )
+      if (!ok) {
+        rv$uso_veg <- NULL
+        rv$cuenca  <- NULL
+        return()
+      }
+
+      rv$cuenca <- tryCatch(
+        get_cuenca(rv$uso_veg),
+        error = function(e) {
+          showNotification(paste("Error al calcular cuenca:", e$message), type = "error")
+          NULL
+        }
+      )
+    })
+
+    observe({
+      if (!isTruthy(rv$uso_veg) || !isTruthy(rv$sp)) {
+        rv$BNP_cuenca <- NULL
+        return()
+      }
+      
+      # Verificar que el CRS sea proyectado (no geográfico en grados)
+      # sf::st_is_longlat() devuelve TRUE si está en grados → no calcular aún
+      if (isTRUE(sf::st_is_longlat(rv$uso_veg))) {
+        rv$BNP_cuenca <- NULL
+        return()
+      }
+
+      rv$BNP_cuenca <- tryCatch(
+        get_BNP_cuenca(uso_veg = rv$uso_veg, sp = rv$sp),
+        error = function(e) {
+          showNotification(paste("Error al calcular BNP_cuenca:", e$message), type = "error")
+          NULL
+        }
+      )
     })
 
     # Input obras ----
@@ -194,75 +240,86 @@ mod_basic_input_server <- function(id, rv){
     })
 
     # Inputs afectacion ----
+    ## BNP intervenir ----
     mod_read_sf_server("bnp_inter", rv = rv, i = "BNP_inter", fx = prepare_uso_veg)
+    observeEvent(rv$BNP_inter, ignoreNULL = TRUE, {
+      ok <- check_input(rv = rv, x = "BNP_inter", names_req = req_names$BNP_afect, id_reset = "bnp_inter-sf_file")
+      if (!ok) {
+        rv$BNP_inter      <- NULL  # no re-dispara gracias a ignoreNULL = TRUE
+        rv$BNP_intervenir <- NULL
+        return()
+      }
 
-    observeEvent(rv$BNP_inter, {
-      check_input(
-        rv = rv,
-        x = "BNP_inter",
-        names_req = req_names$BNP_afect,
-        id_reset = "bnp_inter-sf_file"
-      )
-      if(!is.null(rv$BNP_inter)) {
-        if(!all(rv$BNP_inter$BNP_ECC %>% stringi::stri_detect_fixed(rv$sp, case_insensitive = T))) {
-          shinyalert::shinyalert(
-            title = "Existen BNP sin la especie objetivo",
-            text = tags$p(
-              "Las siguientes entidades no tienen la especie objetivo en el campo 'BNP_ECC'",
-              tags$br(),
-              which(rv$BNP_inter$BNP_ECC %>% stringi::stri_detect_fixed(rv$sp, case_insensitive = T, negate = T)) %>% 
-                paste(collapse = ", ")
-            ),
-            html = TRUE,
-            type = "warning",
-            closeOnEsc = T,
-            showConfirmButton = T,
-            confirmButtonCol = "#6FB58F",
-            animation = T
-          )
-        }
-      } 
-      if(isTruthy(rv$BNP_cuenca) && isTruthy(rv$obras)) {
-        rv[["BNP_intervenir"]] <- get_BNP_intervencion(BNP_cuenca = rv$BNP_cuenca, obras = rv$obras, BNP_inter = rv$BNP_inter)
-      } else {
-        rv[["BNP_intervenir"]] <- NULL
+      sin_sp <- rv$BNP_inter$BNP_ECC[
+        !stringi::stri_detect_fixed(rv$BNP_inter$BNP_ECC, rv$sp, case_insensitive = TRUE)
+      ]
+      if (length(sin_sp) > 0) {
+        shinyalert::shinyalert(
+          title = "Existen BNP sin la especie objetivo",
+          text  = tags$p(
+            "Las siguientes entidades no tienen la especie objetivo en el campo 'BNP_ECC':",
+            tags$br(),
+            paste(sin_sp, collapse = ", ")
+          ),
+          html = TRUE, type = "warning",
+          closeOnEsc = TRUE, showConfirmButton = TRUE,
+          confirmButtonCol = "#6FB58F", animation = TRUE
+        )
       }
     })
 
+    observe({
+      bnp_c <- rv$BNP_cuenca
+      obras  <- rv$obras
+      bnp_i  <- rv$BNP_inter
+      if ((isTruthy(bnp_c) && isTruthy(obras)) | isTruthy(bnp_i)) {
+        rv$BNP_intervenir <- get_BNP_intervencion(BNP_cuenca = bnp_c, obras = obras, BNP_inter = bnp_i)
+      } else {
+        rv$BNP_intervenir <- NULL
+      }
+    })
+
+    ## BNP alterar ----
     mod_read_sf_server("bnp_alter", rv = rv, i = "BNP_alter", fx = prepare_uso_veg)
-    
-    observeEvent(rv$BNP_alter, {
-      check_input(
-        rv = rv,
-        x = "BNP_alter",
-        names_req = "BNP_ECC",
-        id_reset = "bnp_alter-sf_file"
-      )
-      if(!is.null(rv$BNP_alter)) {
-        if(!all(rv$BNP_alter$BNP_ECC %>% stringi::stri_detect_fixed(rv$sp, case_insensitive = T))) {
-          shinyalert::shinyalert(
-            title = "Existen BNP sin la especie objetivo",
-            text = tags$p(
-              "Las siguientes entidades no tienen la especie objetivo en el campo 'BNP_ECC'",
-              tags$br(),
-              which(rv$BNP_alter$BNP_ECC %>% stringi::stri_detect_fixed(rv$sp, case_insensitive = T, negate = T)) %>% 
-                paste(collapse = ", ")
-            ),
-            html = TRUE,
-            type = "warning",
-            closeOnEsc = T,
-            showConfirmButton = T,
-            confirmButtonCol = "#6FB58F",
-            animation = T
-          )
-        }
+    observeEvent(rv$BNP_alter, ignoreNULL = TRUE, {
+      ok <- check_input(rv = rv, x = "BNP_alter", names_req = "BNP_ECC", id_reset = "bnp_alter-sf_file")
+      if (!ok) {
+        rv$BNP_alter   <- NULL
+        rv$BNP_alterar <- NULL
+        return()
       }
-      if(isTruthy(rv$BNP_cuenca) && isTruthy(rv$BNP_alter)) {
-        rv[["BNP_alterar"]] <- get_BNP_alterar(BNP_alter = rv$BNP_alter, BNP_cuenca = rv$BNP_cuenca, alt_ok = rv$listo_bnp_alter)
-      } else {
-        rv[["BNP_alterar"]] <- NULL
+
+      # Advertencia de especies faltantes
+      sin_sp <- rv$BNP_alter$BNP_ECC[
+        !stringi::stri_detect_fixed(rv$BNP_alter$BNP_ECC, rv$sp, case_insensitive = TRUE)
+      ]
+      if (length(sin_sp) > 0) {
+        shinyalert::shinyalert(
+          title = "Existen BNP sin la especie objetivo",
+          text  = tags$p(
+            "Las siguientes entidades no tienen la especie objetivo en 'BNP_ECC':",
+            tags$br(),
+            paste(sin_sp, collapse = ", ")
+          ),
+          html = TRUE, type = "warning",
+          closeOnEsc = TRUE, showConfirmButton = TRUE,
+          confirmButtonCol = "#6FB58F", animation = TRUE
+        )
       }
     })
+
+    observe({
+      if (isTruthy(rv$BNP_cuenca) && isTruthy(rv$BNP_alter)) {
+        rv$BNP_alterar <- get_BNP_alterar(
+          BNP_alter  = rv$BNP_alter,
+          BNP_cuenca = rv$BNP_cuenca,
+          alt_ok     = rv$listo_bnp_alter
+        )
+      } else {
+        rv$BNP_alterar <- NULL
+      }
+    })
+
   })
 }
     

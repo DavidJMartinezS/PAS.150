@@ -18,13 +18,18 @@ prepare_bd_flora_150 <- function(BD, bd_lista = TRUE, BNP_cuenca = NULL, in_bnp_
     (if (inherits(BD, "data.frame")) {
       BD
     } else {
+      ext <- tolower(tools::file_ext(BD))
       switch(
-        tools::file_ext(BD),
-        "xls" = readxl::read_xls(BD),
-        "xlsx" = readxl::read_xlsx(BD)
+        ext,
+        "xls"  = readxl::read_xls(BD),
+        "xlsx" = openxlsx2::read_xlsx(BD),
+        "csv"  = readr::read_csv(BD),
+        "csv2" = readr::read_csv2(BD),
+        "txt"   = readr::read_delim(BD, ...),
+        stop(paste0("Formato no soportado: '.", ext, "'"), call. = FALSE)
       )
     })
-  }, error = function(e) stop("Error en prepare_bd_flora: No se pudo leer el archivo", call. = F))
+  }, error = function(e) stop("Error en prepare_bd_flora: No se pudo leer el archivo. ", e$message, call. = FALSE))
 
   BD <- tryCatch({
     bd %>%
@@ -127,13 +132,18 @@ prepare_bd_fore_150 <- function(BD, bd_lista = FALSE, BNP_cuenca = NULL) {
     (if (inherits(BD, "data.frame")) {
       BD
     } else {
+      ext <- tolower(tools::file_ext(BD))
       switch(
-        tools::file_ext(BD),
-        "xls" = readxl::read_xls(BD),
-        "xlsx" = readxl::read_xlsx(BD)
+        ext,
+        "xls"  = readxl::read_xls(BD),
+        "xlsx" = openxlsx2::read_xlsx(BD),
+        "csv"  = readr::read_csv(BD),
+        "csv2" = readr::read_csv2(BD),
+        "txt"   = readr::read_delim(BD, ...),
+        stop(paste0("Formato no soportado: '.", ext, "'"), call. = FALSE)
       )
     })
-  }, error = function(e) stop("Error en prepare_bd_flora: No se pudo leer el archivo xlsx", call. = F))
+  }, error = function(e) stop("Error en prepare_bd_fore: No se pudo leer el archivo", e$message, call. = F))
 
   BD <- tryCatch({
     bd %>%

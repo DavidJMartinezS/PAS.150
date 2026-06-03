@@ -83,6 +83,8 @@ golem::add_module(name = "fragstats")
 golem::add_module(name = "importante")
 golem::add_module(name = "ext_capas_carto")
 golem::add_module(name = "ext_supha_kmz")
+golem::add_module(name = "alteracion")
+golem::add_utils(name = "alteracion")
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*

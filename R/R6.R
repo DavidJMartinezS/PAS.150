@@ -1,5 +1,5 @@
 #' @noRd
-sf <- R6::R6Class(
+ReadSf <- R6::R6Class(
   classname = "read_sf",
   public = list(
     sf_file = NULL,
@@ -39,7 +39,7 @@ sf <- R6::R6Class(
         }
         shp <- shp %>%
           sf::st_zm() %>%
-          sf::st_set_geometry("geometry") %>%
+          # sf::st_set_geometry("geometry") %>%
           sf::st_make_valid() %>% 
           sf::st_collection_extract(geom_type) %>% 
           sf::st_transform(get_utm_epsg(.)) %>% 
@@ -58,7 +58,7 @@ sf <- R6::R6Class(
 )
 
 #' @noRd
-sf_path <- R6::R6Class(
+ReadSfPath <- R6::R6Class(
   public = list(
     sf_file = NULL,
     path_shp = NULL,
