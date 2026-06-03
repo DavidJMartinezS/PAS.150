@@ -18,15 +18,14 @@ Imports:
     elevatr,
     forcats,
     fs,
-    ggthemes,
     golem,
     gt,
+    htmltools,
     igraph,
     janitor,
     kableExtra,
     leaflet,
     leaflet.extras,
-    leafpop,
     magick,
     openxlsx2,
     plotly,
@@ -35,6 +34,7 @@ Imports:
     R6,
     readr,
     readxl,
+    reticulate,
     rlang,
     sf,
     shiny,
@@ -53,8 +53,6 @@ Imports:
     units,
     zip
 Suggests: 
-    reticulate,
-    SupHA,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Encoding: UTF-8

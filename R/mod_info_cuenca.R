@@ -96,7 +96,7 @@ mod_info_cuenca_server <- function(id, rv){
                 `*`(100) %>% janitor::round_half_up(2) %>% format(decimal.mark = ",", big.mark = "."),
               "%)"
         )
-      colf_com <- leaflet::colorFactor(ggthemes::ggthemes_data$tableau$`color-palettes`$regular$`Tableau 20`$value[1:(info_cuenca$COMUNA %>% length())], info_cuenca$COMUNA)
+      colf_com <- leaflet::colorFactor(tableau20[1:(info_cuenca$COMUNA %>% length())], info_cuenca$COMUNA)
       return(
         list(
           nom_cuenca_vb = nom_cuenca_vb,

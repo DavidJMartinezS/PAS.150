@@ -41,7 +41,7 @@ mod_uso_suelo_server <- function(id, rv){
       req(rv$uso_veg)
       colf_sub <-
         leaflet::colorFactor(
-          ggthemes::ggthemes_data$tableau$`color-palettes`$regular$`Tableau 20`$value[1:(rv$uso_veg$Subuso %>% unique() %>% length())],
+          tableau20[1:(rv$uso_veg$Subuso %>% unique() %>% length())],
           rv$uso_veg$Subuso
         )
       rv$uso_veg %>% 

@@ -539,9 +539,9 @@ agregar_prefijo <- function(path, prefijo, sep = "_") {
   base <- path_sans_ext(filename)
   
   if (nzchar(ext)) {
-    new_name <- glue::glue("{prefijo}{sep}{base}.{ext}")
+    new_name <- sprintf("%s%s%s.%s", refijo, sep, base, ext)
   } else {
-    new_name <- glue::glue("{prefijo}{sep}{base}")
+    new_name <- sprintf("%s%s%s%s", refijo, sep, base, ext)
   }
   
   res <- file.rename(from = path, to = file.path(dir_part, new_name))
@@ -576,9 +576,9 @@ agregar_sufijo <- function(path, sufijo, sep = "_") {
   base <- path_sans_ext(filename)
   
   if (nzchar(ext)) {
-    new_name <- glue::glue("{base}{sep}{sufijo}.{ext}")
+    new_name <- sprintf("%s%s%s.%s", base, sep, sufijo, ext)
   } else {
-    new_name <- glue::glue("{base}{sep}{sufijo}")
+    new_name <- sprintf("%s%s%s%s", base, sep, sufijo, ext)
   }
   
   res <- file.rename(from = path, to = file.path(dir_part, new_name))

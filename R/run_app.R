@@ -6,7 +6,6 @@
 #'
 #' @export
 #' @import dataPAS
-#' @import ggthemes 
 #' @import shiny
 #' @importFrom golem with_golem_options
 #' @importFrom bsicons bs_icon 

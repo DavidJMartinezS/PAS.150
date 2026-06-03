@@ -87,7 +87,7 @@ mod_biodiversidad_server <- function(id, rv){
       validate(need(rv$BD_biodiversidad, "Requiere haber generardo la BD de Biodiversidad"))
       habito <- rv$BD_biodiversidad$composicion %>%
         dplyr::count(Habito)
-      paleta_habito <- ggthemes::ggthemes_data[["tableau"]][["color-palettes"]][["regular"]]$`Miller Stone` %>% dplyr::slice(1:nrow(habito)) %>% .$value
+      paleta_habito <- c("#4f6980", "#849db1", "#a2ceaa", "#638b66", "#bfbb60", "#f47942", "#fbb04e", "#b66353", "#d7ce9f", "#b9aa97", "#7e756d") %>% .[c(1:nrow(habito))]
       plotly::plot_ly(
         type = 'pie',
         labels = habito$Habito,
@@ -104,7 +104,8 @@ mod_biodiversidad_server <- function(id, rv){
       validate(need(rv$BD_biodiversidad, "Requiere haber generardo la BD de Biodiversidad"))
       origen <- rv$BD_biodiversidad$composicion %>%
         dplyr::count(Origen) 
-      paleta_origen <- ggthemes::ggthemes_data[["tableau"]][["color-palettes"]][["regular"]]$`Nuriel Stone` %>% dplyr::slice(1:nrow(origen)) %>% .$value
+      paleta_origen <- c("#8175aa", "#6fb899", "#31a1b3", "#ccb22b", "#a39fc9", "#94d0c0", "#959c9e", "#027b8e", "#9f8f12") %>% 
+        .[1:nrow(origen)]
       plotly::plot_ly(
         type = 'pie',
         labels = origen$Origen,
