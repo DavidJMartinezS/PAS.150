@@ -25,7 +25,7 @@ prepare_bd_flora_150 <- function(BD, bd_lista = TRUE, BNP_cuenca = NULL, in_bnp_
         "xlsx" = openxlsx2::read_xlsx(BD),
         "csv"  = readr::read_csv(BD),
         "csv2" = readr::read_csv2(BD),
-        "txt"   = readr::read_delim(BD, ...),
+        "txt"  = readr::read_delim(BD, ...),
         stop(paste0("Formato no soportado: '.", ext, "'"), call. = FALSE)
       )
     })
@@ -33,6 +33,7 @@ prepare_bd_flora_150 <- function(BD, bd_lista = TRUE, BNP_cuenca = NULL, in_bnp_
 
   BD <- tryCatch({
     bd %>%
+      janitor::remove_empty("cols") %>% 
       dplyr::rename_all(~ stringi::stri_trans_totitle(
         stringi::stri_trans_general(., "Latin-ASCII"),
         type = "sentence"
@@ -139,14 +140,15 @@ prepare_bd_fore_150 <- function(BD, bd_lista = FALSE, BNP_cuenca = NULL) {
         "xlsx" = openxlsx2::read_xlsx(BD),
         "csv"  = readr::read_csv(BD),
         "csv2" = readr::read_csv2(BD),
-        "txt"   = readr::read_delim(BD, ...),
+        "txt"  = readr::read_delim(BD, ...),
         stop(paste0("Formato no soportado: '.", ext, "'"), call. = FALSE)
       )
     })
   }, error = function(e) stop("Error en prepare_bd_fore: No se pudo leer el archivo", e$message, call. = F))
 
   BD <- tryCatch({
-    bd %>%
+    bd %>% 
+      janitor::remove_empty("cols") %>% 
       dplyr::rename_all(~ stringi::stri_trans_totitle(
         stringi::stri_trans_general(., "Latin-ASCII"),
         type = "sentence")

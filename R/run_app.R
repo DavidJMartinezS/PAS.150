@@ -11,7 +11,7 @@
 #' @importFrom bsicons bs_icon 
 #' @importFrom bslib accordion accordion_panel bs_theme card card_body card_header input_dark_mode input_switch layout_column_wrap layout_columns nav_item nav_menu nav_panel nav_spacer navset_card_underline page_fillable page_navbar sidebar tooltip value_box 
 #' @importFrom config get 
-#' @importFrom dplyr across add_count add_row add_tally any_of arrange bind_cols bind_rows case_match case_when contains count ends_with everything filter full_join group_by if_all if_else inner_join last_col left_join matches mutate mutate_all mutate_at mutate_if n pull relocate rename rename_all rename_at rename_if row_number select slice slice_head slice_max slice_tail starts_with summarise summarise_all summarise_at syms tally ungroup vars ensym sym
+#' @importFrom dplyr across add_count add_row add_tally all_of any_of arrange bind_cols bind_rows case_match case_when contains count ends_with everything filter full_join group_by if_all if_else inner_join last_col left_join matches mutate mutate_all mutate_at mutate_if n pull relocate rename rename_all rename_at rename_if row_number select slice slice_head slice_max slice_tail starts_with summarise summarise_all summarise_at syms tally ungroup vars ensym sym
 #' @importFrom DT DTOutput datatable formatStyle renderDT
 #' @importFrom elevatr get_elev_raster 
 #' @importFrom forcats as_factor fct_na_value_to_level 
@@ -19,7 +19,7 @@
 #' @importFrom gt cell_fill cell_text cells_body cells_column_labels cells_column_spanners cells_footnotes cells_stub cells_stubhead cells_title cols_align cols_label cols_width everything fmt_number fmt_percent gt gt_output matches md px render_gt starts_with tab_footnote tab_header tab_spanner tab_stubhead tab_style
 #' @importFrom htmltools htmlEscape 
 #' @importFrom igraph components graph_from_adjacency_matrix 
-#' @importFrom janitor adorn_pct_formatting adorn_totals round_half_up 
+#' @importFrom janitor adorn_pct_formatting adorn_totals remove_empty round_half_up
 #' @importFrom kableExtra kable_styling kbl 
 #' @importFrom leaflet addAwesomeMarkers addCircles addLayersControl addLegend addMeasure addMiniMap addPolygons addProviderTiles addScaleBar colorFactor highlightOptions layersControlOptions leaflet leafletOutput makeAwesomeIcon providers renderLeaflet scaleBarOptions addCircleMarkers addPolylines
 #' @importFrom leaflet.extras addFullscreenControl addResetMapButton 
@@ -33,7 +33,7 @@
 #' @importFrom readr write_excel_csv2 read_csv read_csv2 read_delim
 #' @importFrom reticulate import
 #' @importFrom rlang list2 
-#' @importFrom sf read_sf st_area st_as_sf st_as_text st_bbox st_buffer st_cast st_centroid st_collection_extract st_combine st_coordinates st_crs st_difference st_drop_geometry st_filter st_geometry st_geometry_type st_intersection st_intersects st_is_within_distance st_join st_make_valid st_nearest_feature st_relate st_set_geometry st_transform st_union st_zm write_sf 
+#' @importFrom sf read_sf st_area st_as_sf st_as_text st_bbox st_buffer st_cast st_centroid st_collection_extract st_concave_hull st_combine st_coordinates st_crs st_difference st_drop_geometry st_filter st_geometry st_geometry_type st_intersection st_intersects st_is_within_distance st_join st_make_valid st_nearest_feature st_relate st_set_geometry st_simplify st_transform st_union st_zm write_sf
 #' @importFrom shinyFiles shinyDirButton shinyDirChoose
 #' @importFrom shinyWidgets pickerInput pickerOptions updatePickerInput multiInput updateMultiInput
 #' @importFrom shinyalert shinyalert 

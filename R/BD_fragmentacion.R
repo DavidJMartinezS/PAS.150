@@ -46,7 +46,7 @@ BD_fragmentacion <- function(
     subusos_noveg <- sort(unique(sf_uso$Subuso)) %>%
       subset(stringi::stri_detect_regex(
         stringi::stri_trans_general(., "Latin-ASCII"),
-        "rocoso|camino|zona|rio|lago|mineria|agricola|otros|ambiental",
+        "rocoso|camino|zona|rio|lago|mineria|agricola|otros|ambiental|duna|playa",
         case_insensitive = TRUE
       ))
   }
@@ -86,17 +86,9 @@ BD_fragmentacion <- function(
   add_total_lsm <- function(x, name_tot) {
     round_df_fun <- function(df) {
       df %>%
-        dplyr::mutate_at(
-          dplyr::vars(AREA, CA, CORE),
-          janitor::round_half_up,
-          2
-        ) %>%
+        dplyr::mutate_at(dplyr::vars(AREA, CA, CORE), janitor::round_half_up, 2) %>%
         dplyr::mutate_at(dplyr::vars(ENN), janitor::round_half_up, 1) %>%
-        dplyr::mutate_at(
-          dplyr::vars(SHAPE, FRAC, PROX),
-          janitor::round_half_up,
-          3
-        )
+        dplyr::mutate_at( dplyr::vars(SHAPE, FRAC, PROX), janitor::round_half_up, 3)
     }
     x %>%
       dplyr::select(PID, NP, CA, AREA:ENN) %>%
@@ -189,7 +181,7 @@ BD_fragmentacion <- function(
       VALOR = purrr::pmap_dbl(list(SIGLA, `DIFERENCIA(%)`, CLASE), eval_frag)
     ) %>%
     dplyr::rename(`Valoración` = VALOR, Sigla = SIGLA) %>%
-    dplyr::inner_join(tabla_guia_fragmentacion[3:6]) %>%
+    dplyr::inner_join(tabla_guia_fragmentacion[3:6], by = c("Sigla", "Valoración")) %>%
     dplyr::relocate(`Parámetro`, .after = Sigla) %>%
     dplyr::rename_all(stringi::stri_trans_toupper)
 
@@ -223,7 +215,8 @@ BD_fragmentacion <- function(
             units::drop_units() %>%
             janitor::round_half_up(2)
         ) %>%
-        sf::st_drop_geometry()
+        sf::st_drop_geometry(),
+      by = "Subuso"
     ) %>% # añadir sup a intervenir por subuso
     dplyr::mutate_at('Intervención', ~ ifelse(is.na(.), 0, .)) %>%
     janitor::adorn_totals(name = 'Total vegetación') %>% # añadir fila total vegetacion
@@ -247,7 +240,8 @@ BD_fragmentacion <- function(
                 units::drop_units() %>%
                 janitor::round_half_up(2)
             ) %>%
-            sf::st_drop_geometry()
+            sf::st_drop_geometry(),
+          by = "Subuso"
         ) %>%
         dplyr::mutate_at('Intervención', ~ ifelse(is.na(.), 0, .)) %>%
         dplyr::mutate(`Después` = Antes - `Intervención`)

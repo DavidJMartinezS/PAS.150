@@ -284,12 +284,18 @@ get_ECC_alt <- function(BNP_alter, censo, sp) {
     dplyr::select(Especie) %>% 
     dplyr::filter(Especie %>% stringi::stri_detect_fixed(sp)) %>%
     sf::st_intersection(BNP_alter) %>% 
-    dplyr::mutate(
-      Afectacion = "Alteración del hábitat",
-      UTM_E = sf::st_coordinates(geometry)[, 1] %>% as.integer(),
-      UTM_N = sf::st_coordinates(geometry)[, 2] %>% as.integer()
-    ) %>% 
-    dplyr::select(Especie, Afectacion, dplyr::contains("obra"), dplyr::matches("Tipo"), UTM_E, UTM_N)
+    {if(nrow(.) == 0){
+      NULL
+    } else {
+      .[] %>% 
+        dplyr::mutate(
+        Afectacion = "Alteración del hábitat",
+        UTM_E = sf::st_coordinates(geometry)[, 1] %>% as.integer(),
+        UTM_N = sf::st_coordinates(geometry)[, 2] %>% as.integer()
+      ) %>% 
+      dplyr::select(Especie, Afectacion, dplyr::contains("obra"), dplyr::matches("Tipo"), UTM_E, UTM_N)
+    }}
+    
 }
 
 #' @rdname carto_digital
@@ -316,18 +322,24 @@ get_ECC_int <- function(censo, sp, BNP_inter, BNP_alter = NULL, upto5m = T) {
     dplyr::filter(Especie %>% stringi::stri_detect_fixed(sp)) %>%
     dplyr::filter(!ID %in% codes) %>% 
     {if (upto5m) {
-      .[] %>% sf::st_filter(BNP_inter, .pred = sf::st_is_within_distance, dist = 5) %>% 
+      .[] %>% 
+        sf::st_filter(BNP_inter, .pred = sf::st_is_within_distance, dist = 5) %>% 
         sf::st_join(BNP_inter, join = sf::st_nearest_feature)
     } else {
       .[] %>% sf::st_filter(BNP_inter, .pred = sf::st_intersects) %>% 
         sf::st_join(BNP_inter, join = sf::st_intersects)
     }} %>% 
-    dplyr::mutate(
-      Afectacion = 'Eliminación',
-      UTM_E = sf::st_coordinates(geometry)[, 1] %>% as.integer(),
-      UTM_N = sf::st_coordinates(geometry)[, 2] %>% as.integer()
-    ) %>% 
-    dplyr::select(Especie, Afectacion, dplyr::contains("Obra"), dplyr::matches("Tipo"), UTM_E, UTM_N)
+    {if(nrow(.) == 0){
+      NULL
+    } else {
+      .[] %>% 
+        dplyr::mutate(
+        Afectacion = 'Eliminación',
+        UTM_E = sf::st_coordinates(geometry)[, 1] %>% as.integer(),
+        UTM_N = sf::st_coordinates(geometry)[, 2] %>% as.integer()
+      ) %>% 
+      dplyr::select(Especie, Afectacion, dplyr::contains("Obra"), dplyr::matches("Tipo"), UTM_E, UTM_N)
+    }} 
 
   return(ecc_int)
 }

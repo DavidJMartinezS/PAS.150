@@ -37,34 +37,25 @@ mod_afectacion_server <- function(id, rv){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     observeEvent(rv$carto_digital, {
+      opt <- purrr::keep(
+        rv$carto_digital,
+        .p = stringi::stri_detect_regex(
+          names(rv$carto_digital),
+          "[censo|estim].*[inter|alter]",
+          case_insensitive = TRUE
+        )
+      ) %>%
+        purrr::pluck() %>% 
+        purrr::map(names) %>% 
+        purrr::flatten_chr() %>% 
+        unique() %>% 
+        subset(stringi::stri_detect_regex(., "obra", case_insensitive = TRUE))
+
       shinyWidgets::updateVirtualSelect(
         session = session,
         inputId = "vars_obras",
-        choices = purrr::keep(
-          rv$carto_digital,
-          .p = stringi::stri_detect_regex(
-            names(rv$carto_digital),
-            "Censo.*Inter",
-            case_insensitive = T
-          )
-        ) %>%
-          purrr::pluck(1) %>%
-          dplyr::select(dplyr::contains("obra")) %>%
-          sf::st_drop_geometry() %>%
-          names(),
-        selected = purrr::keep(
-          rv$carto_digital,
-          .p = stringi::stri_detect_regex(
-            names(rv$carto_digital),
-            "Censo.*Inter",
-            case_insensitive = T
-          )
-        ) %>%
-          purrr::pluck(1) %>%
-          dplyr::select(dplyr::contains("obra")) %>%
-          sf::st_drop_geometry() %>%
-          names() %>%
-          .[1]
+        choices = opt,
+        selected = opt[1]
       )
     })
 
@@ -78,8 +69,7 @@ mod_afectacion_server <- function(id, rv){
             "Censo.*Inter",
             case_insensitive = T
           )
-        ) %>%
-          purrr::pluck(1),
+        ) %>% purrr::pluck(1),
         BNP_int_sin_censo = purrr::keep(
           rv$carto_digital,
           .p = stringi::stri_detect_regex(
@@ -87,8 +77,8 @@ mod_afectacion_server <- function(id, rv){
             "Estimación_Inter",
             case_insensitive = T
           )
-        ) %>%
-          purrr::pluck(1),
+        ) %>% purrr::pluck(1),
+        sp = rv$sp,
         col_obras = input$vars_obras
       )
     })
@@ -124,6 +114,7 @@ mod_afectacion_server <- function(id, rv){
             case_insensitive = T
           )
         ) %>% purrr::pluck(1),
+        sp = rv$sp,
         col_obras = input$vars_obras
       )
     })

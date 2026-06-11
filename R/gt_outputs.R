@@ -55,8 +55,8 @@ gt_tipos_forestales <- function(uso_veg, sp) {
     dplyr::summarise(Sup_Total = sum(Sup_ha)) %>% 
     dplyr::mutate(P_Total = Sup_Total / sup_cuenca)
 
-  TF_tabla <- dplyr::full_join(TF_BN, TF_BNP) %>%
-    dplyr::full_join(TF_Total) %>%
+  TF_tabla <- dplyr::full_join(TF_BN, TF_BNP, by = "Tipo_for") %>%
+    dplyr::full_join(TF_Total, by = "Tipo_for") %>% 
     dplyr::mutate_all(tidyr::replace_na, 0) %>%
     janitor::adorn_totals(name = "Total") %>%
     gt::gt(rowname_col = "Tipo_for") %>%
@@ -107,7 +107,7 @@ gt_tipos_forestales <- function(uso_veg, sp) {
       style = gt::cell_fill(color = "#7f8684", alpha = 0.2),
       locations = list(
         gt::cells_column_labels(gt::everything()),
-        gt::cells_column_spanners(gt::everything()),
+        gt::cells_column_spanners(spanners = gt::everything()),
         gt::cells_stubhead()
       )
     ) %>%
@@ -420,27 +420,53 @@ gt_prop <- function(df_est, df_prop, BNP_cuenca, sp) {
 }
 
 #' @noRd
-gt_ecc_inter <- function(ecc_inter, BNP_int_sin_censo, col_obras = NULL) {
-  sp <- ecc_inter$Especie %>% unique() %>% .[1]
-  vars_obras <- if(is.null(col_obras)) {
-    dplyr::syms(dplyr::select(ecc_inter, dplyr::contains("obra")) %>% names() %>% .[1])
-  } else {
-    dplyr::syms(col_obras)
-  }
-  ecc_inter %>% 
-    sf::st_drop_geometry() %>% 
-    dplyr::count(!!!vars_obras, Especie, Afectacion) %>% 
-    {if(!is.null(BNP_int_sin_censo)) {
-      .[] %>% dplyr::bind_rows(
-        BNP_int_sin_censo %>% 
-          sf::st_drop_geometry() %>% 
-          dplyr::mutate(Especie = sp) %>% 
-          dplyr::select(!!!vars_obras, Especie, Afectacion, Ind_inter) %>% 
-          dplyr::rename(n = Ind_inter)
+gt_ecc_inter <- function(ecc_inter, BNP_int_sin_censo = NULL, sp, col_obras = NULL) {
+  if(is.null(ecc_inter)) {
+    if(!is.null(BNP_int_sin_censo)) {
+      vars_obras <- if(is.null(col_obras)) {
+        dplyr::syms(dplyr::select(BNP_int_sin_censo, dplyr::contains("obra")) %>% names() %>% .[1])
+      } else {
+        dplyr::syms(col_obras)
+      }
+      df <- BNP_int_sin_censo %>% 
+        sf::st_drop_geometry() %>% 
+        dplyr::mutate(Especie = sp) %>% 
+        dplyr::select(!!!vars_obras, Especie, Afectacion, Ind_inter) %>% 
+        dplyr::rename(n = Ind_inter) %>% 
+        dplyr::group_by(!!!vars_obras, Especie, Afectacion) %>% 
+        dplyr::summarise(n = sum(n))
+    } else {
+      v_names <- sapply(col_obras, rlang::as_name)
+      df <- tibble::tibble(
+        !!!setNames(rep(list("-"), length(v_names)), v_names),
+        Especie = sp,
+        Afectacion = "-",
+        n = 0
       )
-    } else .[]} %>% 
-    dplyr::group_by(!!!vars_obras, Especie, Afectacion) %>% 
-    dplyr::summarise(n = sum(n)) %>% 
+    }
+  } else {
+    vars_obras <- if(is.null(col_obras)) {
+      dplyr::syms(dplyr::select(ecc_inter, dplyr::contains("obra")) %>% names() %>% .[1])
+    } else {
+      dplyr::syms(col_obras)
+    }
+    df <- ecc_inter %>% 
+      sf::st_drop_geometry() %>% 
+      dplyr::count(!!!vars_obras, Especie, Afectacion) %>% 
+      {if(!is.null(BNP_int_sin_censo)) {
+        .[] %>% 
+          dplyr::bind_rows(
+            BNP_int_sin_censo %>% 
+              sf::st_drop_geometry() %>% 
+              dplyr::mutate(Especie = sp) %>% 
+              dplyr::select(!!!vars_obras, Especie, Afectacion, Ind_inter) %>% 
+              dplyr::rename(n = Ind_inter)
+          )
+      } else .[]} %>% 
+      dplyr::group_by(!!!vars_obras, Especie, Afectacion) %>% 
+      dplyr::summarise(n = sum(n))
+  }
+  df %>% 
     janitor::adorn_totals(name = "Total individuos a intervenir") %>%
     gt::gt() %>% 
     gt::tab_style(
@@ -473,29 +499,52 @@ gt_ecc_inter <- function(ecc_inter, BNP_int_sin_censo, col_obras = NULL) {
 }
 
 #' @noRd
-gt_ecc_alter <- function(ecc_alter, BNP_alt_sin_pto, col_obras = NULL) {
-  sp <- ecc_alter$Especie %>% unique() %>% .[1]
-  vars_obras <- if(is.null(col_obras)) {
-    dplyr::syms(dplyr::select(ecc_alter, dplyr::contains("obra")) %>% names() %>% .[1])
+gt_ecc_alter <- function(ecc_alter, BNP_alt_sin_pto, sp, col_obras = NULL) {
+  if(is.null(ecc_alter)) {
+    if(!is.null(BNP_alt_sin_pto)) {
+      vars_obras <- if(is.null(col_obras)) {
+        dplyr::syms(dplyr::select(BNP_alt_sin_pto, dplyr::contains("obra")) %>% names() %>% .[1])
+      } else {
+        dplyr::syms(col_obras)
+      }
+      df <- BNP_alt_sin_pto %>% 
+        sf::st_drop_geometry() %>% 
+        dplyr::mutate(Especie = sp) %>% 
+        dplyr::select(!!!vars_obras, Especie, Ind_alter) %>% 
+        dplyr::rename(n = Ind_alter)
+    } else {
+      v_names <- sapply(col_obras, rlang::as_name)
+      df <- tibble::tibble(
+        !!!setNames(rep(list("-"), length(v_names)), v_names),
+        Especie = sp,
+        n = 0,
+        Componente = "-"
+      )
+    }
   } else {
-    dplyr::syms(col_obras)
+    vars_obras <- if(is.null(col_obras)) {
+      dplyr::syms(dplyr::select(ecc_alter, dplyr::contains("obra")) %>% names() %>% .[1])
+    } else {
+      dplyr::syms(col_obras)
+    }
+    df <- ecc_alter %>% 
+      sf::st_drop_geometry() %>% 
+      dplyr::count(!!!vars_obras, Especie) %>% 
+      {if(!is.null(BNP_alt_sin_pto)) {
+        .[] %>% 
+          dplyr::bind_rows(
+            BNP_alt_sin_pto %>% 
+              sf::st_drop_geometry() %>% 
+              dplyr::mutate(Especie = sp) %>% 
+              dplyr::select(!!!vars_obras, Especie, Ind_alter) %>% 
+              dplyr::rename(n = Ind_alter)
+          ) 
+      } else .[]} %>% 
+      dplyr::group_by(!!!vars_obras, Especie) %>% 
+      dplyr::summarise(n = sum(n), .groups = "drop") %>%
+      dplyr::mutate(Componente = "") 
   }
-  ecc_alter %>% 
-    sf::st_drop_geometry() %>% 
-    dplyr::count(!!!vars_obras, Especie) %>% 
-    {if(!is.null(BNP_alt_sin_pto)) {
-      .[] %>% 
-        dplyr::bind_rows(
-          BNP_alt_sin_pto %>% 
-            sf::st_drop_geometry() %>% 
-            dplyr::mutate(Especie = sp) %>% 
-            dplyr::select(!!!vars_obras, Especie, Ind_alter) %>% 
-            dplyr::rename(n = Ind_alter)
-        ) 
-    } else .[]} %>% 
-    dplyr::group_by(!!!vars_obras, Especie) %>% 
-    dplyr::summarise(n = sum(n), .groups = "drop") %>%
-    dplyr::mutate(Componente = "") %>% 
+  df %>% 
     janitor::adorn_totals(name = "Total individuos a alterar su hábitat") %>% 
     gt::gt() %>% 
     gt::tab_style(
@@ -570,7 +619,8 @@ gt_sup_inter <- function(obras, BNP_inter, BNP_alterar, col_obras = NULL) {
         ) ~ "Otras obras",
         .default = .
       )
-    ) 
+    ) %>% 
+    suppressMessages()
   
   if(length(vars_obras) > 1) {
     for(i in vars_obras %>% dplyr::setdiff(last_var) %>% length() %>% seq_len() %>% sort(decreasing = T)) {

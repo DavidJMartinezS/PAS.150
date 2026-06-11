@@ -210,7 +210,7 @@ BD_biodiversidad <- function(
     }) %>%
     dplyr::bind_rows() %>%
     tibble::rownames_to_column("row") %>%
-    dplyr::filter(n != 1 & !is.na(Campo)) %>%
+    dplyr::filter(n > 1 & !is.na(Campo)) %>%
     dplyr::pull(row) %>%
     as.numeric() %>%
     {
@@ -501,7 +501,7 @@ BD_biodiversidad <- function(
   class(frecuencias$Frecuencia) <- "formula"
 
   spp_acomp <- frecuencias %>%
-    dplyr::filter(Frec >= 0.25, Especie != sp) %>%
+    dplyr::filter(Frec >= 0.25 & !Especie == sp) %>%
     dplyr::select(Especie, Frec) %>%
     dplyr::rename(Frecuencia = Frec)
 

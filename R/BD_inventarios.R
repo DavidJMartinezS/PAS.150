@@ -117,7 +117,7 @@ BD_inventarios <- function(
       Densidad_relativa = (Nha / sum(Nha) * 100) %>% janitor::round_half_up(1),
       Dominancia_relativa = (Gha / sum(Gha) * 100) %>% janitor::round_half_up(1)
     ) %>%
-    dplyr::left_join(frec_rel) %>%
+    dplyr::left_join(frec_rel, by = "Especie") %>%
     dplyr::mutate(
       IVI = (Densidad_relativa + Dominancia_relativa + Frecuencia_relativa)
     ) %>%

@@ -11,6 +11,10 @@ tabla_popup(fila, cols = dplyr::everything())
 Las columnas llamadas \code{"geometry"}, \code{"geom"} y \code{"Name"} son
 excluidas automáticamente. Se recomienda usar \code{sf::st_drop_geometry()}
 antes de llamar a esta función si el objeto es de clase \code{sf}.}
+
+\item{cols}{Selección de columnas a incluir en la tabla HTML. Soporta nombres de columnas,
+posiciones numéricas y selectores de \code{tidyselect} (como \code{starts_with()},
+\code{contains()}, etc.). Por defecto utiliza todas las columnas (\code{everything()}).}
 }
 \value{
 Un vector de caracteres de largo \code{nrow(fila)}, donde cada
@@ -34,10 +38,10 @@ objeto_sf \%>\%
   sf::st_transform(4326) \%>\% 
   dplyr::mutate(
     # Ejemplos de como poder seleccionar columnas
-    popup = tabla_popup(., cols = c(1:4)), # ej 1. Seleccionar primeras 4 columnas  
-    popup = tabla_popup(., cols = c("Obra", "Nom_obra", "Sup_ha")), # ej 2. Declarar nombres de los campos
-    popup = tabla_popup(., cols = dplyr::contains("Obra")), # ej 3. Seleccionar campos que contienen la palabra 'Obra'
-    popup = tabla_popup(., cols = c(1:2, dplyr::starts_with("Obra"), "Sup_ha")), # ej 4. Combinar formas
+    popup1 = tabla_popup(., cols = c(1:4)), # ej 1. Sel. primeras 4 columnas  
+    popup2 = tabla_popup(., cols = c("Obra", "Sup_ha")), # ej 2. Declarar nombres
+    popup3 = tabla_popup(., cols = dplyr::contains("Obra")), # ej 3. Sel. contienen 'Obra'
+    popup4 = tabla_popup(., cols = c(1:2, dplyr::starts_with("Obra"), "Sup_ha")), # ej 4. Combinar
   )
 }
 

@@ -24,7 +24,7 @@ mod_parcelas_ui <- function(id) {
       splitLayout(
         cellWidths = c("25%", "50%", "25%"),
         checkboxInput(ns("listo_bd_flora"), "BD lista"),
-        checkboxInput(ns("in_bnp_obra"), "En BNP con obras", value = F),
+        checkboxInput(ns("in_bnp_obra"), "En BNP con obras", value = FALSE),
         actionButton(
           ns("check_bd_flora"),
           label = "Check",

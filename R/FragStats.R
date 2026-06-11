@@ -123,7 +123,8 @@ FragStats_post <- function(dir, path_antes, path_despues) {
     dplyr::left_join(
       read.table(list.files(file.path(dir, "RESULTADOS/ANTES/"), pattern = ".patch$", full.names = T), header = T, sep = ",") %>% dplyr::select(-1) 
     ) %>% 
-    dplyr::relocate(geometry, .after = dplyr::last_col())
+    dplyr::relocate(geometry, .after = dplyr::last_col()) %>% 
+    suppressMessages()
   sf::write_sf(antes_raster_sf, file.path(dir, "ENTREGA/Raster/SHP", basename(path_antes)))
   shp2kmz(
     shp = file.path(dir, "ENTREGA/Raster/SHP", basename(path_antes)), 
@@ -149,7 +150,8 @@ FragStats_post <- function(dir, path_antes, path_despues) {
     dplyr::left_join(
       read.table(list.files(file.path(dir, "RESULTADOS/DESPUES/"), pattern = ".patch$", full.names = T), header = T, sep = ",") %>% dplyr::select(-1)
     ) %>% 
-    dplyr::relocate(geometry, .after = dplyr::last_col())
+    dplyr::relocate(geometry, .after = dplyr::last_col()) %>% 
+    suppressMessages()
   sf::write_sf(despues_raster_sf, file.path(dir, "ENTREGA/Raster/SHP", basename(path_despues)))
   shp2kmz(
     shp = file.path(dir, "ENTREGA/Raster/SHP", basename(path_despues)), 

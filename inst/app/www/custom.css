@@ -208,7 +208,7 @@ table.dataTable tbody tr.selected {
 
 /* multiInput wrapper */
 .multi-wrapper {
-  height: 500px;
+  height: 450px;
 }
 .multi-wrapper .non-selected-wrapper,
 .multi-wrapper .selected-wrapper {

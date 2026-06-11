@@ -27,17 +27,16 @@ Para la instalación del paquete `{PAS.150}` debe de ejecutar:
 
 ``` r
 options(timeout = 600)
-remotes::install_github("trafficonese/leaflet.extras")
-remotes::install_github("DavidJMartinezS/dataPAS", dependencies = T, force = T)
-remotes::install_github("DavidJMartinezS/PAS.150", dependencies = T, force = T)
-```
+# install.packages("pak")
 
-## Run
+pak::pak("trafficonese/leaflet.extras", dependencies = T)
+if(!"dataPAS" %in% rownames(installed.packages())) pak::pak("DavidJMartinezS/dataPAS") 
+pak::pak("DavidJMartinezS/PAS.150", dependencies = T)
 
-You can launch the application by running:
-
-``` r
-PAS.150::run_app()
+if (!reticulate::py_module_available("simplekml")) {
+  message("Instalando simplekml de Python...")
+  reticulate::py_install("simplekml")
+}
 ```
 
 ## Uso del paquete

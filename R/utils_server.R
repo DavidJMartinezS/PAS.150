@@ -384,7 +384,9 @@ download_files <- function(x, name_save, dir_save, create_kmz = FALSE, csv = FAL
 #'   Las columnas llamadas \code{"geometry"}, \code{"geom"} y \code{"Name"} son
 #'   excluidas automáticamente. Se recomienda usar \code{sf::st_drop_geometry()}
 #'   antes de llamar a esta función si el objeto es de clase \code{sf}.
-#'
+#' @param cols Selección de columnas a incluir en la tabla HTML. Soporta nombres de columnas,
+#'   posiciones numéricas y selectores de \code{tidyselect} (como \code{starts_with()},
+#'   \code{contains()}, etc.). Por defecto utiliza todas las columnas (\code{everything()}).
 #' @return Un vector de caracteres de largo \code{nrow(fila)}, donde cada
 #'   elemento es una tabla HTML con los atributos de la fila correspondiente.
 #'
@@ -401,10 +403,10 @@ download_files <- function(x, name_save, dir_save, create_kmz = FALSE, csv = FAL
 #'   sf::st_transform(4326) %>% 
 #'   dplyr::mutate(
 #'     # Ejemplos de como poder seleccionar columnas
-#'     popup = tabla_popup(., cols = c(1:4)), # ej 1. Seleccionar primeras 4 columnas  
-#'     popup = tabla_popup(., cols = c("Obra", "Nom_obra", "Sup_ha")), # ej 2. Declarar nombres de los campos
-#'     popup = tabla_popup(., cols = dplyr::contains("Obra")), # ej 3. Seleccionar campos que contienen la palabra 'Obra'
-#'     popup = tabla_popup(., cols = c(1:2, dplyr::starts_with("Obra"), "Sup_ha")), # ej 4. Combinar formas
+#'     popup1 = tabla_popup(., cols = c(1:4)), # ej 1. Sel. primeras 4 columnas  
+#'     popup2 = tabla_popup(., cols = c("Obra", "Sup_ha")), # ej 2. Declarar nombres
+#'     popup3 = tabla_popup(., cols = dplyr::contains("Obra")), # ej 3. Sel. contienen 'Obra'
+#'     popup4 = tabla_popup(., cols = c(1:2, dplyr::starts_with("Obra"), "Sup_ha")), # ej 4. Combinar
 #'   )
 #' }
 #'
@@ -583,4 +585,25 @@ agregar_sufijo <- function(path, sufijo, sep = "_") {
   
   res <- file.rename(from = path, to = file.path(dir_part, new_name))
   return(invisible(res))
+}
+
+.onAttach <- function(libname, pkgname) {
+  # Verificar Python/simplekml solo si se va a usar shp2kmz
+  if (!reticulate::py_available(initialize = FALSE)) {
+    packageStartupMessage(
+      "AVISO: Python no está disponible. La función shp2kmz() no funcionará.\n",
+      "Instale Python y ejecute: reticulate::py_install('simplekml')"
+    )
+  }
+}
+
+.onLoad <- function(libname, pkgname) {
+  # Verificar versión mínima de R
+  if (getRversion() < "4.3.0") {
+    stop(
+      "PAS.150 requiere R >= 4.3.0. Versión actual: ", getRversion(),
+      "\nActualice R en: https://cran.r-project.org",
+      call. = FALSE
+    )
+  }
 }
