@@ -10,9 +10,10 @@
 mod_check_ui <- function(id) {
   ns <- NS(id)
   bslib::page_fillable(
-    fill = T, 
+    fill = TRUE, 
     bslib::navset_card_underline(
       title = "Check cartografía de uso y vegetación",
+      bslib::nav_spacer(),
       bslib::nav_panel(title = "Tabla atributos", DT::DTOutput(ns("check_1"))),
       bslib::nav_panel(title = "Atributos por campo", verbatimTextOutput(ns("check_2"))),
       bslib::nav_panel(title = "Usos, Subusos, Formacion, F_ley20283", DT::DTOutput(ns("check_3"))),
@@ -30,6 +31,7 @@ mod_check_server <- function(id, rv){
     ns <- session$ns
 
     output$check_1 <- DT::renderDT({
+      validate(need(rv$uso_veg, "Cargar capa de uso y vegetación de la cuenca"))
       req(rv$uso_veg)
       DT::datatable(
         rv$uso_veg %>% 
@@ -51,6 +53,7 @@ mod_check_server <- function(id, rv){
       )
     })
     output$check_2 <- renderPrint({
+      validate(need(rv$uso_veg, "Cargar capa de uso y vegetación de la cuenca"))
       req(rv$uso_veg)
       rv$uso_veg %>%
         dplyr::select(Uso, Subuso, Formacion, Tipo_for, Subtipo_fo, F_ley20283, BNP_ECC) %>%
@@ -58,6 +61,7 @@ mod_check_server <- function(id, rv){
         sapply(function(x){sort(unique(x))})
     })
     output$check_3 <- DT::renderDT({
+      validate(need(rv$uso_veg, "Cargar capa de uso y vegetación de la cuenca"))
       req(rv$uso_veg)
       DT::datatable(
         rv$uso_veg %>%
@@ -81,6 +85,7 @@ mod_check_server <- function(id, rv){
         )
     })
     output$check_4 <- DT::renderDT({
+      validate(need(rv$uso_veg, "Cargar capa de uso y vegetación de la cuenca"))
       req(rv$uso_veg)
       DT::datatable(
         rv$uso_veg %>%
@@ -105,6 +110,7 @@ mod_check_server <- function(id, rv){
         )
     })
     output$check_5 <- DT::renderDT({
+      validate(need(rv$uso_veg, "Cargar capa de uso y vegetación de la cuenca"))
       req(rv$uso_veg)
       DT::datatable(
         rv$uso_veg %>%

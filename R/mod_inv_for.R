@@ -16,13 +16,13 @@ mod_inv_for_ui <- function(id) {
       heights_equal = "row",
       bslib::card(
         height = "450px", 
-        full_screen = T,
+        full_screen = TRUE,
         bslib::card_header("Tabla IVI"),
         div_gt(gt::gt_output(ns("gt_ivi")))
       ),
       bslib::card(
         height = "450px",
-        full_screen = T,
+        full_screen = TRUE,
         bslib::card_header("Estadísticos"),
         div_gt(gt::gt_output(ns("gt_estadisticos")))
       )
@@ -32,13 +32,13 @@ mod_inv_for_ui <- function(id) {
       heights_equal = "row",
       bslib::card(
         height = "380px",
-        full_screen = T,
+        full_screen = TRUE,
         bslib::card_header("Intervalos de confianza de la densidad media por estado de desarrollo"),
         div_gt(gt::gt_output(ns("gt_IC_prop")))
       ),
       bslib::card(
         height = "550px",
-        full_screen = T,
+        full_screen = TRUE,
         bslib::card_header("Mapa BNP y parcelas forestales"),
         leaflet::leafletOutput(ns("leaf_inv_fore"), height = "540px")
       )

@@ -62,12 +62,12 @@ wb_portada_PAS150 <- function(
       start_col = 2,
       start_row = 16
     ) %>%
-    openxlsx2::wb_add_font(dims = "B16", bold = T, size = 14) %>%
+    openxlsx2::wb_add_font(dims = "B16", bold = TRUE, size = 14) %>%
     openxlsx2::wb_add_cell_style(dims = "B16", horizontal = "center", vertical = "center") %>%
     openxlsx2::wb_merge_cells(dims = openxlsx2::wb_dims(rows = 16, cols = 2:5), solve = T) %>%
     # Nombre proyecto
     openxlsx2::wb_add_data(x = stringi::stri_trans_toupper(opts$nom_proj), dims = "A18") %>%
-    openxlsx2::wb_add_font(dims = "A18",bold = T, size = 16) %>%
+    openxlsx2::wb_add_font(dims = "A18",bold = TRUE, size = 16) %>%
     openxlsx2::wb_add_cell_style(dims = "A18", horizontal = "center", vertical = "center") %>%
     openxlsx2::wb_merge_cells(dims = openxlsx2::wb_dims(rows = 18:19, cols = 1:6), solve = T) %>%
     # N° apéndice
@@ -82,7 +82,7 @@ wb_portada_PAS150 <- function(
     openxlsx2::wb_merge_cells(dims = openxlsx2::wb_dims(rows = 24, cols = 1:6), solve = T) %>%
     # Elaborado por
     openxlsx2::wb_add_data(x = "Elaborado por Geobiota para:", start_col = 2, start_row = 31) %>%
-    openxlsx2::wb_add_font(dims = "B31", bold = T, size = 14) %>%
+    openxlsx2::wb_add_font(dims = "B31", bold = TRUE, size = 14) %>%
     openxlsx2::wb_add_cell_style(dims = "B31", horizontal = "center", vertical = "center") %>%
     openxlsx2::wb_merge_cells(dims = openxlsx2::wb_dims(rows = 31, cols = 2:5), solve = T) %>%
     openxlsx2::wb_add_image(

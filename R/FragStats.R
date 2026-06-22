@@ -37,10 +37,8 @@ FragStats_pre <- function(dir, path_antes, path_despues) {
     dplyr::group_by(ID) %>% 
     dplyr::tally() %>% 
     sf::st_cast("POLYGON") %>% 
-    dplyr::mutate(
-      TIPO = "BNP_ANTES",
-      Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)
-    ) %>% 
+    dplyr::mutate(TIPO = "BNP_ANTES") %>% 
+    st_add_sup_ha() %>% 
     dplyr::select(TIPO, ID, Sup_ha)
   sf::write_sf(sf_antes, file.path(dir,"ENTREGA/Vectorial/SHP", basename(path_antes)))
   shp2kmz(
@@ -55,10 +53,8 @@ FragStats_pre <- function(dir, path_antes, path_despues) {
     dplyr::group_by(ID) %>% 
     dplyr::tally() %>% 
     sf::st_cast("POLYGON") %>% 
-    dplyr::mutate(
-      TIPO = "BNP_DESPUES",
-      Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2) 
-    ) %>% 
+    dplyr::mutate(TIPO = "BNP_DESPUES") %>% 
+    st_add_sup_ha() %>% 
     dplyr::select(TIPO, ID, Sup_ha)
   sf::write_sf(sf_despues, file.path(dir, "ENTREGA/Vectorial/SHP", basename(path_despues)))
   shp2kmz(
@@ -121,7 +117,7 @@ FragStats_post <- function(dir, path_antes, path_despues) {
     dplyr::select(-n) %>% 
     sf::st_collection_extract("POLYGON") %>% 
     dplyr::left_join(
-      read.table(list.files(file.path(dir, "RESULTADOS/ANTES/"), pattern = ".patch$", full.names = T), header = T, sep = ",") %>% dplyr::select(-1) 
+      read.table(list.files(file.path(dir, "RESULTADOS/ANTES/"), pattern = ".patch$", full.names = T), header = TRUE, sep = ",") %>% dplyr::select(-1) 
     ) %>% 
     dplyr::relocate(geometry, .after = dplyr::last_col()) %>% 
     suppressMessages()
@@ -148,7 +144,7 @@ FragStats_post <- function(dir, path_antes, path_despues) {
     dplyr::select(-n) %>% 
     sf::st_collection_extract("POLYGON") %>% 
     dplyr::left_join(
-      read.table(list.files(file.path(dir, "RESULTADOS/DESPUES/"), pattern = ".patch$", full.names = T), header = T, sep = ",") %>% dplyr::select(-1)
+      read.table(list.files(file.path(dir, "RESULTADOS/DESPUES/"), pattern = ".patch$", full.names = T), header = TRUE, sep = ",") %>% dplyr::select(-1)
     ) %>% 
     dplyr::relocate(geometry, .after = dplyr::last_col()) %>% 
     suppressMessages()
@@ -161,18 +157,18 @@ FragStats_post <- function(dir, path_antes, path_despues) {
   
   wb <- openxlsx2::wb_workbook() %>% 
     openxlsx2::wb_add_worksheet(sheet = "ANTES") %>% 
-    openxlsx2::wb_add_data(x = read.table(list.files(file.path(dir, "RESULTADOS/ANTES/"), pattern = ".patch$", full.names = T), header = T, sep = ",") %>% select(-1)) %>% 
+    openxlsx2::wb_add_data(x = read.table(list.files(file.path(dir, "RESULTADOS/ANTES/"), pattern = ".patch$", full.names = T), header = TRUE, sep = ",") %>% select(-1)) %>% 
     openxlsx2::wb_add_worksheet(sheet = "DESPUES") %>% 
-    openxlsx2::wb_add_data(x = read.table(list.files(file.path(dir, "RESULTADOS/DESPUES/"), pattern = ".patch$", full.names = T), header = T, sep = ",") %>% select(-1)) 
+    openxlsx2::wb_add_data(x = read.table(list.files(file.path(dir, "RESULTADOS/DESPUES/"), pattern = ".patch$", full.names = T), header = TRUE, sep = ",") %>% select(-1)) 
   openxlsx2::wb_save(wb = wb, file = file.path(dir, "TABLA/JOIN_PATCH25_PROX1000.xlsx"))
   
-  names_from <- list.files(file.path(dir, "RESULTADOS/ANTES"), recursive = T, full.names = T)
+  names_from <- list.files(file.path(dir, "RESULTADOS/ANTES"), recursive = TRUE, full.names = T)
   names_to <- file.path(dir, "RESULTADOS/ANTES", paste(
     basename(path_antes) %>% tools::file_path_sans_ext() %>% paste("Patch25_Prox1000", sep = "_"),
     tools::file_ext(names_from), sep = "."
   ))
   file.rename(names_from, names_to)
-  names_from <- list.files(file.path(dir, "RESULTADOS/DESPUES"), recursive = T, full.names = T)
+  names_from <- list.files(file.path(dir, "RESULTADOS/DESPUES"), recursive = TRUE, full.names = T)
   names_to <- file.path(dir, "RESULTADOS/DESPUES", paste(
     basename(path_despues) %>% tools::file_path_sans_ext() %>% paste("Patch25_Prox1000", sep = "_"),
     tools::file_ext(names_from), sep = "."

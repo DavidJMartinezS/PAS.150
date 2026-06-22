@@ -118,10 +118,10 @@ mod_parcelas_server <- function(id, rv){
         shinyalert::shinyalert(
           title = "Error con la BD de flora!",
           text = e$message,
-          html = F,
+          html = FALSE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )
@@ -141,10 +141,10 @@ mod_parcelas_server <- function(id, rv){
         shinyalert::shinyalert(
           title = "Error al ejecutar el chequeo de flora",
           text = e$message,
-          html = F,
+          html = FALSE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )
@@ -174,10 +174,10 @@ mod_parcelas_server <- function(id, rv){
         shinyalert::shinyalert(
           title = "Error con la BD de inventarios!",
           text = e$message,
-          html = F,
+          html = FALSE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )
@@ -197,10 +197,10 @@ mod_parcelas_server <- function(id, rv){
         shinyalert::shinyalert(
           title = "Error al ejecutar el chequeo forestal",
           text = e$message,
-          html = F,
+          html = FALSE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )

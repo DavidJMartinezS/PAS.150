@@ -1,3 +1,14 @@
+.navbar {
+    background-color: #343a40 !important;
+}
+.navbar .nav-link, 
+.navbar-brand, 
+.navbar .navbar-toggler {
+    color: #ffffff !important;
+}
+.navbar .nav-link:hover {
+    color: #ffffffaa !important;
+}
 #flex {
   display:flex;
 }
@@ -208,7 +219,7 @@ table.dataTable tbody tr.selected {
 
 /* multiInput wrapper */
 .multi-wrapper {
-  height: 450px;
+  height: 400px;
 }
 .multi-wrapper .non-selected-wrapper,
 .multi-wrapper .selected-wrapper {

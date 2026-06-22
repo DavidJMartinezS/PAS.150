@@ -72,9 +72,7 @@ mod_info_cuenca_server <- function(id, rv){
 
       info_cuenca <-
         sf::st_intersection(rv$cuenca, comunas) %>%
-        dplyr::mutate(
-          Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)
-        ) %>%
+        st_add_sup_ha() %>% 
         dplyr::group_by(REGION, PROVINCIA, COMUNA) %>%
         dplyr::summarise(Sup_ha = sum(Sup_ha), .groups = "drop") %>%
         dplyr::mutate(label_div = purrr::pmap_chr(list(REGION, PROVINCIA, COMUNA), function(.x, .y, .z) paste(.x, .y, .z, sep = "-")))
@@ -88,7 +86,7 @@ mod_info_cuenca_server <- function(id, rv){
                      dplyr::filter(REGION == info_cuenca %>% dplyr::slice_max(Sup_ha) %>% dplyr::pull(REGION)) %>%
                      sf::st_make_valid() %>%
                      dplyr::count(REGION) %>%
-                     dplyr::mutate(Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)) %>%
+                     st_add_sup_ha() %>% 
                      sf::st_drop_geometry() %>%
                      dplyr::pull(Sup_ha)
                  )

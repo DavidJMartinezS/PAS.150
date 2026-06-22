@@ -12,17 +12,17 @@ mod_biodiversidad_ui <- function(id) {
   bslib::page_fillable(
     bslib::layout_columns(
       col_widths = c(6, 6), 
-      fillable = T, 
+      fillable = TRUE, 
       tagList(
         bslib::card(
-          full_screen = T,
+          full_screen = TRUE,
           bslib::card_header("Índices de biodiversidad"),
           div_gt(gt::gt_output(ns("gt_indices")))
         ),
         # Un layout de columnas anidado para poner los value_box en una fila
         bslib::layout_columns(
           col_widths = c(6, 6), 
-          fill = F,
+          fill = FALSE,
           bslib::value_box(
             max_height = "150px",
             title = "N° de parcelas floristicas en BNP",
@@ -39,7 +39,7 @@ mod_biodiversidad_ui <- function(id) {
           )
         ),
         bslib::navset_card_underline(
-          full_screen = T, 
+          full_screen = TRUE, 
           bslib::nav_panel(title = "Hábito", plotly::plotlyOutput(ns("plt_habito"))),
           bslib::nav_panel(title = "Origen", plotly::plotlyOutput(ns("plt_origen")))
         )
@@ -47,12 +47,12 @@ mod_biodiversidad_ui <- function(id) {
       bslib::layout_column_wrap(
         width = 1,
         bslib::card(
-          full_screen = T,
+          full_screen = TRUE,
           bslib::card_header("Frecuencia de especies acompañantes"),
           div_gt(gt::gt_output(ns("gt_spp_acomp")))
         ),
         bslib::card(
-          full_screen = T,
+          full_screen = TRUE,
           bslib::card_header("mapa parcelas de flora"),
           bslib::card_body(leaflet::leafletOutput(ns("leaf_flora")))
         )

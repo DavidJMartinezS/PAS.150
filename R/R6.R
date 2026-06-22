@@ -4,7 +4,7 @@ ReadSf <- R6::R6Class(
   public = list(
     sf_file = NULL,
     fx = NULL,
-    path = F,
+    path = FALSE,
     geometry_type = NULL,
     validate_sf = function() {
       (self$sf_file$datapath %>% tools::file_ext() %in% c("dbf", "prj", "shp", "shx") %>% all() &
@@ -48,7 +48,7 @@ ReadSf <- R6::R6Class(
         return(shp)
       }
     },
-    initialize = function(sf_file, fx = NULL, path = F, geometry_type = "POLYGON") {
+    initialize = function(sf_file, fx = NULL, path = FALSE, geometry_type = "POLYGON") {
       self$sf_file <- sf_file
       self$fx <- fx
       self$path <- path

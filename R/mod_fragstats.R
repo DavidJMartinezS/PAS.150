@@ -33,25 +33,24 @@ mod_fragstats_ui <- function(id) {
       tags$ol(
         tags$li(
           tags$span(
-            "Definir directorio donde ubicar las carpetas con los resultados y cargar los archivos de BNP antes y   despues del proyecto",
+            "Definir directorio donde ubicar las carpetas con los resultados y cargar los archivos de BNP antes y despues del proyecto",
             rep_br(2),
             tags$div(
               style = "color: #3d93abff; font-size: 16px",
               icon("circle-info"),
               tags$span(
                 # style = "color: ",
-                "Debe tener en cuenta que el nombre de los archivos que ingrese a continuación serán utilizados para   crear el resto de los archivos.
+                "Debe tener en cuenta que el nombre de los archivos que ingrese a continuación serán utilizados para crear el resto de los archivos.
                 Preocuparse de que tenga el nombre que desee."
               )
             )
           ),
           tags$div(
-            # id = "flex", 
             style = "display:flex; align-items: center; margin-top: 20px",
             fileInput(
               inputId = ns("BNP_antes"),
               label = with_red_star("BNP antes del proyecto"),
-              multiple = T,
+              multiple = TRUE,
               accept = c(".shp", ".shx", ".dbf", ".prj"),
               width = "350px",
               buttonLabel = "Seleccionar",
@@ -61,7 +60,7 @@ mod_fragstats_ui <- function(id) {
             fileInput(
               inputId = ns("BNP_despues"),
               label = with_red_star("BNP después del proyecto"),
-              multiple = T,
+              multiple = TRUE,
               accept = c(".shp", ".shx", ".dbf", ".prj"),
               width = "350px",
               buttonLabel = "Seleccionar",
@@ -107,7 +106,11 @@ mod_fragstats_ui <- function(id) {
         )
       ),
       bslib::card(
-        bslib::card_header("Estructura de Directorio"),
+        bslib::card_header(
+          class = "d-flex justify-content-between",
+          "Estructura de Directorio", 
+          actionButton(ns("refresh"), label = "", icon = icon("arrows-rotate"))
+        ),
         bslib::card_body(verbatimTextOutput(ns("dir_tree")), height = "450px")
       )
     )
@@ -176,6 +179,10 @@ mod_fragstats_server <- function(id, rv){
         "Directorio no seleccionado"
       }
     })
+
+    observeEvent(input$refresh,{
+      refresh_tree(refresh_tree() + 1)
+    })
     
     # BNP_antes ----
     observeEvent(input$BNP_antes, {
@@ -235,8 +242,8 @@ mod_fragstats_server <- function(id, rv){
           text = as.character(e$message),
           html = TRUE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )
@@ -276,8 +283,8 @@ mod_fragstats_server <- function(id, rv){
           text = as.character(e$message),
           html = TRUE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )

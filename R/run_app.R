@@ -27,7 +27,7 @@
 #' @importFrom openxlsx2 fmt_txt int2col wb_add_border wb_add_cell_style wb_add_data wb_add_data_table wb_add_fill wb_add_font wb_add_formula wb_add_image wb_add_numfmt wb_add_pivot_table wb_add_worksheet wb_color wb_data wb_dims wb_merge_cells wb_page_setup wb_save wb_set_col_widths wb_workbook write_xlsx
 #' @importFrom plotly layout plot_ly plotlyOutput renderPlotly 
 #' @importFrom plyr round_any 
-#' @importFrom purrr compact every map map_dbl map_lgl map2_dbl pluck pmap pmap_chr pmap_dbl pwalk keep
+#' @importFrom purrr as_vector compact every map map_dbl map_lgl map2_dbl pluck pmap pmap_chr pmap_dbl pwalk keep
 #' @importFrom R6 R6Class 
 #' @importFrom readxl read_xls 
 #' @importFrom readr write_excel_csv2 read_csv read_csv2 read_delim
@@ -42,7 +42,7 @@
 #' @importFrom stars read_stars st_as_stars st_contour st_rasterize write_stars 
 #' @importFrom stats quantile 
 #' @importFrom stringdist stringdistmatrix 
-#' @importFrom stringi stri_cmp_equiv stri_count_regex stri_detect_fixed stri_detect_regex stri_extract stri_extract_all_regex stri_extract_first_words stri_extract_last_words stri_replace_all_fixed stri_replace_all_regex stri_replace_first_fixed stri_replace_first_regex stri_split_regex stri_sub stri_trans_general stri_trans_tolower stri_trans_totitle stri_trans_toupper stri_trim stri_trim_both 
+#' @importFrom stringi stri_cmp_equiv stri_count_regex stri_detect_fixed stri_detect_regex stri_extract stri_extract_all_regex stri_extract_first_words stri_extract_last_words stri_replace_all_fixed stri_replace_all_regex stri_replace_first_fixed stri_replace_first_regex stri_split_regex stri_sub stri_trans_general stri_trans_tolower stri_trans_totitle stri_trans_toupper stri_trim stri_trim_both stri_extract_all_words
 #' @importFrom tibble add_column add_row as_tibble as_tibble_col rowid_to_column rownames_to_column tibble 
 #' @importFrom tidyr pivot_longer pivot_wider replace_na separate separate_wider_delim spread 
 #' @importFrom tools file_ext file_path_as_absolute file_path_sans_ext 

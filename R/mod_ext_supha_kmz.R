@@ -46,7 +46,7 @@ mod_ext_supha_kmz_ui <- function(id) {
       actionButton(inputId = ns("none"), label = "Deseleccionar todo", class = "btn-sm"),
     ),
     tags$div(
-      style = "height: 500px",
+      style = "height: 450px",
       shinyWidgets::multiInput(
         inputId = ns("capas"), 
         label = "Seleccionar capas:",
@@ -177,7 +177,7 @@ mod_ext_supha_kmz_server <- function(id, rv){
       input$filetype
     }, handlerExpr = {
       pattern <- if (input$filetype == ".shp") "\\.shp$" else NULL
-      rv_ext$capas_dir <- list.files(dir_carto(), pattern = pattern, full.names = F, recursive = input$recursive)
+      rv_ext$capas_dir <- list.files(dir_carto(), pattern = pattern, full.names = FALSE, recursive = input$recursive)
       shinyWidgets::updateMultiInput(
         session = session, 
         inputId = "capas", 
@@ -220,7 +220,7 @@ mod_ext_supha_kmz_server <- function(id, rv){
         purrr::walk(paths, agregar_prefijo, prefijo = input$presufijo, sep = input$sep)
         
         pattern <- if (input$filetype == ".shp") "\\.shp$" else NULL
-        rv_ext$capas_dir <- list.files(dir_carto(), pattern = pattern, full.names = F, recursive = input$recursive)
+        rv_ext$capas_dir <- list.files(dir_carto(), pattern = pattern, full.names = FALSE, recursive = input$recursive)
         shinyWidgets::updateMultiInput(session, "capas", choices = rv_ext$capas_dir, selected = character(0))
         
         shinybusy::notify_success("Prefijo añadido con éxito", position = "right-bottom")
@@ -236,7 +236,7 @@ mod_ext_supha_kmz_server <- function(id, rv){
         purrr::walk(paths, agregar_sufijo, sufijo = input$presufijo, sep = input$sep)
         
         pattern <- if (input$filetype == ".shp") "\\.shp$" else NULL
-        rv_ext$capas_dir <- list.files(dir_carto(), pattern = pattern, full.names = F, recursive = input$recursive)
+        rv_ext$capas_dir <- list.files(dir_carto(), pattern = pattern, full.names = FALSE, recursive = input$recursive)
         shinyWidgets::updateMultiInput(session, "capas", choices = rv_ext$capas_dir, selected = character(0))
         
         shinybusy::notify_success("Sufijo añadido con éxito", position = "right-bottom")
@@ -318,8 +318,8 @@ mod_ext_supha_kmz_server <- function(id, rv){
           text = as.character(e$message),
           html = TRUE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )

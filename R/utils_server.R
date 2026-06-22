@@ -1,63 +1,3 @@
-#' get_utm_epsg
-#'
-#' @param sf objeto sf
-#'
-#' @returns codigo EPSG del UTM correspondiente 
-#'
-#' @export
-get_utm_epsg <- function(sf){
-  if (!inherits(sf, "sf")) {
-    stop("El input debe ser un objeto 'sf'.")
-  }
-  
-  coords <- sf %>% 
-    sf::st_combine() %>% 
-    sf::st_centroid() %>% 
-    sf::st_transform(4326) %>% 
-    sf::st_coordinates()
-  
-  lon <- coords[1, "X"]
-  lat <- coords[1, "Y"]
-  
-  zone_number <- floor((lon + 180) / 6) + 1
-  base_code <- if (lat < 0) 32700 else 32600
-  epsg_code <- unname(base_code + zone_number)
-  
-  return(epsg_code)
-}
-
-#' Agrupar geometrías por proximidad espacial
-#'
-#' Esta función agrupa las geometrías de un objeto `sf` que se encuentran dentro de una
-#' distancia umbral especificada. Utiliza componentes conectados en un grafo de adyacencia.
-#'
-#' @param sf Objeto de clase `sf` o `sfc`.
-#' @param distance Valor numérico. Distancia máxima en metros para considerar dos elementos como conectados.
-#'
-#' @return Un vector de enteros indicando el ID del grupo (membership) para cada geometría.
-#' @export
-#' @examples
-#' \dontrun{
-#'   sf_obj <- sf::read_sf("ruta/al/archivo.shp")
-#'   # Agrupar geometrías que distan menos de 50 metros entre sí
-#'   sf_obj$group <- group_by_distance(sf_obj, distance = 50)
-#'   # Agrupar geometrias en base a una agrupación de atributos
-#'   variables <- c("Grupo_1", "Grupo_2")
-#'   sf_obj %>% 
-#'    dplyr::group_by(!!dplyr::syms(variables)) %>% 
-#'    dplyr::mutate(group = group_by_distance(geometry, distance = 50))
-#' }
-group_by_distance <- function(sf, distance){
-  if (!inherits(sf, c("sf", "sfc"))) stop("El argumento 'sf' debe ser un objeto de clase 'sf' o 'sfc'.")
-  if (!is.numeric(distance) || length(distance) != 1) stop("El argumento 'distance' debe ser un valor numérico único.")
-
-  dist_matrix = sf::st_distance(sf, by_element = FALSE)
-  class(dist_matrix) = NULL
-  connected = dist_matrix <= distance
-  g = igraph::graph_from_adjacency_matrix(connected)
-  return(igraph::components(g)$membership)
-}
-
 #' @noRd
 check_input <- function(x, rv = NULL, names_req, id_reset = NULL, geometry = "POLYGON"){
   ok <- TRUE
@@ -259,6 +199,55 @@ bind_events <- function(
   )
 }
 
+#' Consolidar columnas de Especies en Categoría de Conservación (ECC)
+#'
+#' Esta función identifica todas las columnas cuyos nombres comienzan con el prefijo "ECC"
+#' y concatena sus valores únicos en una nueva columna denominada `BNP_ECC`,
+#' omitiendo los valores nulos o marcados como "-".
+#'
+#' @param x Un objeto `data.frame` o `sf` que contiene los datos de vegetación.
+#'
+#' @return El objeto original con la columna `BNP_ECC` añadida. Si no se encuentran
+#' campos que partan con "ECC", devuelve el objeto intacto con una advertencia.
+#' @export
+#'
+#' @examples
+#' x <- tibble::tibble(
+#'   Formacion = rep("Bosque", 2),
+#'   ECC1 = c("Porlieria chilensis", "-"),
+#'   ECC2 = c("", "Porlieria chilensis"),
+#'   ECC3 = c(NA_character_, "Carica chiolensis"),
+#'   ECC4 = c(" - ", "-")
+#' ) 
+#' add_BNP_ECC(x)
+add_BNP_ECC <- function(x){
+  valid_input(x, inherit = "data.frame")
+  if(!any(stringi::stri_detect_regex(names(x), "^ECC"))){
+    warning("No se hallaron los campos de ECC, que deben partir con 'ECC'.", call. = FALSE)
+    df <- x
+  } else {
+    df <- x %>% 
+      dplyr::mutate(
+        BNP_ECC = purrr::pmap_chr(
+          dplyr::select(sf::st_drop_geometry(.), dplyr::starts_with("ECC")),
+          
+          function(...) {
+            ecc <- list(...)
+            # Verificar si hay caracteres alfabéticos en la fila
+            if (!(sum(stringi::stri_count_regex(as.character(ecc), "[:alpha:]"), na.rm = TRUE) > 0)) {
+              "-"
+            } else {
+              # Filtrar solo elementos con texto y que no sean NA
+              ecc %>% subset(stringi::stri_count_regex(as.character(.), "[:alpha:]") > 0 & !is.na(.)) %>% 
+                unique() %>% paste(collapse = " - ")
+            }
+          }
+        )
+      )
+  }
+  return(df)
+}
+
 #' Preparar y estandarizar datos de Uso y Vegetación
 #'
 #' @param x Objeto sf con la cartografía de uso y vegetacion de la cuenca. Tambien util para darle formato a las capas de BNP en la cuenca y de intervenir y alterar.
@@ -280,23 +269,8 @@ prepare_uso_veg <- function(x) {
     dplyr::rename_if(names(.) %>% stringi::stri_detect_regex("est.*censo|censado", case_insensitive = T), ~ "Censado") %>%
     dplyr::mutate_at(dplyr::vars(dplyr::starts_with("ECC")), tidyr::replace_na, "-") %>%
     dplyr::mutate_if(is.character, stringi::stri_trans_general, "Latin-ASCII") %>% 
-    {if(names(.) %>% stringi::stri_detect_regex("^ECC") %>% any()) {
-      .[] %>%
-        dplyr::mutate(
-          BNP_ECC = purrr::pmap_chr(
-            dplyr::select(sf::st_drop_geometry(.), dplyr::starts_with("ECC")),
-            function(...) {
-              ecc <- list(...)
-              if (all(ecc == "-")) {
-                "-"
-              } else if (any(ecc != "-")) {
-                ecc %>% subset(. != "-") %>% unique() %>% paste(collapse = " - ")
-              }
-            }
-          )
-      )
-    } else .} %>%
-    dplyr::mutate(Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2))
+    add_BNP_ECC() %>% 
+    st_add_sup_ha()
 }
 
 #' download_files
@@ -585,25 +559,4 @@ agregar_sufijo <- function(path, sufijo, sep = "_") {
   
   res <- file.rename(from = path, to = file.path(dir_part, new_name))
   return(invisible(res))
-}
-
-.onAttach <- function(libname, pkgname) {
-  # Verificar Python/simplekml solo si se va a usar shp2kmz
-  if (!reticulate::py_available(initialize = FALSE)) {
-    packageStartupMessage(
-      "AVISO: Python no está disponible. La función shp2kmz() no funcionará.\n",
-      "Instale Python y ejecute: reticulate::py_install('simplekml')"
-    )
-  }
-}
-
-.onLoad <- function(libname, pkgname) {
-  # Verificar versión mínima de R
-  if (getRversion() < "4.3.0") {
-    stop(
-      "PAS.150 requiere R >= 4.3.0. Versión actual: ", getRversion(),
-      "\nActualice R en: https://cran.r-project.org",
-      call. = FALSE
-    )
-  }
 }

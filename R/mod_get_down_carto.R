@@ -82,8 +82,8 @@ mod_get_down_carto_server <- function(id, rv){
           text = as.character(e$message),
           html = TRUE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )

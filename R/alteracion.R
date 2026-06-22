@@ -42,7 +42,7 @@
 #' @export
 get_alter_bnp_remanente <- function(BNP, obras, sp, sup_ha_max = 0.5) {
   BNP <- tryCatch(
-    PAS.150::prepare_uso_veg(x = BNP),
+    prepare_uso_veg(x = BNP),
     error = function(e) stop("Error al preparar la capa de BNP", e$message, call. = FALSE)
   )
   if (!inherits(BNP, "sf")) stop("El argumento 'BNP' debe ser un objeto 'sf'.", call. = FALSE)
@@ -72,9 +72,7 @@ get_alter_bnp_remanente <- function(BNP, obras, sp, sup_ha_max = 0.5) {
       janitor::round_half_up(units::drop_units(sf::st_area(geometry)), 1) > 0
     ) %>% 
     dplyr::select(-c(ID, n)) %>%
-    dplyr::mutate(
-      Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2),
-    ) %>% 
+    st_add_sup_ha() %>% 
     dplyr::filter(Sup_ha < sup_ha_max) %>% 
     dplyr::arrange(Sup_ha) %>% 
     dplyr::relocate(geometry, .after = dplyr::last_col()) %>% 
@@ -97,9 +95,9 @@ get_alter_bnp_remanente <- function(BNP, obras, sp, sup_ha_max = 0.5) {
     sf::st_make_valid() %>% 
     sf::st_collection_extract("POLYGON") %>% 
     sf::st_cast("POLYGON") %>% 
+    st_add_sup_ha() %>% 
     dplyr::mutate(
       Afectacion = "Alteración BNP remanente",
-      Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)
     ) %>% 
     dplyr::arrange(Sup_ha) %>% 
     dplyr::select(dplyr::all_of(names(sf::st_drop_geometry(BNP))), dplyr::contains("obra"), dplyr::contains("Tipo"), Afectacion, Sup_ha) %>%
@@ -152,7 +150,6 @@ get_alter_censo_buffer <- function(BNP, obras, censos, sp, distancia = 5, buffer
     dplyr::mutate(group = group_by_distance(geometry, buffer)) %>% 
     dplyr::group_by(group) %>% 
     dplyr::summarise(geometry = sf::st_union(geometry), n = n()) %>% 
-    # sf::st_simplify(dTolerance = dTolerance) %>% 
     sf::st_collection_extract("POLYGON") %>% 
     sf::st_cast("MULTIPOINT") %>% 
     sf::st_concave_hull(ratio = radio) %>% 
@@ -169,17 +166,18 @@ get_alter_censo_buffer <- function(BNP, obras, censos, sp, distancia = 5, buffer
       join = sf::st_nearest_feature
     )
   
-  alter_buffer %>% 
+  alter <- alter_buffer %>% 
     sf::st_intersection(
       BNP %>% dplyr::select(-dplyr::any_of(names(sf::st_drop_geometry(alter_buffer))))
     ) %>% 
-    sf::st_collection_extract("POLYGON") %>% 
-    sf::st_make_valid() %>% 
-    sf::st_collection_extract("POLYGON") %>% 
-    sf::st_cast("POLYGON") %>% 
+    clean_geom() %>% 
+    # sf::st_collection_extract("POLYGON") %>% 
+    # sf::st_make_valid() %>% 
+    # sf::st_collection_extract("POLYGON") %>% 
+    # sf::st_cast("POLYGON") %>% 
+    st_add_sup_ha() %>% 
     dplyr::mutate(
       Afectacion = "Alteracion buffer ECC",
-      Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2),
     ) %>% 
     dplyr::arrange(Sup_ha) %>% 
     dplyr::select(dplyr::all_of(names(sf::st_drop_geometry(BNP))), dplyr::contains("obra"), dplyr::contains("Tipo"), Afectacion, Sup_ha) %>%

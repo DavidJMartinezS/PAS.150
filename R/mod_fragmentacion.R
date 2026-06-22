@@ -25,7 +25,7 @@ mod_fragmentacion_ui <- function(id) {
         bslib::input_switch(
           id = ns("switch_sf_frag"),
           label = "Realizar análisis de fragmentación independiente de los inputs",
-          value = F,
+          value = FALSE,
           width = "fit-content"
         ),
         conditionalPanel(
@@ -51,7 +51,7 @@ mod_fragmentacion_ui <- function(id) {
             mod_read_sf_ui(
               id = ns("uso_frag"),
               label = "Usos de suelo de la cuenca",
-              required = T,
+              required = TRUE,
               width = "600px"
             )
           )
@@ -107,18 +107,18 @@ mod_fragmentacion_ui <- function(id) {
           bslib::layout_column_wrap(
             width = 1,
             bslib::card(
-              full_screen = T,
+              full_screen = TRUE,
               bslib::card_header("Matriz del paisaje"),
               div_gt(gt::gt_output(ns("gt_frag_matriz")))
             ),
             bslib::card(
-              full_screen = T,
+              full_screen = TRUE,
               bslib::card_header("Parámetros de fragmentación"),
               div_gt(gt::gt_output(ns("gt_frag_param")))
             )
           ),
           bslib::card(
-            full_screen = T,
+            full_screen = TRUE,
             bslib::card_header("Resultados análisis de amenazas"),
             div_gt(gt::gt_output(ns("gt_frag_resultados")))
           )
@@ -210,8 +210,8 @@ mod_fragmentacion_server <- function(id, rv){
           text = as.character(e$message),
           html = TRUE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )

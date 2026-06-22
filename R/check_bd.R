@@ -50,8 +50,8 @@ check_bd_flora <- function(x) {
           ),
           html = TRUE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )
@@ -99,8 +99,8 @@ check_bd_flora <- function(x) {
           ),
           html = TRUE,
           type = "warning",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )
@@ -144,8 +144,8 @@ check_bd_flora <- function(x) {
           ),
           html = TRUE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )
@@ -191,8 +191,8 @@ check_bd_flora <- function(x) {
           ),
           html = TRUE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )
@@ -240,8 +240,8 @@ check_bd_flora <- function(x) {
           ),
           html = TRUE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )
@@ -290,8 +290,8 @@ check_bd_flora <- function(x) {
             ),
             html = TRUE,
             type = "error",
-            closeOnEsc = T,
-            showConfirmButton = T,
+            closeOnEsc = TRUE,
+            showConfirmButton = TRUE,
             confirmButtonCol = "#6FB58F",
             animation = T
           )
@@ -336,8 +336,8 @@ check_bd_flora <- function(x) {
           ),
           html = TRUE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )
@@ -419,8 +419,8 @@ check_bd_fore <- function(x) {
           ),
           html = TRUE,
           type = "warning",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )
@@ -464,8 +464,8 @@ check_bd_fore <- function(x) {
           ),
           html = TRUE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )
@@ -511,8 +511,8 @@ check_bd_fore <- function(x) {
           ),
           html = TRUE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )
@@ -560,8 +560,8 @@ check_bd_fore <- function(x) {
           ),
           html = TRUE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )
@@ -598,8 +598,8 @@ check_bd_fore <- function(x) {
           ),
           html = TRUE,
           type = "error",
-          closeOnEsc = T,
-          showConfirmButton = T,
+          closeOnEsc = TRUE,
+          showConfirmButton = TRUE,
           confirmButtonCol = "#6FB58F",
           animation = T
         )

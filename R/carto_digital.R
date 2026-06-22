@@ -92,7 +92,7 @@ get_CN <- function(cuenca, dem = NULL) {
   step <- 50
   curv_niv <- stars::st_contour(
     dem_stars,
-    contour_lines = T,
+    contour_lines = TRUE,
     breaks = seq(
       plyr::round_any(min(dem_stars$Elevacion, na.rm = T), step, ceiling),
       plyr::round_any(max(dem_stars$Elevacion, na.rm = T), step, floor),
@@ -200,9 +200,7 @@ get_BNP_cuenca <- function(uso_veg, sp) {
 
   uso_veg %>% 
     dplyr::filter(stringi::stri_detect_regex(F_ley20283, "preser") & stringi::stri_detect_regex(BNP_ECC, sp)) %>% 
-    dplyr::mutate(
-      Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)
-    ) %>% 
+    st_add_sup_ha() %>% 
     dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with('ECC'), F_ley20283, BNP_ECC, Sup_ha) %>% 
     dplyr::arrange(Sup_ha)
 } 
@@ -215,7 +213,7 @@ get_BNP_intervencion <- function(BNP_cuenca = NULL, obras = NULL, BNP_inter = NU
     stopifnot("El shp debe contener algun campo con el nombre de las obras que intervienen" = any(names(BNP_inter) %>% stringi::stri_detect_regex("obra", case_insensitive = T)))
     
     BNP_inter %>% 
-      dplyr::mutate(Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)) %>% 
+      st_add_sup_ha() %>% 
       dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), dplyr::matches("Censado"), Sup_ha) 
   } else {
     valid_input(BNP_cuenca, inherit = "sf", names = req_names$BNP_afect, geometry = "POLYGON")
@@ -245,7 +243,7 @@ get_BNP_alterar <- function(BNP_alter = NULL, BNP_cuenca = NULL, alt_ok = F) {
     if (alt_ok) {
       valid_input(BNP_alter, names = req_names$BNP_afect, inherit = "sf", geometry = "POLYGON")
       BNP_alter %>% 
-        dplyr::mutate(Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)) %>% 
+        st_add_sup_ha() %>% 
         dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), dplyr::matches("Censado"), Sup_ha)
     } else {
       valid_input(BNP_alter, inherit = "sf", geometry = "POLYGON")
@@ -259,7 +257,7 @@ get_BNP_alterar <- function(BNP_alter = NULL, BNP_cuenca = NULL, alt_ok = F) {
         sf::st_collection_extract("POLYGON") %>%
         sf::st_cast("MULTIPOLYGON") %>% 
         sf::st_cast("POLYGON") %>% 
-        dplyr::mutate(Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)) %>% 
+        st_add_sup_ha() %>%  
         dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), dplyr::matches("Censado"), Sup_ha)
     }
   } 
@@ -350,9 +348,7 @@ get_uso <- function(uso_veg) {
   valid_input(uso_veg, inherit = "sf", names = req_names$uso_veg[1:3], geometry = "POLYGON")
 
   uso_veg %>%
-    dplyr::mutate(
-      Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)
-    ) %>%
+    st_add_sup_ha() %>% 
     dplyr::select(Nom_ssubc, Uso, Subuso, Sup_ha) %>% 
     dplyr::arrange(Sup_ha)
 }
@@ -363,16 +359,14 @@ get_veg <- function(uso_veg) {
   valid_input(uso_veg, inherit = "sf", names = req_names$BNP_afect, geometry = "POLYGON")
 
   uso_veg %>%
-    dplyr::mutate(
-      Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)
-    ) %>%
+    st_add_sup_ha() %>% 
     dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), F_ley20283, BNP_ECC, Sup_ha) %>% 
     dplyr::arrange(Sup_ha)
 }
 
 #' @rdname carto_digital
 #' @export
-get_inv_flora <- function(BD_flora, BNP_cuenca, bd_lista, in_bnp_obra = T, obras = NULL) {
+get_inv_flora <- function(BD_flora, BNP_cuenca, bd_lista, in_bnp_obra = TRUE, obras = NULL) {
   valid_df(BD_flora, names = c('Parcela', 'UTM_E', 'UTM_N'))
   valid_input(BNP_cuenca, inherit = "sf", geometry = "POLYGON")
   valid_input(bd_lista, in_bnp_obra, inherit = "logical")
@@ -464,8 +458,8 @@ get_BNP_alt_sin_censo <- function(BNP_alter, densidad = NULL) {
         } else {
           .[] %>% 
             {if(!"Densidad" %in% names(.[])) mutate(., Densidad = densidad) else .[]} %>% 
+            st_add_sup_ha() %>% 
             dplyr::mutate(
-              Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2),
               Afectacion = "Alteración del hábitat",
               Ind_alter = janitor::round_half_up(Densidad * Sup_ha)
             ) %>% 
@@ -502,13 +496,13 @@ get_BNP_int_sin_censo <- function(BNP_inter, densidad = NULL) {
         } else {
           .[] %>% 
             {if(!"Densidad" %in% names(.[])) mutate(., Densidad = densidad) else .[]} %>% 
+            st_add_sup_ha() %>% 
             dplyr::mutate(
-            Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2),
-            Afectacion = "Eliminación",
-            Ind_inter = janitor::round_half_up(Densidad * Sup_ha)
-          ) %>% 
-          dplyr::mutate_at("Ind_inter", ~ifelse(. == 0, 1, .)) %>% 
-          dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), Afectacion, Densidad, Ind_inter, Sup_ha)
+              Afectacion = "Eliminación",
+              Ind_inter = janitor::round_half_up(Densidad * Sup_ha)
+            ) %>% 
+            dplyr::mutate_at("Ind_inter", ~ifelse(. == 0, 1, .)) %>% 
+            dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), Afectacion, Densidad, Ind_inter, Sup_ha)
         }} 
       if(!is.null(est_inter)) return(est_inter) else return(invisible())
     } else {
@@ -530,10 +524,8 @@ get_BNP_antes <- function(BNP_cuenca) {
     sf::st_make_valid() %>% 
     sf::st_collection_extract("POLYGON") %>% 
     sf::st_cast("POLYGON") %>% 
-    dplyr::mutate(
-      TIPO = "BNP_ANTES",
-      Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)
-    ) %>% 
+    dplyr::mutate(TIPO = "BNP_ANTES") %>% 
+    st_add_sup_ha() %>% 
     dplyr::select(TIPO, ID, Sup_ha)
 }
 
@@ -556,11 +548,8 @@ get_BNP_despues <- function(BNP_cuenca, BNP_inter, BNP_alter) {
     } else .} %>% 
     sf::st_cast('POLYGON') %>% 
     dplyr::filter(sf::st_area(geometry) %>% units::drop_units() %>% janitor::round_half_up(1) > 0) %>% 
-    dplyr::mutate(
-      ID = 1,
-      TIPO = 'DESPUÉS',
-      Sup_ha = sf::st_area(geometry) %>% units::set_units(ha) %>% units::drop_units() %>% janitor::round_half_up(2)
-    ) %>%
+    dplyr::mutate(ID = 1, TIPO = 'DESPUÉS') %>%
+    st_add_sup_ha() %>% 
     dplyr::select(TIPO, ID, Sup_ha)
 }
 
@@ -571,20 +560,20 @@ get_carto_digital <- function(
   sp,
   obras,
   censo,
-  upto5m = T,
+  upto5m = TRUE,
   BNP_inter = NULL,
   BNP_alter = NULL,
-  alt_ok = F,
+  alt_ok = FALSE,
   densidad = NULL,
   BD_flora = NULL,
   BD_fore = NULL,
-  bd_flora_lista = F,
-  bd_fore_lista = F,
-  in_bnp_obra = T,
-  add_cam = F,
-  add_hidro = F,
+  bd_flora_lista = FALSE,
+  bd_fore_lista = FALSE,
+  in_bnp_obra = TRUE,
+  add_cam = FALSE,
+  add_hidro = FALSE,
   fuente_hidro = c("MOP", "BCN"),
-  add_CN = F,
+  add_CN = FALSE,
   dem = NULL
 ) {
   valid_input(

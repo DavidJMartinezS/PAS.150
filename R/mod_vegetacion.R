@@ -12,9 +12,11 @@ mod_vegetacion_ui <- function(id) {
   bslib::page_fillable(
     bslib::layout_columns(
       col_widths = c(6, 6), 
+      fillable = TRUE, 
       tagList(
         bslib::layout_columns(
           col_widths = c(6, 6), 
+          fill = FALSE,
           bslib::value_box(
             max_height = "200px",
             title = "Superficie de BNP de la especie (ha)",
@@ -31,7 +33,7 @@ mod_vegetacion_ui <- function(id) {
           )
         ),
         bslib::card(
-          full_screen = T,
+          full_screen = TRUE,
           bslib::card_header("Tipos forestales"),
           div_gt(gt::gt_output(ns("gt_tf")))
         )
@@ -39,7 +41,7 @@ mod_vegetacion_ui <- function(id) {
       bslib::layout_column_wrap(
         width = 1,
         bslib::card(
-          full_screen = T,
+          full_screen = TRUE,
           bslib::card_header("Mapa de vegetación"),
           leaflet::leafletOutput(ns("leaf_bnp"))
         )
@@ -82,13 +84,13 @@ mod_vegetacion_server <- function(id, rv){
     })
     
     output$gt_tf <- gt::render_gt({
-      validate(need(rv$BNP_cuenca, "Requiere haber cargado capa de uso y vegetación de la cuenca correctamente"))
+      validate(need(rv$BNP_cuenca, "Cargar capa de uso y vegetación de la cuenca"))
       req(c(rv$uso_veg, rv$sp))
       gt_tipos_forestales(uso_veg = rv$uso_veg, sp = rv$sp)
     })
     
     output$leaf_bnp <- leaflet::renderLeaflet({
-      validate(need(rv$BNP_cuenca, "Requiere haber cargado capa de uso y vegetación de la cuenca correctamente"))
+      validate(need(rv$BNP_cuenca, "Cargar capa de uso y vegetación de la cuenca"))
       req(c(rv$uso_veg, rv$BNP_cuenca, rv$cuenca))
 
       rv$uso_veg %>%

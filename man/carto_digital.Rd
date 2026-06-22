@@ -51,7 +51,7 @@ get_uso(uso_veg)
 
 get_veg(uso_veg)
 
-get_inv_flora(BD_flora, BNP_cuenca, bd_lista, in_bnp_obra = T, obras = NULL)
+get_inv_flora(BD_flora, BNP_cuenca, bd_lista, in_bnp_obra = TRUE, obras = NULL)
 
 get_inv_fores(BD_fore, BNP_cuenca, bd_lista = TRUE)
 
@@ -70,20 +70,20 @@ get_carto_digital(
   sp,
   obras,
   censo,
-  upto5m = T,
+  upto5m = TRUE,
   BNP_inter = NULL,
   BNP_alter = NULL,
-  alt_ok = F,
+  alt_ok = FALSE,
   densidad = NULL,
   BD_flora = NULL,
   BD_fore = NULL,
-  bd_flora_lista = F,
-  bd_fore_lista = F,
-  in_bnp_obra = T,
-  add_cam = F,
-  add_hidro = F,
+  bd_flora_lista = FALSE,
+  bd_fore_lista = FALSE,
+  in_bnp_obra = TRUE,
+  add_cam = FALSE,
+  add_hidro = FALSE,
   fuente_hidro = c("MOP", "BCN"),
-  add_CN = F,
+  add_CN = FALSE,
   dem = NULL
 )
 }

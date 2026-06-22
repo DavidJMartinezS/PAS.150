@@ -33,6 +33,10 @@ golem::fill_desc(
   set_options = TRUE # Set the global golem options
 )
 
+usethis::use_version("patch") # arreglo de bugs
+usethis::use_version("minor") # funciones nuevas que no rompen compatibilidad
+usethis::use_version("major") # cambios grandes que no rompen compatibildiad
+
 ## Install the required dev dependencies ----
 golem::install_dev_deps()
 

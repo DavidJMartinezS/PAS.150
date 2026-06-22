@@ -209,18 +209,13 @@ BD_fragmentacion <- function(
         dplyr::filter(Subuso != 'Otros usos sin vegetación') %>%
         dplyr::count(Subuso) %>%
         dplyr::select(-n) %>%
-        dplyr::mutate(
-          `Intervención` = sf::st_area(geometry) %>%
-            units::set_units(ha) %>%
-            units::drop_units() %>%
-            janitor::round_half_up(2)
-        ) %>%
+        st_add_sup_ha(field_name = "Intervencion") %>% 
         sf::st_drop_geometry(),
       by = "Subuso"
     ) %>% # añadir sup a intervenir por subuso
-    dplyr::mutate_at('Intervención', ~ ifelse(is.na(.), 0, .)) %>%
+    dplyr::mutate_at('Intervencion', ~ ifelse(is.na(.), 0, .)) %>%
     janitor::adorn_totals(name = 'Total vegetación') %>% # añadir fila total vegetacion
-    dplyr::mutate(`Después` = Antes - `Intervención`) %>% # añadir sup después
+    dplyr::mutate(Despues = Antes - Intervencion) %>% # añadir sup después
     dplyr::bind_rows(
       Usos %>%
         sf::st_drop_geometry() %>%
@@ -233,33 +228,31 @@ BD_fragmentacion <- function(
             sf::st_collection_extract("POLYGON") %>%
             dplyr::filter(Subuso == 'Otros usos sin vegetación') %>%
             dplyr::count(Subuso) %>%
-            dplyr::select(-n) %>%
-            dplyr::mutate(
-              `Intervención` = sf::st_area(geometry) %>%
-                units::set_units(ha) %>%
-                units::drop_units() %>%
-                janitor::round_half_up(2)
-            ) %>%
-            sf::st_drop_geometry(),
+            dplyr::select(-n) %>% 
+            {if(nrow(.) > 0) {
+              .[] %>% 
+                st_add_sup_ha(field_name = "Intervencion") %>% 
+                sf::st_drop_geometry()
+            } else {
+              tibble::tibble(Subuso = 'Otros usos sin vegetación', Intervencion = 0)
+            }},
           by = "Subuso"
         ) %>%
-        dplyr::mutate_at('Intervención', ~ ifelse(is.na(.), 0, .)) %>%
-        dplyr::mutate(`Después` = Antes - `Intervención`)
+        dplyr::mutate_at('Intervencion', ~ ifelse(is.na(.), 0, .)) %>%
+        dplyr::mutate(Despues = Antes - Intervencion)
     ) %>% # añadir sup de otros usos
     dplyr::bind_rows(
       data.frame(
         Subuso = 'Total',
         Antes = .[] %>% dplyr::slice_tail(n = 2) %>% .$Antes %>% sum(),
-        `Intervención` = .[] %>%
-          dplyr::slice_tail(n = 2) %>%
-          .$`Intervención` %>%
-          sum(),
-        `Después` = .[] %>% dplyr::slice_tail(n = 2) %>% .$`Después` %>% sum()
+        Intervencion = .[] %>% dplyr::slice_tail(n = 2) %>% .$Intervencion %>% sum(),
+        Despues = .[] %>% dplyr::slice_tail(n = 2) %>% .$Despues %>% sum()
       )
     ) %>%
     dplyr::mutate(
-      Tasa = (log(`Después` / Antes) * 100) %>% janitor::round_half_up(2)
-    ) # añadir tasa
+      Tasa = (log(Despues / Antes) * 100) %>% janitor::round_half_up(2)
+    ) %>% # añadir tasa
+    dplyr::rename(`Después` = Despues, `Intervención` = Intervencion)
 
   densidades_prop <- if (is.null(prop)) {
     NULL

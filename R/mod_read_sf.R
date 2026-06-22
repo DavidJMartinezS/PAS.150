@@ -33,7 +33,7 @@ mod_read_sf_ui <- function(id, label, required = FALSE, ...) {
 #' read_sf Server Functions
 #'
 #' @noRd 
-mod_read_sf_server <- function(id, rv, i, fx = NULL, path = F, geometry_type = "POLYGON", ...){
+mod_read_sf_server <- function(id, rv, i, fx = NULL, path = FALSE, geometry_type = "POLYGON", ...){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     output$sf_print <- renderPrint({input$sf_file})

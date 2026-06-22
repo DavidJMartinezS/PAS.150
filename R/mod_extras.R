@@ -21,7 +21,8 @@ mod_extras_ui <- function(id) {
       ),
       bslib::nav_panel(
         title = "Alteración de hábitat",
-        tags$h4("Proximamente...")
+        # tags$h4("Proximamente...")
+        mod_alteracion_ui(ns("ext_alt"))
       )
     )
   )
@@ -34,7 +35,8 @@ mod_extras_server <- function(id, rv) {
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     mod_ext_capas_carto_server(id = "capas_carto", rv = rv)
-    mod_ext_supha_kmz_server(id = "supha_kmz", rv = rv)
+    mod_ext_supha_kmz_server(id = "supha_kmz", rv = rv) 
+    mod_alteracion_server(id = "ext_alt", rv = rv) 
   })
 }
     

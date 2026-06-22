@@ -14,12 +14,12 @@ mod_uso_suelo_ui <- function(id) {
     bslib::layout_column_wrap(
       bslib::card(
         bslib::card_header("Tabla usos y sub-usos"),
-        full_screen = T,
+        full_screen = TRUE,
         div_gt(gt::gt_output(ns("gt_subusos")))
       ),
       bslib::card(
         bslib::card_header("Mapa sub-usos"),
-        full_screen = T,
+        full_screen = TRUE,
         leaflet::leafletOutput(ns("leaf_subusos"))
       )
     )
@@ -34,10 +34,12 @@ mod_uso_suelo_server <- function(id, rv){
     ns <- session$ns
     
     output$gt_subusos <- gt::render_gt({
+      validate(need(rv$uso_veg, "Cargar capa de uso y vegetación de la cuenca"))
       req(rv$uso_veg)
       gt_usos(uso_veg = rv$uso_veg)
     })
     output$leaf_subusos <- leaflet::renderLeaflet({
+      validate(need(rv$uso_veg, "Cargar capa de uso y vegetación de la cuenca"))
       req(rv$uso_veg)
       colf_sub <-
         leaflet::colorFactor(
@@ -47,10 +49,10 @@ mod_uso_suelo_server <- function(id, rv){
       rv$uso_veg %>% 
         sf::st_transform(4326) %>% 
         leaflet::leaflet() %>% 
-        leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron, group ="CartoDB.Positron") %>% 
-        leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group ="OpenStreetMap") %>% 
-        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group ="Esri.WorldImagery") %>% 
-        leaflet::addProviderTiles(leaflet::providers$Esri.DeLorme, group ="Esri.DeLorme") %>% 
+        leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron, group = "CartoDB.Positron") %>% 
+        leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OpenStreetMap") %>% 
+        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "Esri.WorldImagery") %>% 
+        leaflet::addProviderTiles(leaflet::providers$Esri.DeLorme, group = "Esri.DeLorme") %>% 
         leaflet::addPolygons(
           fillColor = ~colf_sub(Subuso),
           fillOpacity = 0.9,

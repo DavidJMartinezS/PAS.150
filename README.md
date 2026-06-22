@@ -122,14 +122,14 @@ alt_ok <- F # Valor lógico (T o F) para indicar si la capa de BNP a alterar con
 BNP_cuenca <- get_BNP_cuenca(uso_veg = uso_veg, sp = especie)
 BD_flora <- prepare_bd_flora_150(
   BD = "", # Ingresar ruta del archivo .xlsx de la BD de inventarios florísticos
-  bd_lista = T, # Valor lógico (T o F). T para utilizar los datos tal cual se ingresan. F para filtrar por aquellos que estan en la cuenca.
+  bd_lista = TRUE, # Valor lógico (T o F). T para utilizar los datos tal cual se ingresan. F para filtrar por aquellos que estan en la cuenca.
   BNP_cuenca = BNP_cuenca, # Capa de BNP en la cuenca. Necesaria si bd_lista = F
-  in_bnp_obra = T, # Valor lógico (T o F). T para filtrar las parcelas en rodales con obra
+  in_bnp_obra = TRUE, # Valor lógico (T o F). T para filtrar las parcelas en rodales con obra
   obras = obras # Capa de obras. Necesaria si bd_lista = F y in_bnp_obra = T
 )
 BD_fore <- prepare_bd_fore_150(
   BD = , # Ingresar ruta del archivo .xlsx de la BD de inventarios forestales
-  bd_lista = F, # Valor lógico (T o F). T para utilizar los datos tal cual se ingresan. F para filtrar por aquellos que estan en la cuenca.
+  bd_lista = FALSE, # Valor lógico (T o F). T para utilizar los datos tal cual se ingresan. F para filtrar por aquellos que estan en la cuenca.
   BNP_cuenca = BNP_cuenca # Capa de BNP en la cuenca. Necesaria si bd_lista = F
 )
 
@@ -168,13 +168,13 @@ carto_digital <- get_carto_digital(
   densidad = densidad, # default NULL
   BD_flora = BD_flora, # default NULL
   BD_fore = BD_fore, # default NULL
-  bd_flora_lista = F, # default FALSE
-  bd_fore_lista = F, # default FALSE
-  in_bnp_obra = T, # default TRUE
-  add_cam = T, # default FALSE
-  add_hidro = T, # default FALSE
+  bd_flora_lista = FALSE, # default FALSE
+  bd_fore_lista = FALSE, # default FALSE
+  in_bnp_obra = TRUE, # default TRUE
+  add_cam = TRUE, # default FALSE
+  add_hidro = TRUE, # default FALSE
   fuente_hidro = fuente_hidro, # default FALSE
-  add_CN = T, # default FALSE
+  add_CN = TRUE, # default FALSE
   dem = "" # default NULL
 )
 ```
