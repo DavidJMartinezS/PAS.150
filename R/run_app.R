@@ -21,7 +21,7 @@
 #' @importFrom igraph components graph_from_adjacency_matrix 
 #' @importFrom janitor adorn_pct_formatting adorn_totals remove_empty round_half_up
 #' @importFrom kableExtra kable_styling kbl 
-#' @importFrom leaflet addAwesomeMarkers addCircles addLayersControl addLegend addMeasure addMiniMap addPolygons addProviderTiles addScaleBar colorFactor highlightOptions layersControlOptions leaflet leafletOutput makeAwesomeIcon providers renderLeaflet scaleBarOptions addCircleMarkers addPolylines
+#' @importFrom leaflet addAwesomeMarkers addCircles addLayersControl addLegend addMeasure addMiniMap addPolygons addProviderTiles addScaleBar clearGroup colorFactor highlightOptions layersControlOptions leaflet leafletOutput leafletProxy makeAwesomeIcon providers removeControl renderLeaflet scaleBarOptions addCircleMarkers addPolylines
 #' @importFrom leaflet.extras addFullscreenControl addResetMapButton 
 #' @importFrom magick image_info image_read image_read_svg 
 #' @importFrom openxlsx2 fmt_txt int2col wb_add_border wb_add_cell_style wb_add_data wb_add_data_table wb_add_fill wb_add_font wb_add_formula wb_add_image wb_add_numfmt wb_add_pivot_table wb_add_worksheet wb_color wb_data wb_dims wb_merge_cells wb_page_setup wb_save wb_set_col_widths wb_workbook write_xlsx

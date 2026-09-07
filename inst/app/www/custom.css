@@ -1,5 +1,7 @@
 .navbar {
-    background-color: #343a40 !important;
+  background-color: #343a40 !important;
+  position: relative;
+  z-index: 1030;
 }
 .navbar .nav-link, 
 .navbar-brand, 
@@ -7,8 +9,12 @@
     color: #ffffff !important;
 }
 .navbar .nav-link:hover {
-    color: #ffffffaa !important;
+  color: #ffffffaa !important;
 }
+.navbar .dropdown-menu {
+  z-index: 1051 !important;
+}
+
 #flex {
   display:flex;
 }
@@ -34,20 +40,17 @@
   font-size: 20px;
 }
 
-/* .dropdown {
-  z-index:1 !important;
-} */
-
-/* .bslib-full-screen.bslib-full-screen-enter-active {
-  z-index: 100000 !important;
-} */
-
 .bslib-sidebar-layout .sidebar-title {
   margin-top: -1.5rem;
   margin-bottom: 0;
   font-size: 20px;
   font-weight: bold;
   color: #646967ff;
+}
+
+.card-header {
+  font-size: 1rem;
+  font-weight: bold;
 }
 
 .wrn_alert body{

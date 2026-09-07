@@ -100,7 +100,6 @@ mod_vegetacion_server <- function(id, rv){
         leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron, group = "CartoDB.Positron") %>%
         leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OpenStreetMap") %>%
         leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "Esri.WorldImagery") %>%
-        leaflet::addProviderTiles(leaflet::providers$Esri.DeLorme, group = "Esri.DeLorme") %>%
         leaflet::addPolygons(
           fillColor = "#FFDC91FF",
           fillOpacity = 0.9,
@@ -172,13 +171,13 @@ mod_vegetacion_server <- function(id, rv){
           title = "Legend",
           colors = c("#FFDC91FF", "#84BD00FF","#20854EFF","#00A087FF"),
           labels = c("Formaciones Xerofíticas", "Bosque Nativo","Bosque Nativo de Preservación","Cuenca"),
-          opacity = c(1,1,1,1),
+          opacity = c(1, 1, 1, 1),
           group = 'legend',
           position = "bottomleft"
         ) %>%
         leaflet::addLayersControl(
           overlayGroups = c("FX","BN","BNP","legend"),
-          baseGroups = c("CartoDB.Positron","OpenStreetMap","Esri.WorldImagery","Esri.DeLorme"),
+          baseGroups = c("CartoDB.Positron","OpenStreetMap","Esri.WorldImagery"),
           options = leaflet::layersControlOptions(collapsed = T)
         )
     })

@@ -14,14 +14,14 @@ mod_extras_ui <- function(id) {
       id = "navset_extras",
       bslib::nav_panel(
         title = "Descargas de capas y KMZ",
-        bslib::layout_column_wrap(
+        bslib::layout_columns(
+          col_widths = c(5, 7),
           mod_ext_capas_carto_ui(ns("capas_carto")),
           mod_ext_supha_kmz_ui(ns("supha_kmz"))
         )
       ),
       bslib::nav_panel(
         title = "Alteración de hábitat",
-        # tags$h4("Proximamente...")
         mod_alteracion_ui(ns("ext_alt"))
       )
     )

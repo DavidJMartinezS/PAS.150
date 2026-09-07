@@ -131,7 +131,6 @@ mod_biodiversidad_server <- function(id, rv){
         leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron, group = "CartoDB.Positron") %>%
         leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OpenStreetMap") %>%
         leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "Esri.WorldImagery") %>%
-        leaflet::addProviderTiles(leaflet::providers$Esri.DeLorme, group = "Esri.DeLorme") %>%
         leaflet::addPolygons(
           data = rv$cuenca %>% sf::st_transform(4326),
           fillColor = "transparent",
@@ -219,7 +218,7 @@ mod_biodiversidad_server <- function(id, rv){
         ) %>%
         leaflet::addLayersControl(
           overlayGroups = c("BNP","BNP c/obras","obras","PTS","legend"),
-          baseGroups = c("CartoDB.Positron", "OpenStreetMap", "Esri.WorldImagery", "Esri.DeLorme"),
+          baseGroups = c("CartoDB.Positron", "OpenStreetMap", "Esri.WorldImagery"),
           options = leaflet::layersControlOptions(collapsed = T)
         )
       

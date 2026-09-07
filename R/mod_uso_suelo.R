@@ -52,7 +52,6 @@ mod_uso_suelo_server <- function(id, rv){
         leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron, group = "CartoDB.Positron") %>% 
         leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OpenStreetMap") %>% 
         leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "Esri.WorldImagery") %>% 
-        leaflet::addProviderTiles(leaflet::providers$Esri.DeLorme, group = "Esri.DeLorme") %>% 
         leaflet::addPolygons(
           fillColor = ~colf_sub(Subuso),
           fillOpacity = 0.9,
@@ -93,7 +92,7 @@ mod_uso_suelo_server <- function(id, rv){
         ) %>% 
         leaflet::addLayersControl(
           overlayGroups = c("Subusos","legend"),
-          baseGroups = c("CartoDB.Positron","OpenStreetMap","Esri.WorldImagery","Esri.DeLorme"),
+          baseGroups = c("CartoDB.Positron", "OpenStreetMap", "Esri.WorldImagery"),
           options = leaflet::layersControlOptions(collapsed = T)
         ) 
     })

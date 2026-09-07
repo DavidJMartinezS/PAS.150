@@ -28,7 +28,6 @@ mod_ext_supha_kmz_ui <- function(id) {
     ),
     tags$div(
       style = "display: flex; align-items: start; gap: 25px;",
-      # class = "d-flex align-items-start",
       checkboxInput(ns("recursive"), "Recursivo", value = FALSE, width = "100px"),
       tags$div(
         id = "inline",

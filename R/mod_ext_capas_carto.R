@@ -28,9 +28,6 @@ mod_ext_capas_carto_ui <- function(id) {
     "Parcelas de inventarios forestales", "Registros de la especie"
   )
  
-  # UI estatica: los botones nacen disabled y el servidor los controla con shinyjs.
-  # Al no estar dentro de renderUI, el DOM nunca se destruye/recrea,
-  # por lo que shinyjs::enable() persiste correctamente.
   filas <- purrr::map2(capas_ids, capas_labels, function(cid, clabel) {
     tags$tr(
       tags$td(clabel),
@@ -121,35 +118,19 @@ mod_ext_capas_carto_server <- function(id, rv){
     # una sola vez, y manejar generacion + modal.
     purrr::pwalk(capas_meta, function(id, label, key_pattern, fun, args, req) {
  
-      # 1. Habilitar/deshabilitar btn_run segun requisitos
       observe({
         req_met <- purrr::every(req, ~ shiny::isTruthy(rv[[.x]]))
         if (req_met) shinyjs::enable(paste0("btn_run_", id)) else shinyjs::disable(paste0("btn_run_", id))
       })
  
-      # 2. reactiveVal por capa como flag de generacion exitosa.
-      #    Solo cambia en observeEvent del btn_run. No depende de rv$sp
-      #    ni de ningun otro valor externo, por lo que nunca se invalida
-      #    espontaneamente y el boton de descarga permanece habilitado.
       capa_generada <- reactiveVal(NULL)
  
-      # 3. Funcion pura para calcular la clave (usa isolate, no crea dependencia)
       get_target_key <- function() {
         sp_code <- if (!is.null(isolate(rv$sp))) stringi::stri_extract_first_words(isolate(rv$sp)) else ""
         if (grepl("%s", key_pattern)) sprintf(key_pattern, sp_code) else key_pattern
       }
- 
-      # 4. mod_downfiles_server registrado UNA SOLA VEZ.
-      #    x() apunta a capa_generada(), que solo tiene valor tras exito.
-      #    name_save es un valor estatico calculado al registrar el modulo.
-      mod_downfiles_server(
-        id        = paste0("btn_dl_", id),
-        x         = reactive(capa_generada()),
-        name_save = get_target_key(),
-        create_kmz = TRUE
-      ) 
- 
-      # 5. Generar la capa al presionar "Crear"
+      
+      # Crear capa
       observeEvent(input[[paste0("btn_run_", id)]], {
         call_args <- purrr::map(args, ~ rv[[.x]])
         withProgress(message = paste("Generando", label), {
@@ -163,8 +144,16 @@ mod_ext_capas_carto_server <- function(id, rv){
           }
         })
       })
+
+      # Descargar capa
+      mod_downfiles_server(
+        id        = paste0("btn_dl_", id),
+        x         = reactive(capa_generada()),
+        name_save = get_target_key(),
+        create_kmz = TRUE
+      ) 
  
-      # 6. Modal de visualizacion
+      # Modal de visualizacion
       observeEvent(input[[paste0("btn_see_", id)]], {
         layer_data <- capa_generada()
         if (is.null(layer_data)) {

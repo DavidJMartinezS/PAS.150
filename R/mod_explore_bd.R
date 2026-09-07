@@ -75,7 +75,6 @@ mod_explore_bd_server <- function(id, rv){
         leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron, group = "CartoDB.Positron") %>%
         leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OpenStreetMap") %>%
         leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "Esri.WorldImagery") %>%
-        leaflet::addProviderTiles(leaflet::providers$Esri.DeLorme, group = "Esri.DeLorme") %>%
         leaflet::addPolygons(
           data = rv$cuenca %>% sf::st_transform(4326),
           fillOpacity = 0,
@@ -174,7 +173,7 @@ mod_explore_bd_server <- function(id, rv){
           ) %>%
           leaflet::addLayersControl(
             overlayGroups = c("BNP","BNP c/obras","obras","Parcelas","legend"),
-            baseGroups = c("CartoDB.Positron", "OpenStreetMap", "Esri.WorldImagery", "Esri.DeLorme"),
+            baseGroups = c("CartoDB.Positron", "OpenStreetMap", "Esri.WorldImagery"),
             options = leaflet::layersControlOptions(collapsed = T)
           )
         } else {
@@ -188,7 +187,7 @@ mod_explore_bd_server <- function(id, rv){
           ) %>%
           leaflet::addLayersControl(
             overlayGroups = c("BNP", "Parcelas", "legend"),
-            baseGroups = c("CartoDB.Positron", "OpenStreetMap", "Esri.WorldImagery", "Esri.DeLorme"),
+            baseGroups = c("CartoDB.Positron", "OpenStreetMap", "Esri.WorldImagery"),
             options = leaflet::layersControlOptions(collapsed = T)
           )
         }} 
@@ -197,7 +196,7 @@ mod_explore_bd_server <- function(id, rv){
     # DT fore ----
     output$explore_bd_fore <- DT::renderDT({
       validate(
-        need(rv$BD_fore, "Requiere haber ingresado la cartografía de uso y vegetación y la BD de flora")
+        need(rv$BD_fore, "Requiere haber ingresado la cartografía de uso y vegetación y la BD de inventarios forestales")
       )
       DT::datatable(
         rv$BD_fore %>% 
@@ -227,7 +226,6 @@ mod_explore_bd_server <- function(id, rv){
         leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron, group = "CartoDB.Positron") %>%
         leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OpenStreetMap") %>%
         leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "Esri.WorldImagery") %>%
-        leaflet::addProviderTiles(leaflet::providers$Esri.DeLorme, group = "Esri.DeLorme") %>%
         leaflet::addPolygons(
           data = rv$cuenca %>% sf::st_transform(4326),
           fillOpacity = 0,
@@ -272,7 +270,7 @@ mod_explore_bd_server <- function(id, rv){
         ) %>%
         leaflet::addLegend(
           title = "Legend",
-          colors = c("#84BD00FF","cadetblue","#00A087FF"),
+          colors = c("#84BD00FF", "cadetblue", "#00A087FF"),
           labels = c(paste0("Bosque Nativo de Preservación de ", rv$sp), "Parcelas","Cuenca"),
           opacity = c(1,1,1),
           group = 'legend',
@@ -280,7 +278,7 @@ mod_explore_bd_server <- function(id, rv){
         ) %>%
         leaflet::addLayersControl(
           overlayGroups = c("BNP", "Parcelas", "legend"),
-          baseGroups = c("CartoDB.Positron", "OpenStreetMap", "Esri.WorldImagery", "Esri.DeLorme"),
+          baseGroups = c("CartoDB.Positron", "OpenStreetMap", "Esri.WorldImagery"),
           options = leaflet::layersControlOptions(collapsed = T)
         )
     })

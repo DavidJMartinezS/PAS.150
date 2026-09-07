@@ -129,7 +129,6 @@ mod_info_cuenca_server <- function(id, rv){
         leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron, group ="CartoDB.Positron") %>% 
         leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group ="OpenStreetMap") %>% 
         leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group ="Esri.WorldImagery") %>% 
-        leaflet::addProviderTiles(leaflet::providers$Esri.DeLorme, group ="Esri.DeLorme") %>% 
         leaflet::addPolygons(
           fillColor = ~out_info()$colf_com(COMUNA),
           fillOpacity = .5,
@@ -145,7 +144,7 @@ mod_info_cuenca_server <- function(id, rv){
         ) %>% 
         leaflet::addLayersControl(
           overlayGroups = c("Comunas"),
-          baseGroups = c("CartoDB.Positron","OpenStreetMap","Esri.WorldImagery","Esri.DeLorme"),
+          baseGroups = c("CartoDB.Positron","OpenStreetMap","Esri.WorldImagery"),
           options = leaflet::layersControlOptions(collapsed = T)
         ) %>% 
         leaflet.extras::addResetMapButton() %>% 

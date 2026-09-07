@@ -116,7 +116,6 @@ get_alter_censo_buffer <- function(BNP, obras, censos, sp, distancia = 5, buffer
     error = function(e) stop("Error al preparar la capa de BNP", e$message, call. = FALSE)
   )
   if (!inherits(BNP, "sf")) stop("El argumento 'BNP' debe ser un objeto 'sf'.", call. = FALSE)
-  if (!all(c("Nom_ssubc", "BNP_ECC") %in% names(BNP))) stop("BNP debe contener las columnas: 'Nom_ssubc' y 'BNP_ECC'.", call. = FALSE)
   if (!inherits(obras, "sf")) stop("El argumento 'obras' debe ser un objeto 'sf'.", call. = FALSE)
   if (!is.character(sp)) stop("El argumento 'sp' debe ser una cadena de texto.", call. = FALSE)
   if (!is.numeric(distancia)) stop("El argumento 'distancia' debe ser un valor numérico.", call. = FALSE)
@@ -171,10 +170,6 @@ get_alter_censo_buffer <- function(BNP, obras, censos, sp, distancia = 5, buffer
       BNP %>% dplyr::select(-dplyr::any_of(names(sf::st_drop_geometry(alter_buffer))))
     ) %>% 
     clean_geom() %>% 
-    # sf::st_collection_extract("POLYGON") %>% 
-    # sf::st_make_valid() %>% 
-    # sf::st_collection_extract("POLYGON") %>% 
-    # sf::st_cast("POLYGON") %>% 
     st_add_sup_ha() %>% 
     dplyr::mutate(
       Afectacion = "Alteracion buffer ECC",
