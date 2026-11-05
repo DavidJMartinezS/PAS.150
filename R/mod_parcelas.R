@@ -105,7 +105,7 @@ mod_parcelas_server <- function(id, rv){
       req(input$bd_flora)
       
       rv$BD_flora <- tryCatch({
-        prepare_bd_flora_150(
+        preparar_bd_flora_150(
           BD = input$bd_flora$datapath, 
           bd_lista = input$listo_bd_flora, 
           BNP_cuenca = rv$BNP_cuenca,
@@ -163,7 +163,7 @@ mod_parcelas_server <- function(id, rv){
       req(rv$BNP_cuenca)
 
       rv$BD_fore <- tryCatch({
-        prepare_bd_fore_150(
+        preparar_bd_fore_150(
           BD = input$bd_fore$datapath,
           bd_lista = input$listo_bd_fore, 
           BNP_cuenca = rv$BNP_cuenca

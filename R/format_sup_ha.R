@@ -45,13 +45,13 @@ format_sup_ha <- function(shp, field_sup = "Sup_ha", precision = 2L) {
   tipos_geom <- unique(sf::st_geometry_type(capa))
   if (!any(tipos_geom %in% c("POLYGON", "MULTIPOLYGON"))) {
     message(
-      "El shapefile no es de polígonos. Tipo(s) detectado(s): ",
+      sprintf("El shapefile %s no es de polígonos. Tipo(s) detectado(s): ", basename(shp)),
       paste(tipos_geom, collapse = ", ")
     )
     return(invisible(FALSE))  
   }
   if (!field_sup %in% names(capa)) {
-    message(sprintf("El shapefile no contiene el campo '%s'", field_sup))
+    message(sprintf("El shapefile %s no contiene el campo '%s'", basename(shp),field_sup))
     return(invisible(FALSE))
   }
 

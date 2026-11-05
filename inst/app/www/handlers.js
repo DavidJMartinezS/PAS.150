@@ -100,3 +100,18 @@ Shiny.addCustomMessageHandler('upload_msg', function(msg) {
   var target = $("#sf_file_progress").children()[0];
   target.innerHTML = msg;
 }); 
+
+// When locator icon in datatable is clicked, go to that spot on the map
+$(document).on("click", ".go-map", function(e) {
+  e.preventDefault();
+  var $el = $(this);
+  var lat = $el.data("lat");
+  var lng = $el.data("lng");
+  var target = $el.data("target");
+
+  Shiny.onInputChange(target, {
+    lat: lat,
+    lng: lng,
+    nonce: Math.random()
+  });
+});

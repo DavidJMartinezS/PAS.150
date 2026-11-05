@@ -3,6 +3,7 @@
 #' @param input,output,session Internal parameters for {shiny}.
 #'     DO NOT REMOVE.
 #' @import shiny
+#' @importFrom utils browseURL
 #' @noRd
 app_server <- function(input, output, session) {
   options(
@@ -65,7 +66,7 @@ app_server <- function(input, output, session) {
   mod_extras_server("extras", rv = rv)
 
   observeEvent(input$link_github, {
-    browseURL("https://github.com/DavidJMartinezS")
+    utils::browseURL("https://github.com/DavidJMartinezS")
   })
   
 }

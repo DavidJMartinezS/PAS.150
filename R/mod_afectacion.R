@@ -26,7 +26,7 @@ mod_afectacion_ui <- function(id) {
       bslib::nav_spacer(),
       bslib::nav_panel("Censo a Intervenir", div_gt(gt::gt_output(ns("gt_c_inter")))),
       bslib::nav_panel("Censo a Alterar", div_gt(gt::gt_output(ns("gt_c_alter")))),
-      bslib::nav_panel("Superficies", div_gt(gt::gt_output(ns("gt_sup_inter")))),
+      bslib::nav_panel("Superficies", div_gt(gt::gt_output(ns("gt_sup_inter"))))
     )
   )
 }

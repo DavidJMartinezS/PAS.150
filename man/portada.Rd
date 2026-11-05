@@ -3,17 +3,17 @@
 \name{portada}
 \alias{portada}
 \alias{wb_portada_PAS150}
-\alias{portada_opts}
+\alias{config_portada}
 \title{Portadas de apendices}
 \usage{
 wb_portada_PAS150(
   wb,
   apendice = c("inventarios", "biodiversidad", "fragmentacion"),
   nom_ssubc = NULL,
-  opts = portada_opts()
+  opts = config_portada()
 )
 
-portada_opts(
+config_portada(
   nom_proj = NULL,
   etapa_proj = "EIA",
   logo = NULL,
@@ -27,11 +27,11 @@ portada_opts(
 
 \item{nom_ssubc}{nombre de la subsubcuenca.}
 
-\item{opts}{Opciones para personalizar una portada. usar [portada_opts()].}
+\item{opts}{Opciones para personalizar una portada. usar [config_portada()].}
 
 \item{nom_proj}{Carácter. Nombre oficial del proyecto que se mostrará en la portada.}
 
-\item{etapa_proj}{Carácter. Etapa del proceso de evaluación del proyecto. Las opciones permitidas son \code{"EIA"}, \code{"Ad"}, \code{"AdComp"} y \code{"RF"}. Por defecto es \code{"EIA"}.}
+\item{etapa_proj}{Carácter. Etapa del proceso de evaluación del proyecto. Las opciones permitidas son \code{"EIA"}, \code{"A1"}, \code{"A2"}, \code{"RF"} y \code{"PMP"}. Por defecto es \code{"EIA"}.}
 
 \item{logo}{Carácter. Ruta al archivo de imagen (ej. PNG, JPG, SVG) que contiene el logo institucional del cliente.}
 

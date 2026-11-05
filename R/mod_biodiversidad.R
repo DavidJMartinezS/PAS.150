@@ -40,8 +40,8 @@ mod_biodiversidad_ui <- function(id) {
         ),
         bslib::navset_card_underline(
           full_screen = TRUE, 
-          bslib::nav_panel(title = "Hábito", plotly::plotlyOutput(ns("plt_habito"))),
-          bslib::nav_panel(title = "Origen", plotly::plotlyOutput(ns("plt_origen")))
+          bslib::nav_panel(title = "Hábito", plotly::plotlyOutput(ns("plot_habito"))),
+          bslib::nav_panel(title = "Origen", plotly::plotlyOutput(ns("plot_origen")))
         )
       ),
       bslib::layout_column_wrap(
@@ -83,7 +83,7 @@ mod_biodiversidad_server <- function(id, rv){
       rv$BD_biodiversidad$composicion %>% nrow()
     })
 
-    output$plt_habito <- plotly::renderPlotly({
+    output$plot_habito <- plotly::renderPlotly({
       validate(need(rv$BD_biodiversidad, "Requiere haber generardo la BD de Biodiversidad"))
       habito <- rv$BD_biodiversidad$composicion %>%
         dplyr::count(Habito)
@@ -100,7 +100,7 @@ mod_biodiversidad_server <- function(id, rv){
         plotly::layout(title = 'Proporcion de especies por hábito en el área de proyecto')
     })
 
-    output$plt_origen <- plotly::renderPlotly({
+    output$plot_origen <- plotly::renderPlotly({
       validate(need(rv$BD_biodiversidad, "Requiere haber generardo la BD de Biodiversidad"))
       origen <- rv$BD_biodiversidad$composicion %>%
         dplyr::count(Origen) 

@@ -16,7 +16,7 @@ mod_explore_bd_ui <- function(id) {
       bslib::nav_panel(
         title = "Exploracion BD de flora",
         bslib::layout_columns(
-          col_widths = c(8,4), 
+          col_widths = c(8, 4), 
           fill = TRUE,
           DT::DTOutput(ns("explore_bd_flora")),
           leaflet::leafletOutput(ns("leaf_pts_flora"))
@@ -25,7 +25,7 @@ mod_explore_bd_ui <- function(id) {
       bslib::nav_panel(
         title = "Exploracion BD de inventarios forestales",
         bslib::layout_columns(
-          col_widths = c(8,4), 
+          col_widths = c(8, 4), 
           fill = TRUE,
           DT::DTOutput(ns("explore_bd_fore")),
           leaflet::leafletOutput(ns("leaf_pts_fore"))

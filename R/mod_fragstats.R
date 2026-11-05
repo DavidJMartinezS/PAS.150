@@ -6,7 +6,16 @@
 #'
 #' @noRd 
 #'
+#' @importFrom bslib layout_columns card card_header card_body
+#' @importFrom fs dir_tree
 #' @importFrom shiny NS tagList 
+#' @importFrom shinyalert shinyalert 
+#' @importFrom shinybusy show_modal_spinner remove_modal_spinner
+#' @importFrom shinyFiles shinyDirButton shinyDirChoose
+#' @importFrom shinyjs enable disable
+#' @importFrom purrr map_lgl
+#' @importFrom tools file_path_as_absolute
+#' @importFrom utils browseURL
 mod_fragstats_ui <- function(id) {
   ns <- NS(id)
   tags$div(
@@ -79,29 +88,22 @@ mod_fragstats_ui <- function(id) {
           )
         ),
         tags$li(
-          tags$span(
-            "Preparación de carpetas y archivos para FragStats ──► ",
-            actionButton(inputId = ns("frag_pre"), label = "pre-FragStats", class = "btn-primary btn-sm")
-          )
+          tags$span("Configurar parámetros de borde ("),
+          tags$div(
+            class = "compact-inline-input", style = "display: inline-block",
+            numericInput(inputId = ns("edge"), label = NULL, value = 10, width = "65px")
+          ),
+          tags$span("m) y proximidad ("),
+          tags$div(
+            class = "compact-inline-input", style = "display: inline-block",
+            numericInput(inputId = ns("prox"), label = NULL, value = 1000, width = "80px")
+          ),
+          tags$span("m) del modelo")
         ),
         tags$li(
           tags$span(
-            "Abrir el archivo '.fca' disponible en el siguiente ", 
-            downloadLink(ns("download_model"), "enlace"),
-            ", correspondiente al modelo a ejecutar en FragStats. Este ya contiene las configuraciones necesarias, solo 
-            debe cargar el archivo '.tif' del BNP antes del proyecto desde la carpeta 'IMG'."
-          )
-        ),
-        tags$li(
-          tags$span(
-           "Guardar la salida en la carpeta de 'RESULTADOS' y luego limpiar los inputs y outputs. 
-          A continuación ejecutar el mismo modelo, ahora para el '.tif' del BNP despues del proyecto."
-          )
-        ),
-        tags$li(
-          tags$span(
-            "Terminar de generar los resultados archivos para FragStats ──► ",
-            actionButton(inputId = ns("frag_post"), label = "post-FragStats", class = "btn-primary btn-sm")
+            "Ejecutar modelo FragStats ──► ",
+            actionButton(inputId = ns("frag_run"), label = "Run FragStats", class = "btn-primary btn-sm")
           )
         )
       ),
@@ -128,18 +130,9 @@ mod_fragstats_server <- function(id, rv){
 
     # Downloads ----
     observeEvent(input$link_fragstats, {
-      browseURL("https://www.fragstats.org/download/frg4.2.681[x64].zip")
+      utils::browseURL("https://www.fragstats.org/download/frg4.2.681[x64].zip")
     })
 
-    output$download_model <- downloadHandler(
-      filename = function() {
-        "FragStats.fca"
-      },
-      content = function(file) {
-        file.copy(app_sys("app/www/FragStats.fca"), file)
-      }
-    )
-    
     # Directorio ----
     roots <- c(
       "Documentos" = path.expand("~"),
@@ -215,58 +208,18 @@ mod_fragstats_server <- function(id, rv){
         isTruthy(rv$BNP_antes), 
         isTruthy(rv$BNP_despues)
       ))) {
-        shinyjs::enable("frag_pre")
-      } else shinyjs::disable("frag_pre")
-    }) 
-    observeEvent(input$frag_pre, {
-      shinybusy::show_modal_spinner(
-        spin = "flower",
-        color = "#6FB58F",
-        text = tags$div(
-          tags$br(),
-          tags$p(
-            "Preparando carpetas... Espere unos segundos..."
-          )
-        )
-      )
-      on.exit({
-        shinybusy::remove_modal_spinner()
-      }, add = TRUE)
-
-      tryCatch({
-        FragStats_pre(dir = dir_frag(), path_antes = rv$BNP_antes, path_despues = rv$BNP_despues)
-        refresh_tree(refresh_tree() + 1)
-      }, error = function(e) {
-        shinyalert::shinyalert(
-          title = "Error al preparar las carpetas",
-          text = as.character(e$message),
-          html = TRUE,
-          type = "error",
-          closeOnEsc = TRUE,
-          showConfirmButton = TRUE,
-          confirmButtonCol = "#6FB58F",
-          animation = T
-        )
-      })
+        shinyjs::enable("frag_run")
+      } else shinyjs::disable("frag_run")
     })
 
-    observe({
-      if(all(c(
-        isTruthy(dir_frag()), 
-        isTruthy(rv$BNP_antes), 
-        isTruthy(rv$BNP_despues)
-      ))) {
-        shinyjs::enable("frag_post")
-      } else shinyjs::disable("frag_post")
-    }) 
-    observeEvent(input$frag_post, {
+    observeEvent(input$frag_run, {
       shinybusy::show_modal_spinner(
         spin = "flower",
         color = "#6FB58F",
         text = tags$div(
           tags$br(),
           tags$p(
-            "Generando insumos del FragStats... Espere uno momento..."
+            "Ejecutando modelo FragStats... Espere unos minutos..."
           )
         )
       )
@@ -275,11 +228,17 @@ mod_fragstats_server <- function(id, rv){
       }, add = TRUE)
 
       tryCatch({
-        FragStats_post(dir = dir_frag(), path_antes = rv$BNP_antes, path_despues = rv$BNP_despues)
+        FragStats(
+          dir = dir_frag(), 
+          path_antes = rv$BNP_antes, 
+          path_despues = rv$BNP_despues, 
+          edge = input$edge,
+          prox = input$prox
+        )
         refresh_tree(refresh_tree() + 1)
       }, error = function(e) {
         shinyalert::shinyalert(
-          title = "Error en procesos post-FragStats",
+          title = "Error al correr el modelo FragStats",
           text = as.character(e$message),
           html = TRUE,
           type = "error",

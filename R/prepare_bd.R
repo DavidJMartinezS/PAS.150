@@ -9,7 +9,7 @@
 #' @returns tibble con los datos preparados
 #' @rdname prepare_bd
 #' @export
-prepare_bd_flora_150 <- function(BD, bd_lista = TRUE, BNP_cuenca = NULL, in_bnp_obra = FALSE, obras = NULL) {
+preparar_bd_flora_150 <- function(BD, bd_lista = TRUE, BNP_cuenca = NULL, in_bnp_obra = FALSE, obras = NULL) {
   valid_df(BD)
   if (!bd_lista) valid_input(BNP_cuenca, inherit = "sf", geometry = "POLYGON")
   if (in_bnp_obra) valid_input(obras, inherit = "sf", geometry = "POLYGON")
@@ -29,7 +29,7 @@ prepare_bd_flora_150 <- function(BD, bd_lista = TRUE, BNP_cuenca = NULL, in_bnp_
         stop(paste0("Formato no soportado: '.", ext, "'"), call. = FALSE)
       )
     })
-  }, error = function(e) stop("Error en prepare_bd_flora: No se pudo leer el archivo. ", e$message, call. = FALSE))
+  }, error = function(e) stop("Error en preparar_bd_flora: No se pudo leer el archivo. ", e$message, call. = FALSE))
 
   BD <- tryCatch({
     bd %>%
@@ -125,7 +125,7 @@ prepare_bd_flora_150 <- function(BD, bd_lista = TRUE, BNP_cuenca = NULL, in_bnp_
 
 #' @rdname prepare_bd
 #' @export
-prepare_bd_fore_150 <- function(BD, bd_lista = FALSE, BNP_cuenca = NULL) {
+preparar_bd_fore_150 <- function(BD, bd_lista = FALSE, BNP_cuenca = NULL) {
   valid_df(BD)
   if (!bd_lista) valid_input(BNP_cuenca, inherit = "sf", geometry = "POLYGON")
   
@@ -144,7 +144,7 @@ prepare_bd_fore_150 <- function(BD, bd_lista = FALSE, BNP_cuenca = NULL) {
         stop(paste0("Formato no soportado: '.", ext, "'"), call. = FALSE)
       )
     })
-  }, error = function(e) stop("Error en prepare_bd_fore: No se pudo leer el archivo", e$message, call. = F))
+  }, error = function(e) stop("Error en preparar_bd_fore: No se pudo leer el archivo", e$message, call. = F))
 
   BD <- tryCatch({
     bd %>% 

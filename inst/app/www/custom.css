@@ -128,41 +128,14 @@ body ol {
   display: inline-block;
 }
 
-.importante {
-  font: 18px/1.5 Helvetica, sans-serif;
-  color:rgba(128, 133, 135, 1)
+.compact-inline-input .form-group {
+  margin-bottom: 0 !important;
 }
-.importante h3 {
-  color: rgba(137, 208, 196, 1);
-}
-.importante ul {
-  list-style: none;
-}
-.importante .ul_main li::before {
-  content: "";
-  background-image: url(leaf.svg);
-  background-size: contain;
-  display: inline-block;
-  width: 1em;
-  height: 1em;
-  position: relative;
-  top: 0.1rem;
-  margin-right: 0.5rem;
-  margin-left: 0.5rem;
-}
-.importante .ul_sec li::before {
-  content: "";
-  background-image: url(leaves.svg);
-  background-size: contain;
-  display: inline-block;
-  width: 1em;
-  height: 1em;
-  position: relative;
-  top: 0.1rem;
-  margin-right: 0.5rem;
-}
-.importante ul li {
-  margin-bottom: 0.8rem
+.compact-inline-input .form-control {
+  height: 28px !important;
+  padding: 2px 6px !important;
+  font-size: 13px !important;
+  text-align: center;
 }
 
 /*Estilo de tabla*/

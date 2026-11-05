@@ -23,6 +23,10 @@ mod_extras_ui <- function(id) {
       bslib::nav_panel(
         title = "Alteración de hábitat",
         mod_alteracion_ui(ns("ext_alt"))
+      ),
+      bslib::nav_panel(
+        title = "Sitio de medidas",
+        mod_medidas_ui(ns("ext_medidas"))
       )
     )
   )
@@ -37,6 +41,7 @@ mod_extras_server <- function(id, rv) {
     mod_ext_capas_carto_server(id = "capas_carto", rv = rv)
     mod_ext_supha_kmz_server(id = "supha_kmz", rv = rv) 
     mod_alteracion_server(id = "ext_alt", rv = rv) 
+    mod_medidas_server(id = "ext_medidas", rv = rv)
   })
 }
     

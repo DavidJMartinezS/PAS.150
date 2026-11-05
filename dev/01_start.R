@@ -36,7 +36,7 @@ golem::fill_desc(
 usethis::use_version("dev") # en desarrollo
 usethis::use_version("patch") # arreglo de bugs
 usethis::use_version("minor") # funciones nuevas que no rompen compatibilidad
-usethis::use_version("major") # cambios grandes que no rompen compatibildiad
+usethis::use_version("major") # cambios grandes rompen compatibildiad
 
 ## Install the required dev dependencies ----
 golem::install_dev_deps()

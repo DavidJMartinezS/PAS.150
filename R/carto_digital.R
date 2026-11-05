@@ -214,7 +214,7 @@ get_BNP_intervencion <- function(BNP_cuenca = NULL, obras = NULL, BNP_inter = NU
     
     BNP_inter %>% 
       st_add_sup_ha() %>% 
-      dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), dplyr::matches("Censado"), Sup_ha) 
+      dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Censado"), Sup_ha) 
   } else {
     valid_input(BNP_cuenca, inherit = "sf", names = req_names$BNP_afect, geometry = "POLYGON")
     valid_input(obras, inherit = "sf", geometry = "POLYGON")
@@ -228,13 +228,13 @@ get_BNP_intervencion <- function(BNP_cuenca = NULL, obras = NULL, BNP_inter = NU
         Sup_m2 = sf::st_area(geometry) %>% units::set_units(m2) %>% units::drop_units() %>% janitor::round_half_up()
       ) %>% 
       dplyr::arrange(Sup_m2) %>% 
-      dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), Sup_ha) 
+      dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), Sup_ha) 
   }
 }
 
 #' @rdname carto_digital
 #' @export
-get_BNP_alterar <- function(BNP_alter = NULL, BNP_cuenca = NULL, alt_ok = F) {
+get_BNP_alterar <- function(BNP_alter = NULL, BNP_cuenca = NULL, alt_ok = FALSE) {
   valid_input(alt_ok, inherit = "logical")
 
   if (is.null(BNP_alter)) {
@@ -244,13 +244,13 @@ get_BNP_alterar <- function(BNP_alter = NULL, BNP_cuenca = NULL, alt_ok = F) {
       valid_input(BNP_alter, names = req_names$BNP_afect, inherit = "sf", geometry = "POLYGON")
       BNP_alter %>% 
         st_add_sup_ha() %>% 
-        dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), dplyr::matches("Censado"), Sup_ha)
+        dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Censado"), Sup_ha)
     } else {
       valid_input(BNP_alter, inherit = "sf", geometry = "POLYGON")
       valid_input(BNP_cuenca, inherit = "sf", names = req_names$BNP_afect, geometry = "POLYGON")
 
       BNP_alter %>% 
-        dplyr::select(dplyr::matches("obra"), dplyr::matches("Tipo")) %>% 
+        dplyr::select(dplyr::matches("obra")) %>% 
         sf::st_intersection(BNP_cuenca) %>% 
         sf::st_collection_extract("POLYGON") %>% 
         sf::st_make_valid() %>% 
@@ -258,7 +258,7 @@ get_BNP_alterar <- function(BNP_alter = NULL, BNP_cuenca = NULL, alt_ok = F) {
         sf::st_cast("MULTIPOLYGON") %>% 
         sf::st_cast("POLYGON") %>% 
         st_add_sup_ha() %>%  
-        dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), dplyr::matches("Censado"), Sup_ha)
+        dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Censado"), Sup_ha)
     }
   } 
 }
@@ -269,7 +269,7 @@ get_ECC_alt <- function(BNP_alter, censo, sp) {
   valid_input(censo, inherit = "sf", names = "Especie", geometry = "POINT")
   valid_input(sp, inherit = "character")
   if(!is.null(BNP_alter)) {
-    if(nrow(BNP_alter)>0){
+    if(nrow(BNP_alter) > 0){
       valid_input(BNP_alter, inherit = "sf", geometry = "POLYGON")
     } else {
       return(invisible())
@@ -291,7 +291,7 @@ get_ECC_alt <- function(BNP_alter, censo, sp) {
         UTM_E = sf::st_coordinates(geometry)[, 1] %>% as.integer(),
         UTM_N = sf::st_coordinates(geometry)[, 2] %>% as.integer()
       ) %>% 
-      dplyr::select(Especie, Afectacion, dplyr::contains("obra"), dplyr::matches("Tipo"), UTM_E, UTM_N)
+      dplyr::select(Especie, Afectacion, dplyr::contains("obra"), UTM_E, UTM_N)
     }}
     
 }
@@ -332,11 +332,11 @@ get_ECC_int <- function(censo, sp, BNP_inter, BNP_alter = NULL, upto5m = T) {
     } else {
       .[] %>% 
         dplyr::mutate(
-        Afectacion = 'Eliminación',
-        UTM_E = sf::st_coordinates(geometry)[, 1] %>% as.integer(),
-        UTM_N = sf::st_coordinates(geometry)[, 2] %>% as.integer()
-      ) %>% 
-      dplyr::select(Especie, Afectacion, dplyr::contains("Obra"), dplyr::matches("Tipo"), UTM_E, UTM_N)
+          Afectacion = 'Eliminación',
+          UTM_E = sf::st_coordinates(geometry)[, 1] %>% as.integer(),
+          UTM_N = sf::st_coordinates(geometry)[, 2] %>% as.integer()
+        ) %>% 
+        dplyr::select(Especie, Afectacion, dplyr::contains("Obra"), UTM_E, UTM_N)
     }} 
 
   return(ecc_int)
@@ -464,7 +464,7 @@ get_BNP_alt_sin_censo <- function(BNP_alter, densidad = NULL) {
               Ind_alter = janitor::round_half_up(Densidad * Sup_ha)
             ) %>% 
             dplyr::mutate_at("Ind_alter", ~ifelse(. == 0, 1, .)) %>% 
-            dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), Afectacion, Densidad, Ind_alter, Sup_ha)
+            dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), Afectacion, Densidad, Ind_alter, Sup_ha)
         }} 
       if(!is.null(est_alter)) return(est_alter) else return(invisible())
     } else {
@@ -502,7 +502,7 @@ get_BNP_int_sin_censo <- function(BNP_inter, densidad = NULL) {
               Ind_inter = janitor::round_half_up(Densidad * Sup_ha)
             ) %>% 
             dplyr::mutate_at("Ind_inter", ~ifelse(. == 0, 1, .)) %>% 
-            dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), dplyr::matches("Tipo"), Afectacion, Densidad, Ind_inter, Sup_ha)
+            dplyr::select(Nom_ssubc, Formacion, Tipo_for, Subtipo_fo, dplyr::starts_with("ECC"), BNP_ECC, F_ley20283, dplyr::contains("obra"), Afectacion, Densidad, Ind_inter, Sup_ha)
         }} 
       if(!is.null(est_inter)) return(est_inter) else return(invisible())
     } else {

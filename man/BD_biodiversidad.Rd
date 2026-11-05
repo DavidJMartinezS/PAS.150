@@ -4,12 +4,7 @@
 \alias{BD_biodiversidad}
 \title{Apéndice BD biodiversidad}
 \usage{
-BD_biodiversidad(
-  BD_flora,
-  sp,
-  nom_ssubc,
-  portada_opts = PAS.150::portada_opts()
-)
+BD_biodiversidad(BD_flora, sp, nom_ssubc, portada_opts = config_portada())
 }
 \arguments{
 \item{BD_flora}{dataframe con la base de datos de las parcelas de inventarios florísticos.}
@@ -27,5 +22,5 @@ lista con resultados asociados al apendice de biodiversidad
 Apéndice BD biodiversidad
 }
 \details{
-En el parametro `portada_opts` debe ingresar una lista con los argumentos de la funcion `portada_opts()`.
+En el parametro `portada_opts` debe ingresar una lista con los argumentos de la funcion `config_portada()`.
 }

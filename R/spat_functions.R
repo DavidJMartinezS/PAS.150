@@ -193,3 +193,135 @@ st_union_no_overlaps <- function(
   dplyr::bind_rows(part_intersect, part_x_only, part_y_only) %>%
     clean_geom()
 }
+
+#' Calcular la pendiente para geometrías espaciales usando un DEM
+#'
+#' @description
+#' Esta función calcula la pendiente media o mediana para cada una de las geometrías
+#' de un objeto `sf` a partir de un Modelo de Elevación Digital (DEM).
+#'
+#' @param dem Objeto `SpatRaster` o ruta del archivo raster del DEM.
+#' @param x Objeto `sf` o `sfc` para el cual se calculará la pendiente.
+#' @param stat Cadena de caracteres que indica el estadístico a resumir: `'mean'` (media) o `'median'` (mediana). Por defecto es `'median'`.
+#'
+#' @return Un vector numérico con el valor de la pendiente en porcentaje para cada geometría en `x`.
+#'
+#' @export
+#' @importFrom terra rast crs project crop terrain extract
+#' @importFrom sf st_buffer
+#' @importFrom dplyr group_by summarise pull
+#' @importFrom janitor round_half_up
+#' @importFrom stringi stri_split
+#' 
+#' @examples
+#' \dontrun{
+#'   # Suponiendo que 'areas_sf' es un objeto sf y 'dem_raster' es un SpatRaster
+#'   pendientes <- get_slope(dem = dem_raster, x = areas_sf, stat = "mean")
+#'
+#'   # Añadir las pendientes como una nueva columna
+#'   areas_sf$Pend_media <- pendientes
+#' }
+get_slope <- function(dem, x, stat = c("median", "mean")) {
+  valid_dem(dem)
+  valid_input(x, inherit = c("sf", "sfc"))
+  stat <- match.arg(stat)
+
+  rast <- tryCatch({
+    (if (inherits(dem, "SpatRaster")) dem else terra::rast(dem))
+  }, error = function(e) stop("Error en get_slope: No se pudo leer archivo raster", call. = FALSE))
+
+  rast_proj <- tryCatch({
+    rast %>%
+      {if(terra::crs(rast) %>% stringi::stri_split(fixed = "\n") %>% .[[1]] %>% .[1] ==
+          terra::crs(x) %>% stringi::stri_split(fixed = "\n") %>% .[[1]] %>% .[1]) {
+        terra::`crs<-`(., terra::crs(x))
+      } else {
+        terra::project(., x)
+      }}
+  }, error = function(e) stop("Error en get_slope: No se pudo reprojectar el archivo raster", call. = FALSE))
+
+  rast_crop <- tryCatch({
+    rast_proj %>% terra::crop(sf::st_buffer(x, 50))
+  }, error = function(e) stop("Error en get_slope: La extensión del DEM no se superpone con la de los datos espaciales de 'x'", call. = FALSE))
+
+  if (all(rast_crop %>% as.vector() %>% unique() == 0)) {
+    stop("Error en get_slope: El DEM no se superpone con los límites de los datos espaciales 'x'", call. = FALSE)
+  }
+
+  slope <- rast_crop %>%
+    terra::terrain(v = "slope", neighbors = 8, unit = "degrees") %>%
+    {\(x) tan(x * pi / 180) * 100}() %>%
+    terra::extract(y = x, touches = TRUE) %>%
+    dplyr::group_by(ID) %>%
+    {if(stat == "mean") {
+      dplyr::summarise(.[], slope = mean(slope, na.rm = TRUE)) 
+    } else {
+      dplyr::summarise(.[], slope = median(slope, na.rm = TRUE)) 
+    }} %>%
+    dplyr::pull(slope) %>%
+    janitor::round_half_up(1)
+
+  if (all(slope %in% c(0, NA))) {
+    stop("Error en get_slope: El DEM no se superpone con los límites de los datos espaciales 'x'", call. = FALSE)
+  }
+
+  if (any(is.na(slope))) {
+    warning(
+      paste0(
+        "Cuidado en get_slope: Valores 'NA' en ",
+        ngettext(length(which(is.na(slope))), "la entidad ", "las entidades "),
+        paste(sQuote(which(is.na(slope))), collapse = ", "), "."
+      ), call. = FALSE
+    )
+  }
+  if (any(slope == 0)) {
+    warning(
+      paste0(
+        "Cuidado en get_slope: Valores 'NA' en ",
+        ngettext(length(which(slope == 0)), "la entidad ", "las entidades "),
+        paste(sQuote(which(slope == 0)), collapse = ", "), "."
+      ), call. = FALSE
+    )
+  }
+
+  return(slope)
+}
+
+#' Buffer variable por fila
+#'
+#' Aplica un buffer a cada geometría del objeto `sf` utilizando una distancia variable
+#' especificada en una columna del mismo objeto.
+#'
+#' @param sf Objeto de clase `sf`.
+#' @param field Nombre o posición del campo que contiene la distancia del buffer en metros para cada fila.
+#'
+#' @return Un objeto `sf` con las geometrías resultantes del buffer. Las filas con valores `NA`
+#'   en la columna de distancia son eliminadas.
+#' @export
+#' @examples
+#' \dontrun{
+#'   # Usando nombre de columna como texto
+#'   sf_buffer <- st_buffer_byrow(sf_obj, "distancia_m")
+#'   
+#'   # Usando nombre de columna sin comillas
+#'   sf_buffer <- st_buffer_byrow(sf_obj, distancia_m)
+#'   
+#'   # Usando posición de la columna
+#'   sf_buffer <- st_buffer_byrow(sf_obj, 1)
+#' }
+st_buffer_byrow <- function(sf, field) {
+  if (!inherits(sf, "sf")) stop("El argumento 'sf' debe ser un objeto de clase 'sf'.")
+  
+  # Seleccionar la columna usando tidy evaluation y validar existencia
+  col_df <- tryCatch({
+    sf %>% sf::st_drop_geometry() %>% dplyr::select({{ field }})
+  }, error = function(e) stop("No se pudo seleccionar la columna especificada. Verifique el nombre."))
+  
+  if (ncol(col_df) != 1) stop("Debe seleccionar exactamente una columna para el buffer.")
+  col_name <- names(col_df)[1]
+  if (!is.numeric(col_df[[1]])) stop(paste("El campo", col_name, "debe ser de tipo numérico."))
+  
+  sf %>% 
+    tidyr::drop_na(dplyr::all_of(col_name)) %>% 
+    sf::st_buffer(dist = .[[col_name]])
+}

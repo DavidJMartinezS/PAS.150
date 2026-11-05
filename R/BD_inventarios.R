@@ -4,7 +4,7 @@
 #' @inheritParams carto_digital
 #' 
 #' @details 
-#' En el parametro `portada_opts` debe ingresar una lista con los argumentos de la funcion `portada_opts()`.
+#' En el parametro `portada_opts` debe ingresar una lista con los argumentos de la funcion `config_portada()`.
 #'
 #' @returns lista con resultados asociados al apendices de inventarios forestales
 #'
@@ -13,7 +13,7 @@ BD_inventarios <- function(
   BD_fore,
   BNP_cuenca,
   sp,
-  portada_opts = PAS.150::portada_opts()
+  portada_opts = config_portada()
 ) {
   valid_input(BD_fore, inherit = "data.frame", names = req_names$BD_fore)
   valid_input(BNP_cuenca, inherit = "sf")
@@ -638,7 +638,7 @@ IVI: Valor de importancia."
         numfmt = c(formatCode = c("#,##0")),
         choose = c(
           Especie = sprintf("x == '%s'", sp),
-          Estado = 'purrr::map_lgl(stringi::stri_detect_regex(x, "adulto|brinzal|regenera", case_insensitive = TRUE), shiny::isTruthy)'
+          Estado = 'x %in% c("Adulto", "Brinzal", "Regeneracion")'
         )
       )
     ) 

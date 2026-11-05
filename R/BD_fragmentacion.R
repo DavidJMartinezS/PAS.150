@@ -28,10 +28,13 @@ BD_fragmentacion <- function(
   spp_acomp = NULL,
   prop = NULL,
   estadisticos = NULL,
-  portada_opts = PAS.150::portada_opts()
+  portada_opts = config_portada()
 ) {
   valid_input(sf_uso, inherit = "sf", names = "Subuso", geometry = "POLYGON")
   valid_input(sf_obras, inherit = "sf", geometry = "POLYGON")
+  crs <- get_utm_epsg(sf_uso)
+  sf_uso <- sf::st_transform(sf_uso, crs)
+  sf_obras <- sf::st_transform(sf_obras, crs)
   stopifnot(
     "Extensión de archivos no válida. 'xls' o 'xlsx'." = tools::file_ext(
       path_frag

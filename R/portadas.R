@@ -3,7 +3,7 @@
 #' @param wb Workbook.
 #' @param apendice apendices correspondiente. `inventarios`, `biodiversidad` o `fragmentacion`.
 #' @param nom_ssubc nombre de la subsubcuenca.
-#' @param opts Opciones para personalizar una portada. usar [portada_opts()].
+#' @param opts Opciones para personalizar una portada. usar [config_portada()].
 #'
 #' @name portada 
 #' @returns Workbook con portada
@@ -12,7 +12,7 @@ wb_portada_PAS150 <- function(
     wb,
     apendice = c("inventarios", "biodiversidad", "fragmentacion"),
     nom_ssubc = NULL,
-    opts = portada_opts()
+    opts = config_portada()
   ){
   valid_input(wb, inherit = "wbWorkbook")
   apendice <- match.arg(apendice)
@@ -107,7 +107,7 @@ wb_portada_PAS150 <- function(
 #' que se mostrarán en la portada de los libros de Excel generados para los apéndices.
 #'
 #' @param nom_proj Carácter. Nombre oficial del proyecto que se mostrará en la portada.
-#' @param etapa_proj Carácter. Etapa del proceso de evaluación del proyecto. Las opciones permitidas son \code{"EIA"}, \code{"Ad"}, \code{"AdComp"} y \code{"RF"}. Por defecto es \code{"EIA"}.
+#' @param etapa_proj Carácter. Etapa del proceso de evaluación del proyecto. Las opciones permitidas son \code{"EIA"}, \code{"A1"}, \code{"A2"}, \code{"RF"} y \code{"PMP"}. Por defecto es \code{"EIA"}.
 #' @param logo Carácter. Ruta al archivo de imagen (ej. PNG, JPG, SVG) que contiene el logo institucional del cliente.
 #' @param plantilla Carácter. Selección de una configuración predefinida para proyectos específicos. 
 #'   Las opciones disponibles son \code{"default"}, \code{"KIM753"} (Kimal-Lo Aguirre) y \code{"MLP612"} (Minera Los Pelambres).
@@ -119,13 +119,13 @@ wb_portada_PAS150 <- function(
 #' @rdname portada 
 #' @return Una \code{lista} que contiene los parámetros configurados para ser utilizados por \code{wb_portada_PAS150()}.
 #' @export
-portada_opts <- function(
+config_portada <- function(
     nom_proj = NULL,
     etapa_proj = "EIA",
     logo = NULL,
     plantilla = "default"
   ) {
-  etapa_proj <- match.arg(etapa_proj, choices = c("EIA", "Ad", "AdComp", "RF"))
+  etapa_proj <- match.arg(etapa_proj, choices = c("EIA", "A1", "A2", "A3", "RF", "PMP"))
   plantilla <- match.arg(plantilla, choices = c("default", "KIM753", "MLP612"))
   
   nom_proj <- switch(
@@ -138,9 +138,11 @@ portada_opts <- function(
   etapa_proj <- switch(
     etapa_proj,
     "EIA" = "EVALUACIÓN DE IMPACTO AMBIENTAL",
-    "Ad" = "ADENDA",
-    "AdComp" = "ADENDA COMPLEMENTARIA",
-    "RF" = "RESOLUCIÓN FUNDADA"
+    "A1" = "ADENDA",
+    "A2" = "ADENDA COMPLEMENTARIA",
+    "A3" = "ADENDA EXCEPCIONAL",
+    "RF" = "RESOLUCIÓN FUNDADA",
+    "PMP" = "PLAN DE MANEJO DE PRESERVACIÓN"
   )
 
   logo <- switch(

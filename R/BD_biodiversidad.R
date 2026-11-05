@@ -5,7 +5,7 @@
 #' @inheritParams carto_digital
 #'
 #' @details 
-#' En el parametro `portada_opts` debe ingresar una lista con los argumentos de la funcion `portada_opts()`.
+#' En el parametro `portada_opts` debe ingresar una lista con los argumentos de la funcion `config_portada()`.
 #' 
 #' @returns lista con resultados asociados al apendice de biodiversidad
 #'
@@ -14,7 +14,7 @@ BD_biodiversidad <- function(
   BD_flora,
   sp,
   nom_ssubc,
-  portada_opts = PAS.150::portada_opts()
+  portada_opts = config_portada()
 ) {
   valid_df(BD_flora, req_names$BD_flora)
   valid_input(sp, inherit = "character")
@@ -306,11 +306,11 @@ BD_biodiversidad <- function(
         col_grand_totals = FALSE,
         table_style = PT_style,
         choose = c(
-          Habito = '!stringi::stri_detect_regex(x, "hierba|herb", case_insensitive = TRUE)',
-          Cob_BB = '!stringi::stri_detect_regex(x, "-|fp", case_insensitive = TRUE)'
+          Habito = 'x < "H" | x >= "s"',
+          Cob_BB = 'x >= "+" & x < "fp" | x >= "r"'
         )
       )
-    ) %>%
+    ) %>% 
     openxlsx2::wb_add_font(
       dims = sprintf(
         "A%s:A%s",
@@ -431,7 +431,7 @@ BD_biodiversidad <- function(
     ) %>%
     openxlsx2::wb_add_formula(
       x = sprintf(
-        "ROUND(1-SUM(E%s:E%s),3)",
+        "ROUND(-SUM(E%s:E%s),3)",
         row_i + 1,
         row_i + length(unique(BD_wb$Especie))
       ),

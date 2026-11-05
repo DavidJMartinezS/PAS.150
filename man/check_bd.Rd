@@ -10,7 +10,7 @@ check_bd_flora(x)
 check_bd_fore(x)
 }
 \arguments{
-\item{x}{dataframe con la base de datos. Generarla con `prepare_bd_fore_150()`}
+\item{x}{dataframe con la base de datos. Generarla con `preparar_bd_fore_150()`}
 }
 \value{
 Devuelve alertas impresas en la consola o bien en modulos de shiny.

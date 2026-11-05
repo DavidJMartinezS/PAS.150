@@ -11,7 +11,7 @@ mod_importante_ui <- function(id){
   tags$div(
     class = "p-5",
     style = "background-color: #f8f9fa; min-height: 100vh;",
-      
+
     # Flujo de trabajo ----
     tags$div(
       tags$div(
@@ -236,16 +236,16 @@ mod_importante_ui <- function(id){
                 style = "color: #65a498ff;"
               ),
               tags$div(
-                tags$p("El nombre de la especie objetivo debe ser homologado en todos los inputs. Por ejemplo, si se selecciona la especie 'Neltuma chilensis'", class = "text-muted mb-2"),
+                tags$p("El nombre de la especie objetivo debe ser homologado en todos los inputs. Por ejemplo, si se selecciona la especie 'Neltuma chilensis':", class = "text-muted mb-2"),
                 tags$ul(
                   class = "mb-0 text-muted",
                   tags$li(
                     icon("check", class = "text-success me-2"), 
-                    "En las capas de uso y vegetación, censos, y bases de datos debe estar la especie mencionada como tal"
+                    "En las capas de uso y vegetación, censos, y bases de datos debe estar la especie mencionada como tal."
                   ),
                   tags$li(
                     icon("xmark", class = "text-danger me-2"), 
-                    "No se reconocera con alguna sinonímia como 'Prosopis chilensis' o un nombre mal escrito como 'Neltuma chilense'."
+                    "No se reconocerá la especie con alguna sinonímia como 'Prosopis chilensis' o un nombre mal escrito como 'Neltuma chilense'."
                   )
                 )
               )
@@ -278,107 +278,108 @@ mod_importante_ui <- function(id){
             )
           )
         )
+      )
+    ),
+    
+    # Tabla ----
+    tags$table(
+      class = "styled-table text-muted",
+      tags$thead(
+        table_row(c("Input", "Campos mínimos"), header = T)
       ),
-
-      tags$table(
-        class = "styled-table text-muted",
-        tags$thead(
-          table_row(c("Input", "Campos mínimos"), header = T)
-        ),
-        tags$tbody(
-          table_row(c(
-            "Uso-vegetación",
-            req_names$uso_veg %>%
-              paste(collapse = ", ") %>%
-              paste(
-                ", más los campos con las ECC (ej: ECC1, ECC_1, ECC1_Art19, ECC...)"
-              )
-          )),
-          table_row(c(
-            "Obras",
-            "Campos que contengan el caracter 'obra'. Ej: 'Obra', 'Nom_obra', 'Obra_detal'"
-          )),
-          table_row(c("Censo", "Especie")),
-          table_row(c(
-            "BNP a intervenir",
+      tags$tbody(
+        table_row(c(
+          "Uso-vegetación",
+          req_names$uso_veg %>%
+            paste(collapse = ", ") %>%
+            paste(
+              ", más los campos con las ECC (ej: ECC1, ECC_1, ECC1_Art19, ECC...)"
+            )
+        )),
+        table_row(c(
+          "Obras",
+          "Campos que contengan el caracter 'obra'. Ej: 'Obra', 'Nom_obra', 'Obra_detal'"
+        )),
+        table_row(c("Censo", "Especie")),
+        table_row(c(
+          "BNP a intervenir",
+          req_names$BNP_afect %>%
+            paste(collapse = ", ") %>%
+            paste(
+              ", campos que contengan el caracter 'obra', más los campos con las ECC (ej: ECC1, ECC_1, ECC1_Art19, ECC...). 
+              Si desea estimar el censo de algunos poligonos incluir un campo 'Censado' señalando con un 'Si' o 'No' si el poligono se encuentra censado"
+            )
+        )),
+        table_row(c(
+          "BNP a alterar",
+          sprintf(
+            "Campos que contengan el caracter 'obra' si la capa no esta lista. \nDe lo contrario añadir a las obras: %s",
             req_names$BNP_afect %>%
               paste(collapse = ", ") %>%
               paste(
-                ", campos que contengan el caracter 'obra', más los campos con las ECC (ej: ECC1, ECC_1, ECC1_Art19, ECC...). 
+                ", más los campos con las ECC (ej: ECC1, ECC_1, ECC1_Art19, ECC...).
                 Si desea estimar el censo de algunos poligonos incluir un campo 'Censado' señalando con un 'Si' o 'No' si el poligono se encuentra censado"
               )
-          )),
-          table_row(c(
-            "BNP a alterar",
-            sprintf(
-              "Campos que contengan el caracter 'obra' si la capa no esta lista. \nDe lo contrario añadir a las obras: %s",
-              req_names$BNP_afect %>%
-                paste(collapse = ", ") %>%
-                paste(
-                  ", más los campos con las ECC (ej: ECC1, ECC_1, ECC1_Art19, ECC...).
-                  Si desea estimar el censo de algunos poligonos incluir un campo 'Censado' señalando con un 'Si' o 'No' si el poligono se encuentra censado"
-                )
-            )
-          )),
-          table_row(c(
-            "BD flora",
-            req_names$BD_flora %>% paste(collapse = ", ")
-          )),
-          table_row(c(
-            "BD inventarios",
-            req_names$BD_fore %>% paste(collapse = ", ")
+          )
+        )),
+        table_row(c(
+          "BD flora",
+          req_names$BD_flora %>% paste(collapse = ", ")
+        )),
+        table_row(c(
+          "BD inventarios",
+          req_names$BD_fore %>% paste(collapse = ", ")
+        ))
+      )
+    ),
+    
+    # Consideraciones cartorgaficas y BDD ----
+    tags$div(
+      class = "row g-4 mt-3 text-muted",
+      tags$div(
+        class = "col-md-6 col-lg-6",
+        tags$h4(
+          bsicons::bs_icon("map", class = "me-2 text-primary"),
+          "Consideraciones para la cartorgafía de uso y vegetación",
+          class = "fw-bold"
+        ),
+        tags$ul(
+          class = "mb-1",
+          list_to_li(c(
+            "Si un poligono de bosque contiene una especie en categoría debe figurar como 'Bosque nativo de preservación' en el campo de 'F_ley20283'.",
+            "Si un poligono es BNP, debe indicar en los campos de 'ECC...' la o las especies en categoría de conservación.",
+            "Todos los bosques nativos deben tener indicado un tipo y subtipo forestal."
           ))
         )
       ),
-      
-      # Consideraciones cartorgaficas y BDD
       tags$div(
-        class = "row g-4 mt-3 text-muted",
-        tags$div(
-          class = "col-md-6 col-lg-6",
-          tags$h4(
-            bsicons::bs_icon("map", class = "me-2 text-primary"),
-            "Consideraciones para la cartorgafía de uso y vegetación",
-            class = "fw-bold"
-          ),
-          tags$ul(
-            class = "mb-1",
-            list_to_li(c(
-              "Si un poligono de bosque contiene una especie en categoría debe figurar como 'Bosque nativo de preservación' en el campo de 'F_ley20283'.",
-              "Si un poligono es BNP, debe indicar en los campos de 'ECC...' la o las especies en categoría de conservación.",
-              "Todos los bosques nativos deben tener indicado un tipo y subtipo forestal."
-            ))
-          )
+        class = "col-md-6 col-lg-6",
+        tags$h4(
+          bsicons::bs_icon("table", class = "me-2 text-primary"),
+          "Consideraciones para las bases de datos",
+          class = "fw-bold"
         ),
-        tags$div(
-          class = "col-md-6 col-lg-6",
-          tags$h4(
-            bsicons::bs_icon("table", class = "me-2 text-primary"),
-            "Consideraciones para las bases de datos",
-            class = "fw-bold"
+        tags$ul(
+          class = "mb-1",
+          tags$li(
+            "Fijarse en la consistencia de las parcelas y sus coordenadas, cada parcela debe tener coordenadas unicas."
           ),
-          tags$ul(
-            class = "mb-1",
-            tags$li(
-              "Fijarse en la consistencia de las parcelas y sus coordenadas, cada parcela debe tener coordenadas unicas."
-            ),
-            tags$li(
-              "Al ingresar las bases de datos estas son automaticamente filtradas a las parcelas que se encuentran dentro de los BNP de la cuenca. Seleccionar 'BD lista' para usar la base tal como la ingresó."
-            ),
-            tags$li(
-              "Se recomienda realizar un chequeo de las bases de datos antes de utilizarlas dando click al boton 'Check'."
-            ),
-            tags$li(
-              "Los campos 'Sup_parcela', 'UTM_E', 'UTM_N', 'N_ind', 'DAP' y 'Altura' deben ser numéricos. Fijarse bien en el separador de decimales, que no se utilicen puntos y comas en la misma base de datos."
-            ),
-            tags$li(
-              "En la base de datos de inventarios forestales, fijarse que solo estén las especies que sean de su interés presentar. Generalmente se dejan fuera del analisis las especies exóticas como ",
-              tags$i("'Olea europaea', 'Salix babylonica', 'Populus sp.'"),
-              ", etc."
-            ),
-            tags$li(
-              "El campo 'Estado' debe estar idealmente completo al menos para la especie objetivo del infome, con una de las siguientes clases: 'Adulto', 'Brinzal', 'Regeneración'."
-            )
+          tags$li(
+            "Al ingresar las bases de datos estas son automaticamente filtradas a las parcelas que se encuentran dentro de los BNP de la cuenca. Seleccionar 'BD lista' para usar la base tal como la ingresó."
+          ),
+          tags$li(
+            "Se recomienda realizar un chequeo de las bases de datos antes de utilizarlas dando click al boton 'Check'."
+          ),
+          tags$li(
+            "Los campos 'Sup_parcela', 'UTM_E', 'UTM_N', 'N_ind', 'DAP' y 'Altura' deben ser numéricos. Fijarse bien en el separador de decimales, que no se utilicen puntos y comas en la misma base de datos."
+          ),
+          tags$li(
+            "En la base de datos de inventarios forestales, fijarse que solo estén las especies que sean de su interés presentar. Generalmente se dejan fuera del analisis las especies exóticas como ",
+            tags$i("'Olea europaea', 'Salix babylonica', 'Populus sp.'"),
+            ", etc."
+          ),
+          tags$li(
+            "El campo 'Estado' debe estar idealmente completo al menos para la especie objetivo del infome, con una de las siguientes clases: 'Adulto', 'Brinzal', 'Regeneración'."
           )
         )
       )

@@ -20,7 +20,6 @@ mod_input_ui <- function(id) {
         tags$hr(),
         tags$h5("Datos de terreno"),
         mod_parcelas_ui(ns("bd_parcelas")),
-        # uiOutput(ns("densidad_ui")),
         tags$hr(),
         tags$h5("Bases cartográficas"),
         mod_bases_carto_ui(ns("bases_carto")),

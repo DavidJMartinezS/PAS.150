@@ -86,7 +86,7 @@ library(openxlsx2)
 
 # INPUTS
 ## Inputs obligatorios
-uso_veg <- prepare_uso_veg(read_sf("")) # Capa uso y vegetación de la cuenca. Ingresar ruta del archivo .shp
+uso_veg <- preparar_uso_veg(read_sf("")) # Capa uso y vegetación de la cuenca. Ingresar ruta del archivo .shp
 especie <- "" # "Porlieria chilensis", "Prosopis chilensis", etc
 obras <- read_sf("") # Capa del layout de obras. Ingresar ruta del archivo .shp
 censos <- read_sf("") # Capa de censos. Ingresar ruta del archivo .shp
@@ -99,14 +99,14 @@ alt_ok <- F # Valor lógico (T o F) para indicar si la capa de BNP a alterar con
 
 ## Inputs bases de datos
 BNP_cuenca <- get_BNP_cuenca(uso_veg = uso_veg, sp = especie)
-BD_flora <- prepare_bd_flora_150(
+BD_flora <- preparar_bd_flora_150(
   BD = "", # Ingresar ruta del archivo .xlsx de la BD de inventarios florísticos
   bd_lista = TRUE, # Valor lógico (T o F). T para utilizar los datos tal cual se ingresan. F para filtrar por aquellos que estan en la cuenca.
   BNP_cuenca = BNP_cuenca, # Capa de BNP en la cuenca. Necesaria si bd_lista = F
   in_bnp_obra = TRUE, # Valor lógico (T o F). T para filtrar las parcelas en rodales con obra
   obras = obras # Capa de obras. Necesaria si bd_lista = F y in_bnp_obra = T
 )
-BD_fore <- prepare_bd_fore_150(
+BD_fore <- preparar_bd_fore_150(
   BD = , # Ingresar ruta del archivo .xlsx de la BD de inventarios forestales
   bd_lista = FALSE, # Valor lógico (T o F). T para utilizar los datos tal cual se ingresan. F para filtrar por aquellos que estan en la cuenca.
   BNP_cuenca = BNP_cuenca # Capa de BNP en la cuenca. Necesaria si bd_lista = F
@@ -213,13 +213,13 @@ Cada apéndice presenta una portada, cuya información de nombre de proyecto y l
 
 ```{r, eval = FALSE}
 # Configurar datos de portadas
-portada_opts(
+config_portada(
   nom_proj = NULL, # Nombre del proyecto
-  etapa_proj = c("EIA", "Ad", "AdComp", "RF"), # Seleccionar una opción. "EIA" por default.
+  etapa_proj = c("EIA", "A1", "A2", "A3", "RF", "PMP"), # Seleccionar una opción. "EIA" por default.
   logo = NULL, # Ruta con el logo del cliente
   plantilla = c("default", "KIM753", "MLP612") # Seleccionar una opción. "default" por default.
 )
-portada_opts(plantilla = "default")
+config_portada(plantilla = "default")
 # $nom_proj
 # [1] "INGRESE NOMBRE DEL PROYECTO"
 
@@ -228,7 +228,7 @@ portada_opts(plantilla = "default")
 
 # $logo
 # [1] "C:/Users/dmartinez/Documents/R/PAS.150/inst/app/www/logo_default.png"
-portada_opts(plantilla = "KIM753", etapa_proj = "RF")
+config_portada(plantilla = "KIM753", etapa_proj = "RF")
 # $nom_proj
 # [1] "LÍNEA DE TRANSMISIÓN ELÉCTRICA HVDC KIMAL - LO AGUIRRE"
 
@@ -237,7 +237,7 @@ portada_opts(plantilla = "KIM753", etapa_proj = "RF")
 
 # $logo
 # [1] "C:/Users/dmartinez/Documents/R/PAS.150/inst/app/www/logo_conexion.png"
-portada_opts(
+config_portada(
   nom_proj = "Proyecto nuevo", # Nombre del proyecto 
   logo = "C:/ruta/al/archivo/logo_cliente.png." # Ingresar ruta con el logo del cliente
 )
@@ -257,7 +257,7 @@ wb_workbook(theme = "Integral") %>%
     wb_portada_PAS150(
       apendice = c("inventarios", "biodiversidad", "fragmentacion"), # Seleccionar una opción
       nom_ssubc = nom_ssubc,
-      opts = portada_opts()
+      opts = config_portada()
     ) %>% 
       wb_open()
 ```
@@ -269,7 +269,7 @@ BD_biodiversidad <- BD_biodiversidad(
   BD_flora = BD_flora, 
   sp = especie, 
   nom_ssubc = nom_ssubc, 
-  portada_opts = portada_opts() # Configurar a gusto
+  portada_opts = config_portada() # Configurar a gusto
 )
 
 # Guardar
@@ -287,7 +287,7 @@ BD_inv_forestales <- BD_inventarios(
   BD_fore = BD_fore, 
   BNP_cuenca = BNP_cuenca, 
   sp = especie, 
-  portada_opts = portada_opts()
+  portada_opts = config_portada()
 )
 
 # Guardar apéndice de inventarios forestales
@@ -361,7 +361,7 @@ BD_fragmentacion <- BD_fragmentacion(
   spp_acomp = BD_biodiversidad$spp_acomp, # default NULL
   prop = BD_inv_forestales$prop, # default NULL
   estadisticos = estadisticos, # default NULL
-  portada_opts = portada_opts()
+  portada_opts = config_portada()
 )
 
 # Guardar 

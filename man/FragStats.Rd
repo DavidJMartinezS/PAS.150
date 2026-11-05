@@ -3,12 +3,35 @@
 \name{FragStats}
 \alias{FragStats}
 \alias{FragStats_pre}
+\alias{FragStats_run}
 \alias{FragStats_post}
+\alias{find_frg_exe}
 \title{FragStats}
 \usage{
 FragStats_pre(dir, path_antes, path_despues)
 
-FragStats_post(dir, path_antes, path_despues)
+FragStats_run(
+  dir,
+  path_tif_antes,
+  path_tif_despues,
+  path_fca,
+  path_exe = find_frg_exe(),
+  edge = 10,
+  prox = 1000
+)
+
+FragStats_post(dir, path_antes, path_despues, edge, prox)
+
+FragStats(
+  dir,
+  path_antes,
+  path_despues,
+  path_exe = find_frg_exe(),
+  edge = 10,
+  prox = 1000
+)
+
+find_frg_exe()
 }
 \arguments{
 \item{dir}{directorio}
@@ -16,6 +39,18 @@ FragStats_post(dir, path_antes, path_despues)
 \item{path_antes}{ruta del archivo '.shp' del BNP antes del proyecto}
 
 \item{path_despues}{ruta del archivo '.shp' del BNP despues del proyecto}
+
+\item{path_tif_antes}{ruta del archivo '.tif' del BNP antes del proyecto. Archivo creado con la función `FragStats_pre()`}
+
+\item{path_tif_despues}{ruta del archivo '.tif' del BNP despues del proyecto. Archivo creado con la función `FragStats_pre()`}
+
+\item{path_fca}{ruta del modelo .fca}
+
+\item{path_exe}{ruta del archivo ejecutable del software FragStats. Obtener ruta con `find_frg_exe()`}
+
+\item{edge}{valor del parámetro de borde}
+
+\item{prox}{valor del parámetro radio de busqueda usando para le índice de proximidad}
 }
 \value{
 crea carpetas y archivos del apendice de fragmentación

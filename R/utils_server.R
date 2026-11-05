@@ -253,14 +253,15 @@ add_BNP_ECC <- function(x){
 #' @param x Objeto sf con la cartografía de uso y vegetacion de la cuenca. Tambien util para darle formato a las capas de BNP en la cuenca y de intervenir y alterar.
 #'
 #' @return Objeto sf con columnas renombradas y superficie calculada.
-prepare_uso_veg <- function(x) {
+preparar_uso_veg <- function(x) {
   valid_input(x, inherit = "sf", geometry = "POLYGON")
   x %>%
     dplyr::rename_all(~ ifelse(
       . == "geometry", ., 
       stringi::stri_trans_totitle(stringi::stri_trans_general(., "Latin-ASCII"), type = "sentence")
     )) %>%
-    dplyr::rename_at(dplyr::vars(dplyr::contains("ecc")), stringi::stri_trans_toupper) %>%
+    dplyr::rename_at(dplyr::vars(dplyr::starts_with("ecc")), ~stringi::stri_trans_toupper(stringi::stri_replace_all_regex(., "(?i)art19|[[:punct:]]", ""))) %>%
+    dplyr::rename_at(dplyr::vars(dplyr::matches("bnp.*ecc")), stringi::stri_trans_toupper) %>%
     dplyr::rename_if(names(.) %>% stringi::stri_detect_regex("^uso.*tierra", case_insensitive = T), ~ "Uso") %>%
     dplyr::rename_if(names(.) %>% stringi::stri_detect_regex("^sub.*uso", case_insensitive = T), ~ "Subuso") %>%
     dplyr::rename_if(names(.) %>% stringi::stri_detect_regex("^tipo.*for", case_insensitive = T), ~ "Tipo_for") %>%

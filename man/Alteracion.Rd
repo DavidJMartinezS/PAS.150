@@ -4,6 +4,8 @@
 \alias{Alteracion}
 \alias{get_alter_bnp_remanente}
 \alias{get_alter_censo_buffer}
+\alias{get_alter_buffer_fijo}
+\alias{get_alter_buffer_variable}
 \title{Identifica y calcula la superficie de alteración en fragmentos remanentes de BNP}
 \usage{
 get_alter_bnp_remanente(BNP, obras, sp, sup_ha_max = 0.5)
@@ -17,6 +19,27 @@ get_alter_censo_buffer(
   buffer = 5,
   dTolerance = 2,
   radio = 1
+)
+
+get_alter_buffer_fijo(
+  BNP,
+  obras,
+  buffer = 5,
+  campo_obras = "Obra",
+  orden_obras = c("frente", "plaza", "camino")
+)
+
+get_alter_buffer_variable(
+  BNP_inter,
+  BNP,
+  obras,
+  radio,
+  clima,
+  dem,
+  stat_pend = c("median", "mean"),
+  decimales_buffer = 1L,
+  campo_obras = "Obra",
+  orden_obras = c("frente", "plaza", "camino")
 )
 }
 \arguments{

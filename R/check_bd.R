@@ -1,6 +1,6 @@
 #' Chequeo Bases de Datos
 #'
-#' @param x dataframe con la base de datos. Generarla con `prepare_bd_fore_150()`
+#' @param x dataframe con la base de datos. Generarla con `preparar_bd_fore_150()`
 #'
 #' @returns Devuelve alertas impresas en la consola o bien en modulos de shiny.
 #' @rdname check_bd
@@ -442,10 +442,10 @@ check_bd_fore <- function(x) {
   if (all(c("Parcela", "UTM_E", "UTM_N") %in% names(x))) {
     ## UTM_E y UTM_N ----
     if (
-      !x$UTM_E %>%
+      !x$UTM_E %>% format(scientific = F) %>% 
       stringi::stri_count_regex("\\w") %>%
       all(. == 6) ||
-      !x$UTM_N %>%
+      !x$UTM_N %>% format(scientific = F) %>% 
       stringi::stri_count_regex("\\w") %>%
       all(. == 7)
     ) {
@@ -455,8 +455,8 @@ check_bd_fore <- function(x) {
           text = tags$p(
             "Revisar las coordenadas de las siguientes parcelas:", rep_br(2),
             paste(
-              x$Parcela[which(!x$UTM_E %>% stringi::stri_count_regex("\\w") %>% .[] == 6)] %>%
-                c(x$Parcela[which(!x$UTM_N %>% stringi::stri_count_regex("\\w") %>% .[] == 7)]) %>%
+              x$Parcela[which(!x$UTM_E %>% format(scientific = F) %>% stringi::stri_count_regex("\\w") %>% .[] == 6)] %>%
+                c(x$Parcela[which(!x$UTM_N %>% format(scientific = F) %>% stringi::stri_count_regex("\\w") %>% .[] == 7)]) %>%
                 unique() %>%
                 shQuote(),
               collapse = ", "

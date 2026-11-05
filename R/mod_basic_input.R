@@ -10,7 +10,6 @@
 mod_basic_input_ui <- function(id) {
   ns <- NS(id)
   tagList(
-    mod_read_sf_ui(ns("uso_veg"), label = "Uso-vegetación", required = TRUE),
     shinyWidgets::pickerInput(
       inputId = ns("sp"),
       label = "Especie:",
@@ -26,6 +25,7 @@ mod_basic_input_ui <- function(id) {
         style = c(rep("", length(df_sp$Especie)), "color: #3d93ab; font-weight: bold; border-top: 1px solid #ddd")
       )
     ),
+    mod_read_sf_ui(ns("uso_veg"), label = "Uso-vegetación", required = TRUE),
     mod_read_sf_ui(ns("obras"), label = "Obras", required = TRUE),
     mod_read_sf_ui(ns("censo"), label = "Censos", required = TRUE),
     checkboxInput(ns("upto5m"), "Incluir individuos hasta 5 m.", value = T),
@@ -158,7 +158,7 @@ mod_basic_input_server <- function(id, rv){
     })
 
     # Uso_veg ----
-    mod_read_sf_server("uso_veg", rv = rv, i = "uso_veg", fx = prepare_uso_veg)
+    mod_read_sf_server("uso_veg", rv = rv, i = "uso_veg", fx = preparar_uso_veg)
     
     observeEvent(rv$uso_veg, ignoreNULL = FALSE, {
       if (!isTruthy(rv$uso_veg)) {
@@ -241,7 +241,7 @@ mod_basic_input_server <- function(id, rv){
 
     # Inputs afectacion ----
     ## BNP intervenir ----
-    mod_read_sf_server("bnp_inter", rv = rv, i = "BNP_inter", fx = prepare_uso_veg)
+    mod_read_sf_server("bnp_inter", rv = rv, i = "BNP_inter", fx = preparar_uso_veg)
     observeEvent(rv$BNP_inter, ignoreNULL = TRUE, {
       ok <- check_input(rv = rv, x = "BNP_inter", names_req = req_names$BNP_afect, id_reset = "bnp_inter-sf_file")
       if (!ok) {
@@ -280,7 +280,7 @@ mod_basic_input_server <- function(id, rv){
     })
 
     ## BNP alterar ----
-    mod_read_sf_server("bnp_alter", rv = rv, i = "BNP_alter", fx = prepare_uso_veg)
+    mod_read_sf_server("bnp_alter", rv = rv, i = "BNP_alter", fx = preparar_uso_veg)
     observeEvent(rv$BNP_alter, ignoreNULL = TRUE, {
       ok <- check_input(rv = rv, x = "BNP_alter", names_req = "BNP_ECC", id_reset = "bnp_alter-sf_file")
       if (!ok) {

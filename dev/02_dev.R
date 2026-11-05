@@ -52,6 +52,7 @@ usethis::use_package('readr', min_version = T)
 usethis::use_package("reticulate", min_version = T)
 usethis::use_package("zip", min_version = T)
 usethis::use_package("fs", min_version = T)
+usethis::use_package("DBI")
 # In your package code, use `rlang::is_installed("reticulate")` or `rlang::check_installed("reticulate")` to test if reticulate is installed.
 # Then directly refer to functions with `reticulate::fun()`.
 usethis::use_package("SupHA", type = "Suggests")
@@ -87,6 +88,8 @@ golem::add_module(name = "ext_capas_carto")
 golem::add_module(name = "ext_supha_kmz")
 golem::add_module(name = "alteracion")
 golem::add_utils(name = "alteracion")
+golem::add_module(name = "medidas")
+golem::add_utils(name = "medidas")
 golem::add_module(name = "view_table")
 
 ## Add helper functions ----

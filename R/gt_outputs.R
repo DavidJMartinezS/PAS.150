@@ -601,7 +601,7 @@ gt_sup_inter <- function(obras, BNP_inter, BNP_alterar, col_obras = NULL) {
         dplyr::summarise(Sup_int = sum(Sup_ha), .groups = "drop")
     ) %>%
     {if(!is.null(BNP_alterar)){
-      dplyr::left_join(.[],
+      dplyr::full_join(.[],
         BNP_alterar %>%
           sf::st_drop_geometry() %>%
           dplyr::group_by(!!!vars_obras) %>%
@@ -635,7 +635,7 @@ gt_sup_inter <- function(obras, BNP_inter, BNP_alterar, col_obras = NULL) {
   
   gt <- df_1 %>% 
     dplyr::group_by(!!!vars_obras) %>%
-    dplyr::summarise(across(where(is.numeric), sum, na.rm = TRUE), .groups = "drop") %>%
+    dplyr::summarise(across(where(is.numeric), \(x) sum(x, na.rm = TRUE)), .groups = "drop") %>%
     dplyr::arrange(dplyr::across(!!!vars_obras[1]) == "Otras obras") %>% 
     janitor::adorn_totals() %>%
     dplyr::mutate_if(is.numeric, ~ ifelse(is.na(.), 0, .)) %>% 

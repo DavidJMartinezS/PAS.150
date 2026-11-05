@@ -11,9 +11,9 @@ req_names <- list(
 
 #' @noRd
 df_sp <- dplyr::arrange(tibble::tibble(
-  Especie = c("Carica chilensis", "Porlieria chilensis", "Prosopis chilensis", "Citronella mucronata", "Polylepis tarapacana", "Drimys winteri", "Prosopis tamarugo"),
-  RCE = c(rep("VU", 5), rep("EN", 2)),
-  Tipo_rep = c("dioica", rep("monoica", 6)),
+  Especie = c("Carica chilensis", "Porlieria chilensis", "Prosopis chilensis", "Neltuma chilensis", "Citronella mucronata", "Polylepis tarapacana", "Drimys winteri", "Prosopis tamarugo"),
+  RCE = c(rep("VU", 6), rep("EN", 2)),
+  Tipo_rep = c("dioica", rep("monoica", 7)),
   Desc = paste0("RCE: ", RCE, " | Tipo: ", Tipo_rep)
 ), Especie)
 
@@ -28,6 +28,46 @@ div_gt <- function(gt_output) {
   tags$div(class = "container_zoom",
     tags$div(class = "inner_table",
       gt_output
+    )
+  )
+}
+
+#' @noRd
+tooltip_label <- function(label, popover) {
+  bslib::tooltip(
+    trigger = list(
+      label,
+      bsicons::bs_icon("info-circle-fill", class = "text-primary")
+    ),
+    popover
+  )
+}
+
+#' @noRd
+text_box <- function(
+  text,
+  status = c("info", "primary", "secondary", "warning", "danger"),
+  text.color = NULL,
+  icon.size = "1.2em"
+) {
+  status <- match.arg(status)
+  p_style <- if (!is.null(text.color)) {
+    sprintf("color: %s;", text.color)
+  } else {
+    NULL
+  }
+  tags$div(
+    class = sprintf("mb-2 p-3 bg-light border-%s", status),
+    style = "border-left:3px solid",
+    tags$p(
+      class = "mb-0",
+      style = p_style,
+      bsicons::bs_icon(
+        "info-circle",
+        class = sprintf("me-2 text-%s", status),
+        size = icon.size
+      ),
+      text
     )
   )
 }

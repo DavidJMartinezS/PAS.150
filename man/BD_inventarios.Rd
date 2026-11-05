@@ -4,7 +4,7 @@
 \alias{BD_inventarios}
 \title{Apéndice BD inventarios forestales}
 \usage{
-BD_inventarios(BD_fore, BNP_cuenca, sp, portada_opts = PAS.150::portada_opts())
+BD_inventarios(BD_fore, BNP_cuenca, sp, portada_opts = config_portada())
 }
 \arguments{
 \item{BD_fore}{dataframe con la base de datos de las parcelas de inventarios forestales.}
@@ -22,5 +22,5 @@ lista con resultados asociados al apendices de inventarios forestales
 Apéndice BD inventarios forestales
 }
 \details{
-En el parametro `portada_opts` debe ingresar una lista con los argumentos de la funcion `portada_opts()`.
+En el parametro `portada_opts` debe ingresar una lista con los argumentos de la funcion `config_portada()`.
 }

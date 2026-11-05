@@ -32,9 +32,11 @@ mod_apendices_ui <- function(id) {
         label = "Etapa: ",
         choices = c(
           "EIA" = "EIA", 
-          "Adenda" = "Ad", 
-          "Adenda compl." = "AdComp", 
-          "Res. fundada" = "RF"
+          "Adenda" = "A1", 
+          "Adenda compl." = "A2", 
+          "Adenda excep." = "A3", 
+          "Res. fundada" = "RF",
+          "PMP" = "PMP"
         ),
         selected = "EIA",
         width = "150px",
@@ -102,8 +104,8 @@ mod_apendices_server <- function(id, rv){
     observe({
       rv$portada_opts <- switch(
         as.character(input$portada != "otra"),
-        "TRUE" = portada_opts(plantilla = input$portada, etapa_proj = input$etapa_proj),
-        "FALSE" = PAS.150::portada_opts(
+        "TRUE" = config_portada(plantilla = input$portada, etapa_proj = input$etapa_proj),
+        "FALSE" = config_portada(
           nom_proj = input$nom_proj, 
           etapa_proj = input$etapa_proj, 
           logo = input$logo$datapath, 

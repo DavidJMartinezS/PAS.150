@@ -16,7 +16,7 @@ BD_fragmentacion(
   spp_acomp = NULL,
   prop = NULL,
   estadisticos = NULL,
-  portada_opts = PAS.150::portada_opts()
+  portada_opts = config_portada()
 )
 }
 \arguments{
