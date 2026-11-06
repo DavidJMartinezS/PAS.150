@@ -86,9 +86,9 @@ group_by_distance <- function(sf, distance){
   return(igraph::components(g)$membership)
 }
 
-#' @noRd
+#' @export
 clean_geom <- function(sf) {
-  valid_input(sf, inherit = "sf")
+  valid_input(sf, inherit = "sf", geometry = "POLYGON")
   sf %>%
     sf::st_make_valid() %>%
     sf::st_collection_extract("POLYGON") %>%

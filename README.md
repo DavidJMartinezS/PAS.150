@@ -93,7 +93,7 @@ Los apéndices del PAS 150 los siguientes 3:
   “Fragmentación” y requiere cargar previamente la capa de uso y
   vegetación y la de obras.
 
-## Uso de funciones en R
+## Generar insumos principales en R
 
 Si desea generar los insumos para el informe de experto del PAS 150 en
 el enterno de R, a continuación se muestra cómo:
@@ -107,7 +107,7 @@ library(openxlsx2)
 
 # INPUTS
 ## Inputs obligatorios
-uso_veg <- prepare_uso_veg(read_sf("")) # Capa uso y vegetación de la cuenca. Ingresar ruta del archivo .shp
+uso_veg <- preparar_uso_veg(read_sf("")) # Capa uso y vegetación de la cuenca. Ingresar ruta del archivo .shp
 especie <- "" # "Porlieria chilensis", "Prosopis chilensis", etc
 obras <- read_sf("") # Capa del layout de obras. Ingresar ruta del archivo .shp
 censos <- read_sf("") # Capa de censos. Ingresar ruta del archivo .shp
@@ -120,14 +120,14 @@ alt_ok <- F # Valor lógico (T o F) para indicar si la capa de BNP a alterar con
 
 ## Inputs bases de datos
 BNP_cuenca <- get_BNP_cuenca(uso_veg = uso_veg, sp = especie)
-BD_flora <- prepare_bd_flora_150(
+BD_flora <- preparar_bd_flora_150(
   BD = "", # Ingresar ruta del archivo .xlsx de la BD de inventarios florísticos
   bd_lista = TRUE, # Valor lógico (T o F). T para utilizar los datos tal cual se ingresan. F para filtrar por aquellos que estan en la cuenca.
   BNP_cuenca = BNP_cuenca, # Capa de BNP en la cuenca. Necesaria si bd_lista = F
   in_bnp_obra = TRUE, # Valor lógico (T o F). T para filtrar las parcelas en rodales con obra
   obras = obras # Capa de obras. Necesaria si bd_lista = F y in_bnp_obra = T
 )
-BD_fore <- prepare_bd_fore_150(
+BD_fore <- preparar_bd_fore_150(
   BD = , # Ingresar ruta del archivo .xlsx de la BD de inventarios forestales
   bd_lista = FALSE, # Valor lógico (T o F). T para utilizar los datos tal cual se ingresan. F para filtrar por aquellos que estan en la cuenca.
   BNP_cuenca = BNP_cuenca # Capa de BNP en la cuenca. Necesaria si bd_lista = F
@@ -192,10 +192,33 @@ download_files(
   dir_save = dir_save, # directorio donde guardar
   create_kmz = TRUE # TRUE para generar KMZ
 )
+# Descomprimir carpeta
+utils::unzip(
+  zipfile = file.path(dir_save, "Cartografia_digital.zip") %>% normalizePath("/", mustWork = FALSE), 
+  exdir = file.path(dir_save, "Cartografia_digital") %>% normalizePath("/", mustWork = FALSE), 
+  overwrite = TRUE
+)
 ```
 
-Si descomprime la carpeta tiene las opciones de: \* Editar el nombre
-añadiendole un prefijo o sufijo a los archivos, por ejemplo:
+Si descomprime la carpeta tiene las opciones de:
+
+- Editar el nombre añadiendole un prefijo o sufijo a los archivos, por
+  ejemplo:
+
+``` r
+archivos <- list.files(file.path(dir_save, "Cartografia_digital") %>% normalizePath("/", mustWork = FALSE)) 
+archivos %>% purrr::map(agregar_prefijo, prefijo = "Prefijo", sep = "_")
+archivos %>% purrr::map(agregar_sufijo, prefijo = "Sufijo", sep = "_")
+# Tambien se puede hacer al momento de descargar
+download_files(
+  x = carto_digital, 
+  name_save = list(Cartografia_digital = names(carto_digital) %>% paste0("Prefijo", ., sep = "_")), # Para gregar prefijo 
+  name_save = list(Cartografia_digital = names(carto_digital) %>% paste0(., "Sufijo", sep = "_")), # Para agregar sufijo
+  name_save = list(Cartografia_digital = names(carto_digital) %>% paste0("Prefijo", ., "Sufijo", sep = "_")), # Para agregar prefijo y sufijo
+  dir_save = dir_save, 
+  create_kmz = TRUE 
+)
+```
 
 - Formatear precision de decimales. Aqui algunos ejemplos:
 
@@ -249,13 +272,13 @@ configurar una portada:
 
 ``` r
 # Configurar datos de portadas
-portada_opts(
+config_portada(
   nom_proj = NULL, # Nombre del proyecto
-  etapa_proj = c("EIA", "Ad", "AdComp", "RF"), # Seleccionar una opción. "EIA" por default.
+  etapa_proj = c("EIA", "A1", "A2", "A3", "RF", "PMP"), # Seleccionar una opción. "EIA" por default.
   logo = NULL, # Ruta con el logo del cliente
   plantilla = c("default", "KIM753", "MLP612") # Seleccionar una opción. "default" por default.
 )
-portada_opts(plantilla = "default")
+config_portada(plantilla = "default")
 # $nom_proj
 # [1] "INGRESE NOMBRE DEL PROYECTO"
 
@@ -264,7 +287,7 @@ portada_opts(plantilla = "default")
 
 # $logo
 # [1] "C:/Users/dmartinez/Documents/R/PAS.150/inst/app/www/logo_default.png"
-portada_opts(plantilla = "KIM753", etapa_proj = "RF")
+config_portada(plantilla = "KIM753", etapa_proj = "RF")
 # $nom_proj
 # [1] "LÍNEA DE TRANSMISIÓN ELÉCTRICA HVDC KIMAL - LO AGUIRRE"
 
@@ -273,7 +296,7 @@ portada_opts(plantilla = "KIM753", etapa_proj = "RF")
 
 # $logo
 # [1] "C:/Users/dmartinez/Documents/R/PAS.150/inst/app/www/logo_conexion.png"
-portada_opts(
+config_portada(
   nom_proj = "Proyecto nuevo", # Nombre del proyecto 
   logo = "C:/ruta/al/archivo/logo_cliente.png." # Ingresar ruta con el logo del cliente
 )
@@ -293,7 +316,7 @@ wb_workbook(theme = "Integral") %>%
     wb_portada_PAS150(
       apendice = c("inventarios", "biodiversidad", "fragmentacion"), # Seleccionar una opción
       nom_ssubc = nom_ssubc,
-      opts = portada_opts()
+      opts = config_portada()
     ) %>% 
       wb_open()
 ```
@@ -306,7 +329,7 @@ BD_biodiversidad <- BD_biodiversidad(
   BD_flora = BD_flora, 
   sp = especie, 
   nom_ssubc = nom_ssubc, 
-  portada_opts = portada_opts() # Configurar a gusto
+  portada_opts = config_portada() # Configurar a gusto
 )
 
 # Guardar
@@ -325,7 +348,7 @@ BD_inv_forestales <- BD_inventarios(
   BD_fore = BD_fore, 
   BNP_cuenca = BNP_cuenca, 
   sp = especie, 
-  portada_opts = portada_opts()
+  portada_opts = config_portada()
 )
 
 # Guardar apéndice de inventarios forestales
@@ -369,35 +392,18 @@ BNP antes y después del proyecto. Con esto se puede ejecutar la
 el modelo.
 
 ``` r
-dir <- "" # Ingresar ruta del directorio donde dejar los resultados del Fragstats 
-if (!dir.exists(dir)) dir.create(dir, recursive = T) # Crea el directorio si es que no existe
+dir_frag <- "" # Ingresar ruta del directorio donde dejar los resultados del Fragstats 
+if (!dir.exists(dir_frag)) dir.create(dir_frag, recursive = T) # Crea el directorio si es que no existe
 path_antes = "ruta/al/bnp_antes.shp" # Ingresar ruta del archivo .shp del BNP antes del proyecto
 path_despues = "ruta/al/bnp_despues.shp" # Ingresar ruta del archivo .shp del BNP despues del proyecto. Es decir, sin la superficie a intervenir y alterar
 
-FragStats_pre(dir = dir, path_antes = path_antes, path_despues = path_despues)
-```
-
-Para correr el modelo debe copiar y abrir el archivo “FragStats.fca”.
-Este ya contiene las configuraciones necesarias, solo debe cargar el
-archivo ‘.tif’ del BNP antes del proyecto desde la carpeta ‘IMG’ y
-correr el modelo.
-
-Guardar la salida en la carpeta de ‘RESULTADOS’ y luego limpiar los
-inputs y outputs. A continuación ejecutar el mismo modelo, ahora para el
-‘.tif’ del BNP despues del proyecto.
-
-Una vez guardados ambos resultados, ejecutar la función
-`FragStats_post`.
-
-``` r
-# Copiar el modelo al directorio
-file.copy(
-  from = system.file("app/www/FragStats.fca", package = "PAS.150"), 
-  to = file.path(dir, "FragStats.fca")
+FragStats(
+  dir = dir_frag, 
+  path_antes = path_antes, 
+  path_despues = path_despues, 
+  edge = 10, # Parámetro distancia de borde (m)
+  prox = 1000 # Parámetro de proximidad (m)
 )
-system.file("app/www/FragStats.fca", package = "PAS.150")
-# EJECUTAR EL MODELO FRAGSTATS ANTES DE CONTINUAR!
-FragStats_post(dir = dir, path_antes = path_antes, path_despues = path_despues)
 ```
 
 ##### Analisis de amenaza (19 parámetros)
@@ -415,8 +421,12 @@ BD_fragmentacion <- BD_fragmentacion(
   spp_acomp = BD_biodiversidad$spp_acomp, # default NULL
   prop = BD_inv_forestales$prop, # default NULL
   estadisticos = estadisticos, # default NULL
-  portada_opts = portada_opts()
+  portada_opts = config_portada()
 )
+
+# Para generar una lista de los subusos sin vegetación de manera más rápida se recomienda usar lo siguiente:
+subusos_noveg <- sort(unique(uso_veg$Subuso)) %>% 
+  subset(stringi::stri_detect_regex(stringi::stri_trans_general(., "Latin-ASCII"), "rocoso|camino|zona|rio|lago|mineria|agricola|otros|ambiental|duna|playa|caso.*base", case_insensitive = T))
 
 # Guardar 
 download_files(
@@ -429,7 +439,8 @@ download_files(
 ### Visualización de resultados
 
 A continuación, las funciones para generar las tablas con resultados que
-se visualizan en la aplicación.
+se visualizan en la aplicación. Estas se pueden seleccionar y arrastrar
+a una hoja de Excel.
 
 ``` r
 gt_usos(uso_veg = uso_veg)
@@ -455,6 +466,103 @@ gt_prop(df_est = estadisticos, df_prop = BD_inv_forestales$prop, BNP_cuenca = BN
 gt_frag_matriz(matriz_paisaje = BD_fragmentacion$matriz_paisaje)
 gt_frag_param(df = BD_fragmentacion$df)
 gt_frag_resultados(tabla_eval = BD_fragmentacion$tabla_eval)
+```
+
+## Definición de alteración de hábitat
+
+Se dispone de algunas funciones para crear distintos poligonos de
+alteración
+
+### Alteración basada en BNP remanente
+
+Esta función permite crear la capa de alteración de hábitat
+correspondiente a aquellos polígonos de BNP que, por causa de las obras
+del proyecto, se subdividen dejando un remanente con una superficie
+inferior a la establecida. Esta superficie umbral podría ser la
+superficie minima viable para la presencia de BNP en la zona, o bien la
+superficie bajo la cual el bosque pierde su protección legal
+
+``` r
+alter_fragmentos <- get_alter_bnp_remanente(
+  BNP = BNP_cuenca, 
+  obras = obras, 
+  sp = especie, 
+  sup_ha_max = 0.5 # Superficie umbral para la alteración (en hectáreas) 
+)
+```
+
+### Alteración basada en buffer
+
+#### Buffer fijo
+
+Esta función permite crear un área buffer a una distancia fija alrededor
+del BNP a intervenir
+
+``` r
+alter_buffer <- get_alter_buffer_fijo(
+  BNP = BNP_cuenca, 
+  obras = obras, 
+  buffer = 5, # buffer a la obra (en metros)
+  campo_obras = "Obra", # Nombre del campo que contiene las obras 
+  orden_obras = c("Frente", "Plaza", "Caminos") # Orden de obras. Detecta patrones, no requiere escribir nombre de obra completo
+)
+```
+
+#### Buffer variable
+
+Esta función permite crear un área buffer variable alrededor del BNP a
+intervenir, basado en los radios de copa, el clima y la pendiente, de
+acuerdo a la guía de conaf ‘Propuesta de criterios y variables para la
+evaluación de la alteración de hábitat’
+
+``` r
+alter_buffer <- get_alter_buffer_variable(
+  BNP_inter = get_BNP_intervencion(BNP_cuenca = BNP_cuenca, obras = obras), 
+  BNP = BNP_cuenca, 
+  obras = obras, 
+  radio = 1.5, # valor de radio de copas (m)
+  clima = 4, # valor de clima (2-5)
+  dem = "ruta/dem.tif", 
+  stat_pend = c("median", "mean"), # Elegir entre mediana y media para pendiente
+  decimales_buffer = 1, # Cantidad de decimales para el buffer
+  campo_obras = "Obra", # Nombre del campo que contiene las obras 
+  orden_obras = c("Frente", "Plaza", "Caminos") # Orden de obras. Detecta patrones, no requiere escribir nombre de obra completo
+)
+```
+
+#### Buffer a individuos
+
+Esta función permite crear un área de alteración de hábitat de BNP
+alrededor de los individuos ubicados a una cierta distancia de las
+obras, formando un polígono convexo o cóncavo en torno a ellos
+
+``` r
+alter_buffer <- get_alter_censo_buffer(
+  BNP = BNP_cuenca, 
+  obras = obras, 
+  censos = censos, 
+  sp = especie, 
+  distancia = 5, # Distancia de las obras a la que considerar el censo 
+  buffer = 5, # Distancia de buffer alrededor de los individuos
+  dTolerance = 2, # Parametro de toletancia para la distancia. Si el valor fuese 1 y la distancia 5, entonces incluirá individuos cuya distancia redondeada a un decimal da 5 (por ejemplo, individuos a 5.04 m)
+  radio = 1 # Radio de ajuste del poligono concavo (ver ?sf::st_concave_hull())
+)
+```
+
+### Unir criterios de alteración
+
+``` r
+# Crear intervención, si no se desea incluir dejar como NULL
+inter <- BNP_inter %>% dplyr::mutate(Afectacion = "Intervención")
+
+# Unir permitiendo solapes entre alteraciones
+alter_merge <- dplyr::bind_rows(inter, alter_fragmentos, alter_buffer)
+# Unir priorizando alteración de fragmentos (sin solape)
+alter_merge <- dplyr::bind_rows(inter, alter_fragmentos, alter_buffer) %>% 
+  sf::st_difference() %>% 
+  clean_geom()
+# Union de geometrias (mantiene ambas sin solape)
+alter_merge <- dplyr::bind_rows(inter, st_union_no_overlaps(alter_buffer, alter_fragmentos))
 ```
 
 **Se solicita reportar cualquier error o bug de la aplicación y/o sus
